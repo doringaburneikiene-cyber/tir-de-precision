@@ -623,11 +623,10 @@ function shotPanel(s){
        <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="det" data-f="m" data-v="C" aria-pressed="${shot.m==="C"}" aria-label="Arti arba kita">${diagram(a.n,44)}<span>Arti / kita</span></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
        <p class="dir-note">↑ metimo kryptis (jūs stovite apačioje)</p>
        ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB","Pirma kliūtis",shot.m==="OB",' data-f="m"')}</div>`:""}
-       ${a.n===5?`<div class="chips" style="justify-content:center">${chip("det","NM","Palietė, bet nepajudino",shot.m==="NM",' data-f="m"')}</div>`:""}
       </div>`;
     }else{
       h+=`<div class="stack"><span class="label">Kaip pataikė?</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,l,shot.c===c,' data-f="c"')).join("")}</div>
-       <span class="label">Kurioje ${a.n===5?"taikinuko":"rutulio"} vietoje?</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div></div>`;
+       ${a.n===5?"":`<span class="label">Kurioje rutulio vietoje?</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
     }
     h+=`<button class="btn block" data-act="next">Toliau →</button>`;
   }else{
@@ -722,7 +721,7 @@ function setDetail(f,v){
   if(sh[f]===v)delete sh[f];else sh[f]=v;
   persistSession(s);
   if(f==="m"&&sh.m){advance();return;}
-  if(sh.o!=="miss"&&sh.c&&sh.h){advance();return;}
+  if(sh.o!=="miss"&&sh.c&&(sh.h||sh.a===5)){advance();return;}
   render();
 }
 function advance(){
