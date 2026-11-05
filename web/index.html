@@ -104,6 +104,7 @@ textarea{min-height:64px;resize:vertical}
 
 .banner{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .banner b{font-weight:700}
+.banner.backup{flex-direction:column;gap:10px}
 
 /* scoreboard */
 .score-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
@@ -461,10 +462,36 @@ function diagram(a,size){
 }
 
 /* ---------- Views ---------- */
+/* ---------- Backup reminder ---------- */
+const BACKUP_DAYS=7, SNOOZE_DAYS=2;
+function backupInfo(){
+  const last=lsGet("tdp-lastbackup",0);
+  const withShots=S.sessions.filter(s=>s.shots&&s.shots.length);
+  const changed=withShots.some(s=>(s.updatedAt||s.createdAt||0)>last);
+  return{last,changed,count:withShots.length,days:last?Math.floor((Date.now()-last)/864e5):null};
+}
+function backupDue(){
+  if(S.store!=="local"||isDemo())return false;
+  const b=backupInfo();if(!b.changed)return false;
+  if(Date.now()<lsGet("tdp-backup-snooze",0))return false;
+  return b.last?b.days>=BACKUP_DAYS:b.count>=2;
+}
+function backupBanner(){
+  if(!backupDue())return"";const b=backupInfo();
+  return `<div class="banner backup" role="status"><span>${b.last?`Paskutinė atsarginė kopija – prieš <b>${b.days} d.</b>`:`<b>Dar nė karto nesidarėte atsarginės kopijos.</b>`} Treniruotės saugomos tik šiame telefone. Pasidarykite kopiją ir išsisaugokite ją el. pašte ar debesyje – tada nieko neprarasite, net pametę telefoną.</span>
+   <div class="row"><button class="btn sm" data-act="exp-json">Pasidaryti kopiją</button><button class="btn sm ghost" data-act="backup-later">Priminti vėliau</button></div></div>`;
+}
+function backupStatusText(){
+  const b=backupInfo();
+  if(!b.last)return"Atsarginės kopijos dar nesidarėte.";
+  const d=new Date(b.last);const when=dateLt(ymd(d));
+  return `Paskutinė atsarginė kopija: <b>${when}</b> (${b.days===0?"šiandien":"prieš "+b.days+" d."})${b.changed?" – po jos yra naujų treniruočių.":" – visos treniruotės išsaugotos kopijoje."}`;
+}
 function render(){
   const app=$("#app");
   let h="";
   h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:"Treniruotė",stats:"Statistika",hist:"Istorija",players:"Žaidėjai ir duomenys"}[S.view]}</h1></div>${S.store==="pending"?'<span class="status"><span class="dot"></span>Jungiamasi…</span>':statusHtml()}</header>`;
+  if(S.store!=="pending"&&S.view!=="players"&&!(S.view==="rec"&&active()))h+=backupBanner();
   if(S.store==="pending"){h+=`<div class="card"><p class="muted">Kraunami duomenys…</p></div>`;}
   else if(S.view==="rec")h+=viewRec();
   else if(S.view==="stats")h+=viewStats();
@@ -969,6 +996,7 @@ function viewPlayers(){
   h+=`<div class="row"><input type="text" id="pl-new" placeholder="Naujo žaidėjo vardas" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">Pridėti</button></div></div>`;
   h+=`<div class="card"><h2>Duomenys</h2>
    <p class="small ink2">${S.store==="db"?"Duomenys saugomi šios programėlės bendroje duomenų bazėje – juos mato ir gali pildyti visi, kuriems pasidalinta programėle (su „Contributor“ ar aukštesne teise).":"Duomenys saugomi tik šiame telefone. Kartą per savaitę ar po svarbios treniruotės pasidarykite atsarginę kopiją (JSON) ir išsisaugokite ją, pvz., el. pašte ar debesyje. Tą patį failą galite įkelti kitame telefone."}</p>
+   ${S.store==="local"?`<p class="small">${backupStatusText()}</p>`:""}
    <div class="row"><button class="btn sm ghost" data-act="exp-json">Atsarginė kopija (JSON)</button><button class="btn sm ghost" data-act="exp-csv">Visi metimai (CSV)</button><button class="btn sm ghost" data-act="imp">Įkelti iš kopijos</button></div>
    ${S.msg?`<p class="small">${esc(S.msg)}</p>`:""}
   </div>`;
@@ -1004,7 +1032,8 @@ async function doExport(kind){
       await saveFile(`tir-de-precision-metimai-${today()}.csv`,csv,"text/csv");
     }
     S.msg="Failas paruoštas.";
-  }catch(e){S.msg=e&&e.code==="declined"?"Atsisiuntimas atšauktas.":"Nepavyko paruošti failo.";}
+    if(kind==="json"){lsSet("tdp-lastbackup",Date.now());lsSet("tdp-backup-snooze",0);toast("Atsarginė kopija paruošta");}
+  }catch(e){S.msg=e&&e.code==="declined"?"Atsisiuntimas atšauktas.":"Nepavyko paruošti failo.";if(S.view!=="players")toast(S.msg);}
   render();
 }
 async function doImport(file){
@@ -1070,6 +1099,7 @@ document.addEventListener("click",e=>{
     case"pl-rename-save":{const p=S.players.find(x=>x.id===v);const i=$("#rn-"+v);if(p&&i&&i.value.trim()){p.name=i.value.trim();savePlayer(p);}S.renaming=null;render();break;}
     case"pl-archive":{const p=S.players.find(x=>x.id===v);if(p){p.archived=!p.archived;savePlayer(p);render();}break;}
     case"exp-json":doExport("json");break;
+    case"backup-later":lsSet("tdp-backup-snooze",Date.now()+SNOOZE_DAYS*864e5);render();break;
     case"exp-csv":doExport("csv");break;
     case"imp":$("#impfile").click();break;
   }
