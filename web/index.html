@@ -166,6 +166,25 @@ textarea{min-height:64px;resize:vertical}
 .thrower b{font-size:17px;color:var(--ink)}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translate(-50%,-20px);background:var(--ink);color:var(--surface);padding:12px 20px;border-radius:12px;font-weight:700;font-size:17px;opacity:0;pointer-events:none;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.25);transition:opacity .2s,transform .2s;white-space:nowrap}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+.cel{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(10,16,22,.55)}
+.cel-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cel-card{position:relative;background:var(--surface);color:var(--ink);border-radius:20px;padding:24px 20px 18px;max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.cel-card h2{font-size:30px}
+.cel-card p{color:var(--ink-2);font-size:15px}
+.cel-badge{width:76px;height:76px;margin:0 auto 4px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center}
+.cel-badge svg{width:42px;height:42px}
+@media (prefers-reduced-motion:no-preference){.cel-card{animation:celpop .4s cubic-bezier(.2,1.4,.4,1)}}
+@keyframes celpop{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+.week{display:flex;flex-direction:column;gap:10px}
+.week-row{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:10px;align-items:center}
+.week-row .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wdots{display:flex;gap:4px}
+.wdot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--surface-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.wdot.on{background:var(--o3);color:var(--o3-t);box-shadow:none}
+.wdot.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.wdot.on.today{box-shadow:0 0 0 2px var(--accent)}
+.wcount{font-family:var(--f-cond);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.wcount.goal{color:var(--good)}
 .dots{display:flex;flex-wrap:wrap;gap:4px}
 .sdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--f-cond);font-weight:700;font-size:14px}
 .sdot.p5{background:var(--o5);color:var(--o5-t)} .sdot.p3{background:var(--o3);color:var(--o3-t)} .sdot.p1{background:var(--o1);color:var(--o1-t)} .sdot.p0{background:var(--o0);color:var(--o0-t)}
@@ -487,6 +506,69 @@ function diagram(a,size){
 }
 
 /* ---------- Views ---------- */
+/* ---------- Celebrations ---------- */
+const CEL_ICON={
+ trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>'
+};
+const CEL=[];let celOpen=false;
+function celebrate(icon,title,text){CEL.push({icon,title,text});if(!celOpen)nextCel();}
+function nextCel(){
+  const c=CEL.shift();if(!c){celOpen=false;return;}celOpen=true;
+  const ov=document.createElement("div");ov.className="cel";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+  ov.innerHTML=`<canvas class="cel-cv" aria-hidden="true"></canvas><div class="cel-card"><div class="cel-badge">${CEL_ICON[c.icon]||CEL_ICON.star}</div><h2>${esc(c.title)}</h2><p>${c.text}</p><button class="btn block" type="button">${t("Ačiū!")}</button></div>`;
+  document.body.appendChild(ov);
+  try{navigator.vibrate&&navigator.vibrate([70,50,70,50,180]);}catch(e){}
+  let reduce=false;try{reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+  const stop=reduce?()=>{}:confetti(ov.querySelector("canvas"));
+  const btn=ov.querySelector("button");btn.focus();
+  btn.addEventListener("click",()=>{stop();ov.remove();nextCel();});
+}
+function confetti(cv){
+  const ctx=cv.getContext("2d");if(!ctx)return()=>{};
+  const dpr=Math.min(2,window.devicePixelRatio||1);const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+  const cs=getComputedStyle(document.documentElement);const cols=["--accent","--o3","--o5","--o1","--good"].map(v=>cs.getPropertyValue(v).trim()||"#E09A2A");
+  const P=[];for(let i=0;i<150;i++)P.push({x:W/2+(Math.random()-.5)*60,y:H*0.35,vx:(Math.random()-.5)*12,vy:-Math.random()*13-4,r:Math.random()*6+4,a:Math.random()*6.28,va:(Math.random()-.5)*.3,c:cols[i%cols.length]});
+  let raf=0,t0=performance.now();
+  const step=now=>{const el=now-t0;ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{p.vy+=.32;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;ctx.save();ctx.globalAlpha=Math.max(0,1-el/3200);ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});
+    if(el<3200)raf=requestAnimationFrame(step);else ctx.clearRect(0,0,W,H);};
+  raf=requestAnimationFrame(step);
+  return()=>cancelAnimationFrame(raf);
+}
+function celDone(key){const l=lsGet("tdp-cel",[]);if(l.includes(key))return true;l.push(key);lsSet("tdp-cel",l.slice(-300));return false;}
+function checkSeriesRecord(s,k){
+  const sh=seriesShots(s,k);if(sh.length<20)return;
+  const sum=sh.reduce((x,y)=>x+y.p,0);
+  const prev=S.sessions.filter(x=>x.playerId===s.playerId&&x.mode==="full").flatMap(x=>seriesTotals(x).filter(tt=>tt.n===20&&!(x.id===s.id&&tt.k===k)).map(tt=>tt.sum));
+  const name=esc(playerName(s.playerId));
+  if(sum===100){if(!celDone("pb:"+s.id+":"+k))celebrate("trophy",t("Tobula serija!"),t("{name}, 100 taškų iš 100. Tai maksimalus įmanomas rezultatas!",{name}));return;}
+  if(!prev.length)return;
+  const best=Math.max(...prev);
+  if(sum>best&&!celDone("pb:"+s.id+":"+k))celebrate("trophy",t("Naujas rekordas!"),t("{name}, <b>{sum}</b> taškų – geriau nei ankstesnis geriausias rezultatas ({best}). Puikiai!",{name,sum,best}));
+}
+function weekStart(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+function weekDays(pid){
+  const mon=weekStart();const days=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(ymd(d));}
+  const set=new Set(S.sessions.filter(x=>x.playerId===pid&&x.shots&&x.shots.length&&days.includes(x.date)).map(x=>x.date));
+  return{days,set,n:set.size,key:days[0]};
+}
+const WEEK_GOAL=4;
+function checkWeek(pid){
+  const w=weekDays(pid);if(w.n<WEEK_GOAL)return;
+  if(celDone("wk:"+pid+":"+w.key+":"+w.n))return;
+  if(w.n>WEEK_GOAL&&w.n<7)return;
+  const name=esc(playerName(pid));
+  celebrate("star",w.n>=7?t("Visa savaitė!"):t("Šaunuolis, {name}!",{name}),w.n>=7?t("{name}, treniravaisi kiekvieną šios savaitės dieną. Įspūdingas atsidavimas!",{name}):t("Šią savaitę treniravaisi jau <b>{n}</b> dienas. Toks reguliarumas ir atneša rezultatus – taip ir toliau!",{n:w.n}));
+}
+function weekCardHtml(pids){
+  if(!S.sessions.some(x=>x.shots&&x.shots.length))return"";
+  const letters=t("P A T K P Š S").split(" ");const td=today();
+  const rows=pids.map(pid=>{const w=weekDays(pid);
+    return `<div class="week-row"><span class="nm">${esc(playerName(pid))}</span><span class="wdots">${w.days.map((d,i)=>`<span class="wdot ${w.set.has(d)?"on":""} ${d===td?"today":""}">${letters[i]||""}</span>`).join("")}</span><span class="wcount ${w.n>=WEEK_GOAL?"goal":""}">${w.n}/${WEEK_GOAL}</span></div>`;}).join("");
+  return `<div class="card week"><div class="row between"><h3>${t("Ši savaitė")}</h3><span class="small muted">${t("Tikslas – bent {g} treniruočių dienos",{g:WEEK_GOAL})}</span></div>${rows}</div>`;
+}
+
 /* ---------- Backup reminder ---------- */
 const BACKUP_DAYS=7, SNOOZE_DAYS=2;
 function backupInfo(){
@@ -556,7 +638,7 @@ function viewNew(){
   nf.pids=nf.pids.filter(id=>pl.some(p=>p.id===id));
   if(nf.mode==="drill"&&S.group.rot==="task"){S.group.rot="shot";saveGroup();}
   const multi=nf.pids.length>1;
-  return `<div class="card">
+  return `${weekCardHtml(nf.pids.length?nf.pids:pl.slice(0,4).map(p=>p.id))}<div class="card">
    <h2>${t("Nauja treniruotė")}</h2>
    <div class="field"><span class="label">${t("Kas meta? Galima pasirinkti kelis")}</span>
      <div class="chips">${pl.map(p=>{const i=nf.pids.indexOf(p.id);return chip("nf-player",p.id,(i>=0&&multi?(i+1)+". ":"")+p.name,i>=0);}).join("")}</div>
@@ -739,6 +821,8 @@ function recordOutcome(key){
   }else{
     s.shots.push({a:a.n,d:S.cur.d,s:s.mode==="full"?k:0,o:o.k,p:o.p,t:Date.now()});
     S.pending=s.shots.length-1;S.fix=false;
+    let run=0;for(let i=s.shots.length-1;i>=0&&s.shots[i].p===5;i--)run++;
+    if(run===3||run===5||run===10)setTimeout(()=>toast(t("{n} kartus iš eilės po 5 taškus!",{n:run})),0);
   }
   S.editing=false;S.adding=false;persistSession(s);render();
 }
@@ -754,6 +838,7 @@ function advance(){
   const s=active();S.pending=null;S.editing=false;
   const prevA=S.cur.a;const fix=S.fix;S.fix=false;
   if(s&&s.mode==="full"){const n=nextEmpty(s,curSeries(s),S.cur);if(n)S.cur=n;}
+  if(s&&!fix&&s.mode==="full")checkSeriesRecord(s,curSeries(s));
   if(s&&!fix){
     const r=S.group.rot;const done=s.mode==="full"&&seriesShots(s,curSeries(s)).length>=20;
     if(r==="shot"||(r==="task"&&s.mode==="full"&&(S.cur.a!==prevA||done))||(r==="manual"&&done))rotate();
@@ -774,6 +859,7 @@ function endSession(){
   let focus=null;
   g.forEach(s=>{if(!s.shots.length){deleteSession(s.id);}else{s.done=true;persistSession(s);if(!focus||s.id===S.activeId)focus=s;}});
   S.group.ids=[];saveGroup();S.curs={};S.adding=false;
+  [...new Set(g.filter(x=>x.shots.length).map(x=>x.playerId))].forEach(checkWeek);
   setActive(null);S.view=focus?"stats":"rec";lsSet("tdp-view",S.view);
   if(focus){S.f.player=g.filter(s=>s.shots.length).length>1?"":focus.playerId;lsSet("tdp-f",S.f);}
   render();window.scrollTo(0,0);
