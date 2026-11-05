@@ -22,7 +22,9 @@ netlify.toml         Netlify nustatymai (publikuojamas aplankas: web)
 
 ## Talpinimas
 
-Netlify svetainė prijungta prie šio projekto: kiekvienas pakeitimas `main` šakoje automatiškai atnaujina svetainę.
+Netlify svetainė (https://beautiful-kleicha-2b3367.netlify.app) prijungta prie šio projekto: kiekvienas pakeitimas `main` šakoje automatiškai atnaujina svetainę.
+
+Kuri versija paskelbta, galima patikrinti atidarius `/sw.js` – eilutėje `const VERSION` matosi versijos numeris. Išleidžiant naują versiją, šį numerį reikia padidinti, kad telefonai pasiimtų atnaujinimą.
 
 ## Ateities planai
 
