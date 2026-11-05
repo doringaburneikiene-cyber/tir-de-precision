@@ -6,6 +6,7 @@ Petankės **tir de précision** (tikslaus mušimo) treniruočių registravimo ir
 - Kiekvieno metimo rezultatas, klaidos kryptis, pataikymo būdas
 - Keli žaidėjai vienoje treniruotėje su automatiniu keitimusi
 - Statistika: progresas, silpnos vietos pagal rungtį ir atstumą, klaidų kryptys
+- Kalbos: lietuvių, anglų, prancūzų (parenkama pagal telefono kalbą, keičiama skiltyje „Žaidėjai“)
 - Veikia be interneto, įsidiegia į telefono pradžios ekraną (PWA)
 - Duomenys saugomi telefone; atsarginė kopija JSON, metimų eksportas CSV
 
@@ -14,6 +15,7 @@ Petankės **tir de précision** (tikslaus mušimo) treniruočių registravimo ir
 ```
 web/                 programėlė (tai, kas talpinama Netlify)
   index.html         visa programėlė
+  i18n.js            vertimai (EN, FR); raktas – lietuviškas tekstas
   manifest.webmanifest
   sw.js              darbas be interneto (pakeiskite VERSION išleidžiant naują versiją)
   icons/
@@ -28,7 +30,6 @@ Kuri versija paskelbta, galima patikrinti atidarius `/sw.js` – eilutėje `cons
 
 ## Ateities planai
 
-- Vertimai (anglų, prancūzų)
 - Paskyros ir sinchronizavimas tarp įrenginių
 - Android versija Google Play (Capacitor, `webDir: web`)
 - Vaizdo įrašų analizė (svarbiausi kadrai, judesio matavimas)

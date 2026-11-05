@@ -239,9 +239,20 @@ ul.insight{padding:0;margin:0}
 <nav class="nav" aria-label="Skiltys"><div class="nav-in" id="nav"></div></nav>
 <input type="file" id="impfile" accept=".json,application/json" hidden>
 
+<script src="i18n.js"></script>
 <script>
 (function(){
 "use strict";
+
+/* ---------- i18n ---------- */
+const I18N=window.TDP_I18N||{};
+const LANGS=[["lt","Lietuvių"],["en","English"],["fr","Français"]];
+let LANG=(function(){let v=null;try{v=JSON.parse(localStorage.getItem("tdp-lang"));}catch(e){}
+  if(v&&LANGS.some(l=>l[0]===v))return v;const n=String(navigator.language||"en").slice(0,2).toLowerCase();return n==="lt"?"lt":n==="fr"?"fr":"en";})();
+function t(str,vars){let r=LANG==="lt"?str:((I18N[LANG]&&I18N[LANG][str]!=null)?I18N[LANG][str]:str);
+  if(vars)r=r.replace(/\{(\w+)\}/g,(m,k)=>vars[k]!=null?vars[k]:m);return r;}
+document.documentElement.lang=LANG;
+try{document.title=t("Tir de précision dienynas");}catch(e){}
 
 /* ---------- Domain ---------- */
 const DIST=[6,7,8,9];
@@ -259,19 +270,33 @@ const AT=[
    {k:"moved",p:3,l:"Pajudino",s:"Liko apskritime"},
    {k:"miss",p:0,l:"Nepataikė",s:"0 taškų",wide:true}]}
 ];
-const OBST_OUTS=[
+/* FIPJP 2025: 2 ir 4 rungtyse 1 t., kai kliūtis paliečiama grįžtant, pirma pataikius taikinį
+   (ir kritimas buvo už priekinės kliūties); 3 rungtyje 1 t., kai po taikinio paliesta kliūtis
+   lieka apskritime, o 0 t., kai ir taikinys, ir kliūtis išeina iš apskritimo. */
+const OUTS_24=[
  {k:"carreau",p:5,l:"Karo",s:"Kliūčių nelietė, mano rutulys liko"},
  {k:"reussi",p:3,l:"Išmušė",s:"Abu išėjo, kliūčių nelietė"},
  {k:"touche",p:1,l:"Palietė",s:"Taikinys liko apskritime"},
- {k:"obst",p:1,l:"Pajudino kliūtį",s:"Taikinys išėjo, bet kliūtis pajudėjo"},
+ {k:"obst",p:1,l:"Kliūtis grįžtant",s:"Pirma taikinys, po to kliūtis (kritimas už kliūties)"},
  {k:"miss",p:0,l:"Nepataikė",s:"0 taškų",wide:true}];
-AT[1].outs=OBST_OUTS;AT[2].outs=OBST_OUTS;AT[3].outs=OBST_OUTS;
-const OUT_LABEL={carreau:"Karo",reussi:"Išmušė",touche:"Palietė",obst:"Pajudino kliūtį",miss:"Nepataikė",out:"Išmušė taikinuką",moved:"Pajudino taikinuką"};
+const OUTS_3=[
+ {k:"carreau",p:5,l:"Karo",s:"Kliūčių nelietė, mano rutulys liko"},
+ {k:"reussi",p:3,l:"Išmušė",s:"Abu išėjo, kliūčių nelietė"},
+ {k:"touche",p:1,l:"Palietė",s:"Taikinys liko apskritime"},
+ {k:"obst",p:1,l:"Kliūtis liko",s:"Po taikinio palietė kliūtį, ji liko apskritime"},
+ {k:"obstout",p:0,l:"Kliūtis išėjo",s:"Taikinys ir kliūtis išėjo – 0 taškų"},
+ {k:"miss",p:0,l:"Nepataikė",s:"0 taškų"}];
+AT[1].outs=OUTS_24;AT[2].outs=OUTS_3;AT[3].outs=OUTS_24;
+const OUT_LABEL={carreau:"Karo",reussi:"Išmušė",touche:"Palietė",obst:"Kliūtis (1 t.)",obstout:"Taikinys ir kliūtis išėjo (0 t.)",miss:"Nepataikė",out:"Išmušė taikinuką",moved:"Pajudino taikinuką"};
 const DIRS=[["NW","Toli ir kairėn"],["N","Per toli"],["NE","Toli ir dešinėn"],["W","Kairėn"],["C","Arti / kita"],["E","Dešinėn"],["SW","Trumpai ir kairėn"],["S","Per trumpai"],["SE","Trumpai ir dešinėn"]];
-const DIR_LABEL=Object.fromEntries(DIRS);DIR_LABEL.OB="Pirma kliūtis";DIR_LABEL.NM="Palietė, nepajudino";
-const CONTACT={F:"Tiesiai į rutulį",B:"Su atšokimu"};
-const SIDE={L:"Kairė",C:"Centras",R:"Dešinė"};
-const KIND={train:"Treniruotė",comp:"Varžybos"};
+AT.forEach(a=>{a.name=t(a.name);a.desc=t(a.desc);});
+[AT[0].outs,OUTS_24,OUTS_3,AT[4].outs].forEach(list=>list.forEach(o=>{o.l=t(o.l);o.s=t(o.s);}));
+DIRS.forEach(d=>{d[1]=t(d[1]);});
+Object.keys(OUT_LABEL).forEach(k=>{OUT_LABEL[k]=t(OUT_LABEL[k]);});
+const DIR_LABEL=Object.fromEntries(DIRS);DIR_LABEL.OB=t("Pirma kliūtis");DIR_LABEL.NM=t("Palietė, nepajudino");
+const CONTACT={F:t("Tiesiai į rutulį"),B:t("Su atšokimu")};
+const SIDE={L:t("Kairė"),C:t("Centras"),R:t("Dešinė")};
+const KIND={train:t("Treniruotė"),comp:t("Varžybos")};
 const ORDER=[];AT.forEach(a=>DIST.forEach(d=>ORDER.push([a.n,d])));
 
 /* ---------- Utils ---------- */
@@ -282,7 +307,7 @@ const ymd=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
 const today=()=>ymd(new Date());
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const clone=o=>JSON.parse(JSON.stringify(o));
-const fmt1=v=>v==null||isNaN(v)?"—":(Math.round(v*10)/10).toFixed(1).replace(".",",");
+const fmt1=v=>{if(v==null||isNaN(v))return"—";const x=(Math.round(v*10)/10).toFixed(1);return LANG==="en"?x:x.replace(".",",");};
 const fmt0=v=>v==null||isNaN(v)?"—":String(Math.round(v));
 const pct=(a,b)=>b?Math.round(a/b*100):null;
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
@@ -307,9 +332,9 @@ let DB=null, DL=null;
 const saveQ=new Map();
 function setStatus(s){S.status=s;const el=$("#st");if(el)el.outerHTML=statusHtml();}
 function statusHtml(){
-  const m={ok:["ok",S.store==="db"?"Išsaugota":"Išsaugota įrenginyje"],saving:["saving","Saugoma…"],err:["err","Nepavyko išsaugoti – bandoma dar"],ro:["err","Tik peržiūra"]};
-  const [c,t]=S.ro?m.ro:(m[S.status]||m.ok);
-  return `<span class="status" id="st"><span class="dot ${c}"></span>${t}</span>`;
+  const m={ok:["ok",S.store==="db"?t("Išsaugota"):t("Išsaugota įrenginyje")],saving:["saving",t("Saugoma…")],err:["err",t("Nepavyko išsaugoti – bandoma dar")],ro:["err",t("Tik peržiūra")]};
+  const [c,txt]=S.ro?m.ro:(m[S.status]||m.ok);
+  return `<span class="status" id="st"><span class="dot ${c}"></span>${txt}</span>`;
 }
 function saveLocalAll(){lsSet("tdp-data",{players:S.players,sessions:S.sessions});}
 function persistSession(sess){
@@ -381,8 +406,8 @@ function scheduleRender(){
 document.addEventListener("focusout",()=>{if(renderPending){renderPending=false;setTimeout(render,0);}});
 
 /* ---------- Helpers on data ---------- */
-const activePlayers=()=>S.players.filter(p=>!p.archived).sort((a,b)=>(a.name||"").localeCompare(b.name||"","lt"));
-const playerName=id=>{const p=S.players.find(x=>x.id===id)||DEMO.players.find(x=>x.id===id);return p?p.name:"Nežinomas";};
+const activePlayers=()=>S.players.filter(p=>!p.archived).sort((a,b)=>(a.name||"").localeCompare(b.name||"",LANG));
+const playerName=id=>{const p=S.players.find(x=>x.id===id)||DEMO.players.find(x=>x.id===id);return p?p.name:t("Nežinomas");};
 function active(){return S.activeId?S.sessions.find(s=>s.id===S.activeId)||null:null;}
 function setActive(id){S.activeId=id;lsSet("tdp-active",id);S.pending=null;}
 const curSeries=s=>Math.max(0,(s.series||1)-1);
@@ -402,7 +427,7 @@ function sessScore(s){const p=s.shots.map(x=>x.p);return p.length?avg(p)*20:null
 /* ---------- Demo data (never written) ---------- */
 const DEMO=(function(){
   let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};
-  const players=[{id:"demo1",name:"Jonas (pavyzdys)"},{id:"demo2",name:"Rūta (pavyzdys)"}];
+  const players=[{id:"demo1",name:t("Jonas (pavyzdys)")},{id:"demo2",name:t("Rūta (pavyzdys)")}];
   const sessions=[];const now=new Date();
   players.forEach((pl,pi)=>{
     for(let i=0;i<24;i++){
@@ -478,21 +503,21 @@ function backupDue(){
 }
 function backupBanner(){
   if(!backupDue())return"";const b=backupInfo();
-  return `<div class="banner backup" role="status"><span>${b.last?`Paskutinė atsarginė kopija – prieš <b>${b.days} d.</b>`:`<b>Dar nė karto nesidarėte atsarginės kopijos.</b>`} Treniruotės saugomos tik šiame telefone. Pasidarykite kopiją ir išsisaugokite ją el. pašte ar debesyje – tada nieko neprarasite, net pametę telefoną.</span>
-   <div class="row"><button class="btn sm" data-act="exp-json">Pasidaryti kopiją</button><button class="btn sm ghost" data-act="backup-later">Priminti vėliau</button></div></div>`;
+  return `<div class="banner backup" role="status"><span>${b.last?t("Paskutinė atsarginė kopija – prieš <b>{d} d.</b>",{d:b.days}):t("<b>Dar nė karto nesidarėte atsarginės kopijos.</b>")} ${t("Treniruotės saugomos tik šiame telefone. Pasidarykite kopiją ir išsisaugokite ją el. pašte ar debesyje – tada nieko neprarasite, net pametę telefoną.")}</span>
+   <div class="row"><button class="btn sm" data-act="exp-json">${t("Pasidaryti kopiją")}</button><button class="btn sm ghost" data-act="backup-later">${t("Priminti vėliau")}</button></div></div>`;
 }
 function backupStatusText(){
   const b=backupInfo();
-  if(!b.last)return"Atsarginės kopijos dar nesidarėte.";
+  if(!b.last)return t("Atsarginės kopijos dar nesidarėte.");
   const d=new Date(b.last);const when=dateLt(ymd(d));
-  return `Paskutinė atsarginė kopija: <b>${when}</b> (${b.days===0?"šiandien":"prieš "+b.days+" d."})${b.changed?" – po jos yra naujų treniruočių.":" – visos treniruotės išsaugotos kopijoje."}`;
+  return t("Paskutinė atsarginė kopija: <b>{when}</b> ({ago})",{when,ago:b.days===0?t("šiandien"):t("prieš {d} d.",{d:b.days})})+(b.changed?t(" – po jos yra naujų treniruočių."):t(" – visos treniruotės išsaugotos kopijoje."));
 }
 function render(){
   const app=$("#app");
   let h="";
-  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:"Treniruotė",stats:"Statistika",hist:"Istorija",players:"Žaidėjai ir duomenys"}[S.view]}</h1></div>${S.store==="pending"?'<span class="status"><span class="dot"></span>Jungiamasi…</span>':statusHtml()}</header>`;
+  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div>${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</header>`;
   if(S.store!=="pending"&&S.view!=="players"&&!(S.view==="rec"&&active()))h+=backupBanner();
-  if(S.store==="pending"){h+=`<div class="card"><p class="muted">Kraunami duomenys…</p></div>`;}
+  if(S.store==="pending"){h+=`<div class="card"><p class="muted">${t("Kraunami duomenys…")}</p></div>`;}
   else if(S.view==="rec")h+=viewRec();
   else if(S.view==="stats")h+=viewStats();
   else if(S.view==="hist")h+=viewHist();
@@ -503,7 +528,7 @@ function render(){
   tickTimer();
 }
 function renderNav(){
-  const items=[["rec","Treniruotė"],["stats","Statistika"],["hist","Istorija"],["players","Žaidėjai"]];
+  const items=[["rec",t("Treniruotė")],["stats",t("Statistika")],["hist",t("Istorija")],["players",t("Žaidėjai")]];
   $("#nav").innerHTML=items.map(([k,l])=>`<button data-act="nav" data-v="${k}" ${S.view===k?'aria-current="page"':""}>${IC[k]}<span>${l}</span></button>`).join("");
 }
 function chip(act,val,label,on,extra){return `<button class="chip" data-act="${act}" data-v="${esc(val)}" aria-pressed="${on?"true":"false"}"${extra||""}>${esc(label)}</button>`;}
@@ -511,19 +536,20 @@ function chip(act,val,label,on,extra){return `<button class="chip" data-act="${a
 /* ----- Record ----- */
 function viewRec(){
   const s=active();
-  if(S.ro)return `<div class="banner">Neturite teisės įrašyti duomenų šioje programėlėje. Paprašykite savininko suteikti „Contributor“ ar aukštesnę prieigą.</div>`;
+  if(S.ro)return `<div class="banner">${t("Neturite teisės įrašyti duomenų šioje programėlėje. Paprašykite savininko suteikti „Contributor“ ar aukštesnę prieigą.")}</div>`;
   if(!s)return viewNew();
   if(!S.group.ids.includes(s.id)){S.group.ids.push(s.id);saveGroup();}
   return viewActive(s);
 }
-function newPlayerRow(id,btn){return `<div class="row"><input type="text" id="${id}" placeholder="Naujo žaidėjo vardas" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm ghost" data-act="pl-add" data-src="${id}">${btn||"Pridėti"}</button></div>`;}
+function newPlayerRow(id,btn){return `<div class="row"><input type="text" id="${id}" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm ghost" data-act="pl-add" data-src="${id}">${btn||t("Pridėti")}</button></div>`;}
 function viewNew(){
   const pl=activePlayers();
   if(!pl.length){
-    return `<div class="card"><h2>Pirmiausia pridėkite žaidėją</h2><p class="ink2">Kiekvienas žaidėjas turi atskirą statistiką. Treniruotėje galima dalyvauti keliems žaidėjams ir keistis po kiekvieno metimo ar rungties.</p>
-    <div class="field"><label class="label" for="pl-new-rec">Vardas</label><input type="text" id="pl-new-rec" placeholder="pvz. Almantas" autocomplete="off"></div>
-    <button class="btn block" data-act="pl-add" data-src="pl-new-rec">Pridėti žaidėją</button></div>
-    ${isDemo()?`<div class="banner"><span>Skiltyse „Statistika“ ir „Istorija“ kol kas rodomi <b>pavyzdiniai duomenys</b>, kad matytumėte, kaip atrodys analizė. Pridėjus pirmą žaidėją jie dings.</span></div>`:""}`;
+    return `<div class="card"><h2>${t("Pirmiausia pridėkite žaidėją")}</h2><p class="ink2">${t("Kiekvienas žaidėjas turi atskirą statistiką. Treniruotėje galima dalyvauti keliems žaidėjams ir keistis po kiekvieno metimo ar rungties.")}</p>
+    <div class="field"><label class="label" for="pl-new-rec">${t("Vardas")}</label><input type="text" id="pl-new-rec" placeholder="${t("pvz. Almantas")}" autocomplete="off"></div>
+    <button class="btn block" data-act="pl-add" data-src="pl-new-rec">${t("Pridėti žaidėją")}</button></div>
+    ${isDemo()?`<div class="banner"><span>${t("Skiltyse „Statistika“ ir „Istorija“ kol kas rodomi <b>pavyzdiniai duomenys</b>, kad matytumėte, kaip atrodys analizė. Pridėjus pirmą žaidėją jie dings.")}</span></div>`:""}
+    ${langCard()}`;
   }
   const nf=S.nf;
   if(!nf.pids){const last=lsGet("tdp-lastps",[]);nf.pids=last.filter(id=>pl.some(p=>p.id===id));if(!nf.pids.length)nf.pids=[pl[0].id];}
@@ -531,43 +557,43 @@ function viewNew(){
   if(nf.mode==="drill"&&S.group.rot==="task"){S.group.rot="shot";saveGroup();}
   const multi=nf.pids.length>1;
   return `<div class="card">
-   <h2>Nauja treniruotė</h2>
-   <div class="field"><span class="label">Kas meta? Galima pasirinkti kelis</span>
+   <h2>${t("Nauja treniruotė")}</h2>
+   <div class="field"><span class="label">${t("Kas meta? Galima pasirinkti kelis")}</span>
      <div class="chips">${pl.map(p=>{const i=nf.pids.indexOf(p.id);return chip("nf-player",p.id,(i>=0&&multi?(i+1)+". ":"")+p.name,i>=0);}).join("")}</div>
-     ${newPlayerRow("nf-newpl","+ Pridėti")}
-     ${multi?`<p class="small muted">Skaičius rodo metimo eilę. Kiekvienam žaidėjui rezultatai saugomi atskirai.</p>`:""}</div>
-   ${multi?`<div class="field"><span class="label">Kada keičiatės?</span><div class="chips">${rotChips(nf.mode)}</div></div>`:""}
-   <div class="field"><span class="label">Režimas</span><div class="chips">${chip("nf-mode","full","Pilna serija 5×4",nf.mode==="full")}${chip("nf-mode","drill","Pratimas: viena rungtis",nf.mode==="drill")}</div>
-     <p class="small muted">${nf.mode==="full"?"20 metimų kaip varžybose: kiekviena rungtis iš 6, 7, 8 ir 9 m. Serijų galima daryti kelias.":"Kartojate vieną rungtį ir atstumą tiek kartų, kiek norite. Rungtį ir atstumą galima keisti eigoje."}</p></div>
-   <div class="field"><span class="label">Tipas</span><div class="chips">${chip("nf-kind","train","Treniruotė",nf.kind==="train")}${chip("nf-kind","comp","Varžybos",nf.kind==="comp")}</div></div>
-   <div class="field"><label class="label" for="nf-date">Data</label><input type="date" id="nf-date" value="${esc(nf.date)}"></div>
-   <div class="field"><label class="label" for="nf-note">Pastaba (nebūtina)</label><textarea id="nf-note" placeholder="pvz. nauji rutuliai, po darbo, pavargęs">${esc(nf.note)}</textarea></div>
-   <button class="btn block" data-act="start" ${nf.pids.length?"":"disabled"}>${nf.pids.length>1?"Pradėti ("+nf.pids.length+" žaidėjai)":"Pradėti"}</button>
+     ${newPlayerRow("nf-newpl",t("+ Pridėti"))}
+     ${multi?`<p class="small muted">${t("Skaičius rodo metimo eilę. Kiekvienam žaidėjui rezultatai saugomi atskirai.")}</p>`:""}</div>
+   ${multi?`<div class="field"><span class="label">${t("Kada keičiatės?")}</span><div class="chips">${rotChips(nf.mode)}</div></div>`:""}
+   <div class="field"><span class="label">${t("Režimas")}</span><div class="chips">${chip("nf-mode","full",t("Pilna serija 5×4"),nf.mode==="full")}${chip("nf-mode","drill",t("Pratimas: viena rungtis"),nf.mode==="drill")}</div>
+     <p class="small muted">${nf.mode==="full"?t("20 metimų kaip varžybose: kiekviena rungtis iš 6, 7, 8 ir 9 m. Serijų galima daryti kelias."):t("Kartojate vieną rungtį ir atstumą tiek kartų, kiek norite. Rungtį ir atstumą galima keisti eigoje.")}</p></div>
+   <div class="field"><span class="label">${t("Tipas")}</span><div class="chips">${chip("nf-kind","train",t("Treniruotė"),nf.kind==="train")}${chip("nf-kind","comp",t("Varžybos"),nf.kind==="comp")}</div></div>
+   <div class="field"><label class="label" for="nf-date">${t("Data")}</label><input type="date" id="nf-date" value="${esc(nf.date)}"></div>
+   <div class="field"><label class="label" for="nf-note">${t("Pastaba (nebūtina)")}</label><textarea id="nf-note" placeholder="${t("pvz. nauji rutuliai, po darbo, pavargęs")}">${esc(nf.note)}</textarea></div>
+   <button class="btn block" data-act="start" ${nf.pids.length?"":"disabled"}>${nf.pids.length>1?t("Pradėti ({n} žaidėjai)",{n:nf.pids.length}):t("Pradėti")}</button>
   </div>
   ${openSessionsHtml()}`;
 }
 function rotChips(mode){
-  const r=S.group.rot;const o=[["shot","Po kiekvieno metimo"]];if(mode!=="drill")o.push(["task","Po kiekvienos rungties"]);o.push(["manual","Rankiniu būdu"]);
+  const r=S.group.rot;const o=[["shot",t("Po kiekvieno metimo")]];if(mode!=="drill")o.push(["task",t("Po kiekvienos rungties")]);o.push(["manual",t("Rankiniu būdu")]);
   return o.map(([v,l])=>chip("rot",v,l,r===v)).join("");
 }
 function openSessionsHtml(){
   const open=S.sessions.filter(s=>!s.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6);
   if(!open.length)return"";
-  return `<div class="card"><div class="row between"><h3>Nebaigtos treniruotės</h3>${open.length>1?`<button class="btn sm" data-act="resume-all">Tęsti visas kartu</button>`:""}</div>${open.map(s=>`<div class="row between"><div><b>${esc(playerName(s.playerId))}</b> <span class="muted small">${dateLt(s.date)} · ${s.shots.length} metimai</span></div><button class="btn sm ghost" data-act="h-resume" data-v="${s.id}">Tęsti</button></div>`).join("")}</div>`;
+  return `<div class="card"><div class="row between"><h3>${t("Nebaigtos treniruotės")}</h3>${open.length>1?`<button class="btn sm" data-act="resume-all">${t("Tęsti visas kartu")}</button>`:""}</div>${open.map(s=>`<div class="row between"><div><b>${esc(playerName(s.playerId))}</b> <span class="muted small">${dateLt(s.date)} · ${t("{n} metimai",{n:s.shots.length})}</span></div><button class="btn sm ghost" data-act="h-resume" data-v="${s.id}">${t("Tęsti")}</button></div>`).join("")}</div>`;
 }
 function swScore(s){
-  if(s.mode==="full"){const sh=seriesShots(s,curSeries(s));return `${sh.reduce((x,y)=>x+y.p,0)} t. · ${sh.length}/20`;}
-  return s.shots.length?`${fmt1(avg(s.shots.map(x=>x.p)))} vid. · ${s.shots.length}`:"0 metimų";
+  if(s.mode==="full"){const sh=seriesShots(s,curSeries(s));return t("{p} t. · {n}/20",{p:sh.reduce((x,y)=>x+y.p,0),n:sh.length});}
+  return s.shots.length?t("{a} vid. · {n}",{a:fmt1(avg(s.shots.map(x=>x.p))),n:s.shots.length}):t("0 metimų");
 }
 function switcherHtml(s){
   const g=groupSessions();
-  let h=`<div class="card sw"><div class="sw-row">${g.map(x=>`<button class="pl-chip" data-act="sw" data-v="${x.id}" aria-pressed="${x.id===s.id}"><b>${esc(playerName(x.playerId))}</b><span class="num">${swScore(x)}</span></button>`).join("")}<button class="pl-chip add" data-act="sw-add" aria-pressed="${S.adding?"true":"false"}" aria-label="Pridėti žaidėją"><b>+</b><span>Žaidėjas</span></button></div>`;
+  let h=`<div class="card sw"><div class="sw-row">${g.map(x=>`<button class="pl-chip" data-act="sw" data-v="${x.id}" aria-pressed="${x.id===s.id}"><b>${esc(playerName(x.playerId))}</b><span class="num">${swScore(x)}</span></button>`).join("")}<button class="pl-chip add" data-act="sw-add" aria-pressed="${S.adding?"true":"false"}" aria-label="${t("Pridėti žaidėją")}"><b>+</b><span>${t("Žaidėjas")}</span></button></div>`;
   if(S.adding){
     const others=activePlayers().filter(p=>!g.some(x=>x.playerId===p.id));
-    h+=`<div class="stack"><span class="label">Įtraukti į šią treniruotę</span>${others.length?`<div class="chips">${others.map(p=>chip("sw-join",p.id,p.name,false)).join("")}</div>`:""}${newPlayerRow("sw-newpl","Pridėti ir įtraukti")}</div>`;
+    h+=`<div class="stack"><span class="label">${t("Įtraukti į šią treniruotę")}</span>${others.length?`<div class="chips">${others.map(p=>chip("sw-join",p.id,p.name,false)).join("")}</div>`:""}${newPlayerRow("sw-newpl",t("Pridėti ir įtraukti"))}</div>`;
   }
   h+=`</div>`;
-  if(g.length>1)h+=`<div class="rotrow"><span class="label">Keičiatės</span><div class="chips">${rotChips(s.mode)}</div></div>`;
+  if(g.length>1)h+=`<div class="rotrow"><span class="label">${t("Keičiatės")}</span><div class="chips">${rotChips(s.mode)}</div></div>`;
   return h;
 }
 function viewActive(s){
@@ -575,17 +601,17 @@ function viewActive(s){
   if(s.mode==="full"&&!S.editing&&S.pending==null&&findShot(s,k,S.cur.a,S.cur.d)>=0){const n=nextEmpty(s,k,S.cur);if(n)S.cur=n;}
   let h=switcherHtml(s);
   h+=`<div class="card"><div class="row between"><div><span class="small muted">${dateLt(s.date)} · ${KIND[s.kind]||""}</span></div>
-     <div class="row" style="gap:6px"><button class="btn sm ghost" data-act="undo" ${groupSessions().some(x=>x.shots.length)?"":"disabled"}>Atšaukti</button><button class="btn sm ghost" data-act="end">Baigti</button></div></div>`;
+     <div class="row" style="gap:6px"><button class="btn sm ghost" data-act="undo" ${groupSessions().some(x=>x.shots.length)?"":"disabled"}>${t("Atšaukti")}</button><button class="btn sm ghost" data-act="end">${t("Baigti")}</button></div></div>`;
   if(s.mode==="full"){
     const sh=seriesShots(s,k);const sum=sh.reduce((x,y)=>x+y.p,0);
-    h+=`<div class="score-head"><div><span class="label">${esc(playerName(s.playerId))} · serija ${k+1}</span><div class="bigscore num">${sum}<small> / 100</small></div></div>
-       <div class="meta"><span>Metimai<br><b>${sh.length}/20</b></span><span>Laikas<br><b id="timer" data-t0="${sh.length?Math.min(...sh.map(x=>x.t)):""}">0:00</b></span><span>Maks. dar<br><b>${sum+ (20-sh.length)*5}</b></span></div></div>`;
+    h+=`<div class="score-head"><div><span class="label">${esc(playerName(s.playerId))} · ${t("serija {n}",{n:k+1})}</span><div class="bigscore num">${sum}<small> / 100</small></div></div>
+       <div class="meta"><span>${t("Metimai")}<br><b>${sh.length}/20</b></span><span>${t("Laikas")}<br><b id="timer" data-t0="${sh.length?Math.min(...sh.map(x=>x.t)):""}">0:00</b></span><span>${t("Maks. dar")}<br><b>${sum+ (20-sh.length)*5}</b></span></div></div>`;
     h+=gridHtml(s,k);
   }else{
     const sh=s.shots;const same=sh.filter(x=>x.a===S.cur.a&&x.d===S.cur.d);
-    h+=`<div class="field"><span class="label">Rungtis${groupSessions().length>1?" (visiems)":""}</span><div class="chips">${AT.map(a=>chip("dr-a",a.n,a.n+". "+a.name,S.cur.a===a.n)).join("")}</div></div>
-        <div class="field"><span class="label">Atstumas</span><div class="chips">${DIST.map(d=>chip("dr-d",d,d+" m",S.cur.d===d)).join("")}</div></div>
-        <div class="meta"><span>${esc(playerName(s.playerId))} šiame pratime<br><b>${same.length}</b> metimai</span><span>Vid. taškai<br><b>${fmt1(avg(same.map(x=>x.p)))}</b></span><span>Pataikymas<br><b>${same.length?pct(same.filter(x=>x.p>0).length,same.length)+" %":"—"}</b></span></div>
+    h+=`<div class="field"><span class="label">${t("Rungtis")}${groupSessions().length>1?t(" (visiems)"):""}</span><div class="chips">${AT.map(a=>chip("dr-a",a.n,a.n+". "+a.name,S.cur.a===a.n)).join("")}</div></div>
+        <div class="field"><span class="label">${t("Atstumas")}</span><div class="chips">${DIST.map(d=>chip("dr-d",d,d+" m",S.cur.d===d)).join("")}</div></div>
+        <div class="meta"><span>${t("{name} šiame pratime",{name:esc(playerName(s.playerId))})}<br><b>${same.length}</b> ${t("metimai")}</span><span>${t("Vid. taškai")}<br><b>${fmt1(avg(same.map(x=>x.p)))}</b></span><span>${t("Pataikymas")}<br><b>${same.length?pct(same.filter(x=>x.p>0).length,same.length)+" %":"—"}</b></span></div>
         ${same.length?`<div class="dots">${same.slice(-30).map(x=>`<span class="sdot p${x.p}">${x.p}</span>`).join("")}</div>`:""}`;
   }
   h+=`</div>`;
@@ -597,14 +623,14 @@ function viewActive(s){
   return h;
 }
 function gridHtml(s,k){
-  let h=`<div class="grid" role="grid" aria-label="Serijos lentelė"><span class="h l">Rungtis</span>${DIST.map(d=>`<span class="h">${d} m</span>`).join("")}<span class="h">Σ</span>`;
+  let h=`<div class="grid" role="grid" aria-label="${t("Serijos lentelė")}"><span class="h l">${t("Rungtis")}</span>${DIST.map(d=>`<span class="h">${d} m</span>`).join("")}<span class="h">Σ</span>`;
   AT.forEach(a=>{
     h+=`<span class="rl"><b>${a.n}</b>${esc(a.name)}</span>`;let rs=0;
     DIST.forEach(d=>{
       const i=findShot(s,k,a.n,d);const sh=i>=0?s.shots[i]:null;if(sh)rs+=sh.p;
       const cur=S.cur.a===a.n&&S.cur.d===d;
       const mk=sh&&sh.o==="miss"&&sh.m?(sh.m==="OB"?"K":sh.m==="NM"?"•":{N:"↑",S:"↓",W:"←",E:"→",NW:"↖",NE:"↗",SW:"↙",SE:"↘",C:"·"}[sh.m]||""):"";
-      h+=`<button class="cell ${sh?"p"+sh.p:""} ${cur?"cur":""}" data-act="cell" data-a="${a.n}" data-d="${d}" aria-label="Rungtis ${a.n}, ${d} m${sh?", "+sh.p+" taškai":", neužpildyta"}">${sh?sh.p:""}${mk?`<span class="mk">${mk}</span>`:""}</button>`;
+      h+=`<button class="cell ${sh?"p"+sh.p:""} ${cur?"cur":""}" data-act="cell" data-a="${a.n}" data-d="${d}" aria-label="${t("Rungtis")} ${a.n}, ${d} m${sh?", "+t("{p} taškai",{p:sh.p}):", "+t("neužpildyta")}">${sh?sh.p:""}${mk?`<span class="mk">${mk}</span>`:""}</button>`;
     });
     h+=`<span class="rt">${rs}</span>`;
   });
@@ -615,22 +641,22 @@ function shotPanel(s){
   let idx=S.pending;
   if(idx==null&&s.mode==="full"){const i=findShot(s,k,a.n,d);if(i>=0&&S.editing)idx=i;}
   const shot=idx!=null?s.shots[idx]:null;
-  let h=`<div class="card"><div class="shot-title"><div class="diag">${diagram(a.n,76)}</div><div class="stack" style="gap:2px"><span class="thrower">Meta: <b>${esc(playerName(s.playerId))}</b></span><span class="label">Rungtis ${a.n} · ${d} m</span><h2>${esc(a.name)}</h2><p class="small muted">${esc(a.desc)}</p></div></div>
+  let h=`<div class="card"><div class="shot-title"><div class="diag">${diagram(a.n,76)}</div><div class="stack" style="gap:2px"><span class="thrower">${t("Meta:")} <b>${esc(playerName(s.playerId))}</b></span><span class="label">${t("Rungtis")} ${a.n} · ${d} m</span><h2>${esc(a.name)}</h2><p class="small muted">${esc(a.desc)}</p></div></div>
    <div class="outs">${a.outs.map(o=>`<button class="out o${o.p} ${o.wide?"wide":""}" data-act="out" data-v="${o.k}" aria-pressed="${shot&&shot.o===o.k?"true":"false"}"><span class="pts">${o.p}</span><span class="t"><b>${o.l}</b><span>${o.s}</span></span></button>`).join("")}</div>`;
   if(shot){
     if(shot.o==="miss"){
-      h+=`<div class="stack"><span class="label">Kur nuėjo rutulys?</span>
-       <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="det" data-f="m" data-v="C" aria-pressed="${shot.m==="C"}" aria-label="Arti arba kita">${diagram(a.n,44)}<span>Arti / kita</span></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
-       <p class="dir-note">↑ metimo kryptis (jūs stovite apačioje)</p>
-       ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB","Pirma kliūtis",shot.m==="OB",' data-f="m"')}</div>`:""}
+      h+=`<div class="stack"><span class="label">${t("Kur nuėjo rutulys?")}</span>
+       <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="det" data-f="m" data-v="C" aria-pressed="${shot.m==="C"}" aria-label="${t("Arti / kita")}">${diagram(a.n,44)}<span>${t("Arti / kita")}</span></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
+       <p class="dir-note">${t("↑ metimo kryptis (jūs stovite apačioje)")}</p>
+       ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB",t("Pirma kliūtis"),shot.m==="OB",' data-f="m"')}</div>`:""}
       </div>`;
     }else{
-      h+=`<div class="stack"><span class="label">Kaip pataikė?</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,l,shot.c===c,' data-f="c"')).join("")}</div>
-       ${a.n===5?"":`<span class="label">Kurioje rutulio vietoje?</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
+      h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,l,shot.c===c,' data-f="c"')).join("")}</div>
+       ${a.n===5?"":`<span class="label">${t("Kurioje rutulio vietoje?")}</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
     }
-    h+=`<button class="btn block" data-act="next">Toliau →</button>`;
+    h+=`<button class="btn block" data-act="next">${t("Toliau →")}</button>`;
   }else{
-    h+=`<p class="small muted">Pažymėkite rezultatą. Tada galėsite nurodyti klaidos kryptį arba pataikymo būdą.</p>`;
+    h+=`<p class="small muted">${t("Pažymėkite rezultatą. Tada galėsite nurodyti klaidos kryptį arba pataikymo būdą.")}</p>`;
   }
   return h+`</div>`;
 }
@@ -641,19 +667,19 @@ function seriesSummary(s,k){
   const byD=DIST.map(d=>sh.filter(x=>x.d===d).reduce((x,y)=>x+y.p,0));
   const prev=dataSessions().filter(x=>x.playerId===s.playerId&&x.mode==="full").flatMap(x=>seriesTotals(x).filter(t=>t.n===20&&!(x.id===s.id&&t.k===k)).map(t=>t.sum));
   const best=prev.length?Math.max(...prev):null;
-  return `<div class="card"><span class="label">Serija ${k+1} baigta</span>
-   <div class="row between"><div class="bigscore num">${sum}<small> / 100</small></div><div class="meta"><span>Trukmė<br><b>${Math.floor(dur/60)}:${pad2(Math.round(dur%60))}</b></span><span>Asmeninis rekordas<br><b>${best==null?"—":best}</b></span></div></div>
-   ${best!=null&&sum>best?`<div class="banner"><span><b>Naujas asmeninis rekordas!</b> Ankstesnis buvo ${best}.</span></div>`:""}
-   <table class="tbl"><thead><tr><th>Rungtis</th><th>Taškai</th><th>iš</th></tr></thead><tbody>${AT.map((a,i)=>`<tr><td>${a.n}. ${esc(a.name)}</td><td><b>${byA[i]}</b></td><td class="muted">20</td></tr>`).join("")}</tbody></table>
-   <p class="small ink2">Pagal atstumą: ${DIST.map((d,i)=>`${d} m – <b>${byD[i]}</b>`).join(" · ")} (iš 25)</p>
+  return `<div class="card"><span class="label">${t("Serija {n} baigta",{n:k+1})}</span>
+   <div class="row between"><div class="bigscore num">${sum}<small> / 100</small></div><div class="meta"><span>${t("Trukmė")}<br><b>${Math.floor(dur/60)}:${pad2(Math.round(dur%60))}</b></span><span>${t("Asmeninis rekordas")}<br><b>${best==null?"—":best}</b></span></div></div>
+   ${best!=null&&sum>best?`<div class="banner"><span>${t("<b>Naujas asmeninis rekordas!</b> Ankstesnis buvo {b}.",{b:best})}</span></div>`:""}
+   <table class="tbl"><thead><tr><th>${t("Rungtis")}</th><th>${t("Taškai")}</th><th>${t("iš")}</th></tr></thead><tbody>${AT.map((a,i)=>`<tr><td>${a.n}. ${esc(a.name)}</td><td><b>${byA[i]}</b></td><td class="muted">20</td></tr>`).join("")}</tbody></table>
+   <p class="small ink2">${t("Pagal atstumą:")} ${DIST.map((d,i)=>`${d} m – <b>${byD[i]}</b>`).join(" · ")} ${t("(iš 25)")}</p>
    ${groupBoard()}
-   <div class="row"><button class="btn" data-act="series-new" style="flex:1">${groupSessions().length>1?"Nauja serija visiems":"Nauja serija"}</button><button class="btn ghost" data-act="end" style="flex:1">Baigti treniruotę</button></div>
+   <div class="row"><button class="btn" data-act="series-new" style="flex:1">${groupSessions().length>1?t("Nauja serija visiems"):t("Nauja serija")}</button><button class="btn ghost" data-act="end" style="flex:1">${t("Baigti treniruotę")}</button></div>
   </div>`;
 }
 function groupBoard(){
   const g=groupSessions().filter(x=>x.mode==="full");if(g.length<2)return"";
   const rows=g.map(x=>{const sh=seriesShots(x,curSeries(x));return{x,n:sh.length,sum:sh.reduce((a,b)=>a+b.p,0)};}).sort((a,b)=>b.sum-a.sum);
-  return `<table class="tbl"><thead><tr><th>Žaidėjas</th><th>Metimai</th><th>Taškai</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(playerName(r.x.playerId))}</td><td>${r.n}/20</td><td><b>${r.sum}</b></td></tr>`).join("")}</tbody></table>${rows.some(r=>r.n<20)?`<p class="small muted">Dar ne visi baigė seriją – pasirinkite žaidėją viršuje.</p>`:""}`;
+  return `<table class="tbl"><thead><tr><th>${t("Žaidėjas")}</th><th>${t("Metimai")}</th><th>${t("Taškai")}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(playerName(r.x.playerId))}</td><td>${r.n}/20</td><td><b>${r.sum}</b></td></tr>`).join("")}</tbody></table>${rows.some(r=>r.n<20)?`<p class="small muted">${t("Dar ne visi baigė seriją – pasirinkite žaidėją viršuje.")}</p>`:""}`;
 }
 let timerInt=null;
 function tickTimer(){
@@ -670,7 +696,7 @@ function switchTo(id,announce){
   if(S.activeId)S.curs[S.activeId]=Object.assign({},S.cur);
   setActive(id);S.editing=false;S.adding=false;
   if(s.mode==="full"){const c=S.curs[id];const k=curSeries(s);S.cur=c&&findShot(s,k,c.a,c.d)<0?c:(nextEmpty(s,k,null)||{a:1,d:6});}
-  if(announce)toast("Dabar meta: "+playerName(s.playerId));
+  if(announce)toast(t("Dabar meta: {name}",{name:playerName(s.playerId)}));
 }
 function rotate(){
   const g=groupSessions();if(g.length<2)return;const i=g.findIndex(x=>x.id===S.activeId);
@@ -778,32 +804,32 @@ function viewStats(){
   if(f.player&&!pls.some(p=>p.id===f.player))f.player="";
   if(!f.player&&pls.length===1)f.player=pls[0].id;
   let h="";
-  if(isDemo())h+=`<div class="banner"><span>Rodomi <b>pavyzdiniai duomenys</b> – taip atrodys jūsų analizė. Pridėkite žaidėją ir įrašykite treniruotę, tada čia matysite savo rezultatus.</span></div>`;
+  if(isDemo())h+=`<div class="banner"><span>${t("Rodomi <b>pavyzdiniai duomenys</b> – taip atrodys jūsų analizė. Pridėkite žaidėją ir įrašykite treniruotę, tada čia matysite savo rezultatus.")}</span></div>`;
   h+=`<div class="card filters">
-   <div class="field"><span class="label">Žaidėjas</span><div class="chips">${pls.length>1?chip("f-player","","Visi",!f.player):""}${pls.filter(p=>!p.archived).map(p=>chip("f-player",p.id,p.name,f.player===p.id)).join("")}</div></div>
-   <div class="field"><span class="label">Laikotarpis</span><div class="chips">${[["7","7 d."],["30","30 d."],["90","90 d."],["365","Metai"],["all","Viskas"]].map(([v,l])=>chip("f-period",v,l,f.period===v)).join("")}</div></div>
-   <div class="field"><span class="label">Tipas</span><div class="chips">${[["all","Visi"],["train","Treniruotės"],["comp","Varžybos"]].map(([v,l])=>chip("f-kind",v,l,f.kind===v)).join("")}</div></div>
-   <div class="field"><span class="label">Rungtis</span><div class="chips">${chip("f-a",0,"Visos",!f.a)}${AT.map(a=>chip("f-a",a.n,String(a.n),f.a===a.n,` aria-label="${esc(a.name)}"`)).join("")}</div></div>
-   <div class="field"><span class="label">Atstumas</span><div class="chips">${chip("f-d",0,"Visi",!f.d)}${DIST.map(d=>chip("f-d",d,d+" m",f.d===d)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Žaidėjas")}</span><div class="chips">${pls.length>1?chip("f-player","",t("Visi"),!f.player):""}${pls.filter(p=>!p.archived).map(p=>chip("f-player",p.id,p.name,f.player===p.id)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Laikotarpis")}</span><div class="chips">${[["7",t("7 d.")],["30",t("30 d.")],["90",t("90 d.")],["365",t("Metai")],["all",t("Viskas")]].map(([v,l])=>chip("f-period",v,l,f.period===v)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Tipas")}</span><div class="chips">${[["all",t("Visi")],["train",t("Treniruotės")],["comp",t("Varžybos")]].map(([v,l])=>chip("f-kind",v,l,f.kind===v)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Rungtis")}</span><div class="chips">${chip("f-a",0,t("Visos"),!f.a)}${AT.map(a=>chip("f-a",a.n,String(a.n),f.a===a.n,` aria-label="${esc(a.name)}"`)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Atstumas")}</span><div class="chips">${chip("f-d",0,t("Visi"),!f.d)}${DIST.map(d=>chip("f-d",d,d+" m",f.d===d)).join("")}</div></div>
   </div>`;
   const ss=filteredSessions(f);const shots=flatShots(ss,f);
-  if(!shots.length){return h+`<div class="card"><p class="empty">Pagal pasirinktus filtrus metimų nėra. Pabandykite ilgesnį laikotarpį arba kitą žaidėją.</p></div>`;}
+  if(!shots.length){return h+`<div class="card"><p class="empty">${t("Pagal pasirinktus filtrus metimų nėra. Pabandykite ilgesnį laikotarpį arba kitą žaidėją.")}</p></div>`;}
   const m=metrics(shots);
   let prevM=null;
   if(f.period!=="all"){const c0=periodCut(f.period,2),c1=periodCut(f.period);prevM=metrics(flatShots(filteredSessions(f,{range:[c0,c1]}),f));}
   const series=ss.filter(s=>s.mode==="full").flatMap(s=>seriesTotals(s).filter(t=>t.n===20).map(t=>t.sum));
-  const dl=(cur,prev,unit)=>{if(prev==null||cur==null)return`<span class="delta flat">ankstesniam laikotarpiui duomenų nėra</span>`;const d=cur-prev;const c=Math.abs(d)<0.5?"flat":d>0?"up":"down";return `<span class="delta ${c}">${c==="up"?"▲":c==="down"?"▼":"■"} ${d>0?"+":""}${fmt1(d)}${unit} nuo ankstesnio</span>`;};
-  const scopeTxt=(f.a?`rungtis ${f.a}`:"visos rungtys")+(f.d?`, ${f.d} m`:"");
+  const dl=(cur,prev,unit)=>{if(prev==null||cur==null)return`<span class="delta flat">${t("ankstesniam laikotarpiui duomenų nėra")}</span>`;const d=cur-prev;const c=Math.abs(d)<0.5?"flat":d>0?"up":"down";return `<span class="delta ${c}">${c==="up"?"▲":c==="down"?"▼":"■"} ${d>0?"+":""}${fmt1(d)}${unit} ${t("nuo ankstesnio")}</span>`;};
+  const scopeTxt=(f.a?t("rungtis {n}",{n:f.a}):t("visos rungtys"))+(f.d?`, ${f.d} m`:"");
   h+=`<div class="kpis">
-   <div class="kpi"><span class="label">Vidurkis /100</span><span class="v num">${fmt1(m.score)}</span>${dl(m.score,prevM&&prevM.score,"")}</div>
-   <div class="kpi"><span class="label">Pataikymas</span><span class="v num">${m.hit}<small> %</small></span>${dl(m.hit,prevM&&prevM.hit," p.p.")}</div>
-   <div class="kpi"><span class="label">Karo (1–4 r.)</span><span class="v num">${m.car==null?"—":m.car}<small>${m.car==null?"":" %"}</small></span>${dl(m.car,prevM&&prevM.car," p.p.")}</div>
-   <div class="kpi"><span class="label">${!f.a&&!f.d&&series.length?"Geriausia serija":"Metimų"}</span><span class="v num">${!f.a&&!f.d&&series.length?Math.max(...series):m.n}</span><span class="delta flat">${!f.a&&!f.d&&series.length?series.length+" pilnos serijos, "+m.n+" metimai":ss.length+" treniruotės"}</span></div>
+   <div class="kpi"><span class="label">${t("Vidurkis /100")}</span><span class="v num">${fmt1(m.score)}</span>${dl(m.score,prevM&&prevM.score,"")}</div>
+   <div class="kpi"><span class="label">${t("Pataikymas")}</span><span class="v num">${m.hit}<small> %</small></span>${dl(m.hit,prevM&&prevM.hit,t(" p.p."))}</div>
+   <div class="kpi"><span class="label">${t("Karo (1–4 r.)")}</span><span class="v num">${m.car==null?"—":m.car}<small>${m.car==null?"":" %"}</small></span>${dl(m.car,prevM&&prevM.car,t(" p.p."))}</div>
+   <div class="kpi"><span class="label">${!f.a&&!f.d&&series.length?t("Geriausia serija"):t("Metimų")}</span><span class="v num">${!f.a&&!f.d&&series.length?Math.max(...series):m.n}</span><span class="delta flat">${!f.a&&!f.d&&series.length?t("{s} pilnos serijos, {n} metimai",{s:series.length,n:m.n}):t("{n} treniruotės",{n:ss.length})}</span></div>
   </div>`;
-  h+=`<div class="card"><div class="row between"><h2>Progresas</h2><span class="small muted">${esc(scopeTxt)}</span></div>
-   <p class="small ink2">Kiekvienas taškas – viena treniruotė, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Linija – 5 treniruočių slenkantis vidurkis.</p>
+  h+=`<div class="card"><div class="row between"><h2>${t("Progresas")}</h2><span class="small muted">${esc(scopeTxt)}</span></div>
+   <p class="small ink2">${t("Kiekvienas taškas – viena treniruotė, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Linija – 5 treniruočių slenkantis vidurkis.")}</p>
    <div class="chart" id="ch-prog"></div>
-   <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>Treniruotė</span><span><i class="ln" style="background:var(--o5)"></i>Slenkantis vidurkis</span></div>
+   <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>${t("Treniruotė")}</span><span><i class="ln" style="background:var(--o5)"></i>${t("Slenkantis vidurkis")}</span></div>
    <div id="ch-trend" class="small ink2"></div></div>`;
   h+=heatHtml(ss,f);
   h+=insightsHtml(ss,f,shots);
@@ -825,18 +851,18 @@ function hex(s){s=(s||"").trim().replace("#","");if(s.length===3)s=s.split("").m
 function heatHtml(ss,f){
   const all=flatShots(ss,{a:0,d:0});
   const cell=(a,d)=>{const sh=all.filter(x=>(!a||x.a===a)&&(!d||x.d===d));return{n:sh.length,v:sh.length?avg(sh.map(x=>x.p)):null,hit:pct(sh.filter(x=>x.p>0).length,sh.length)};};
-  let h=`<div class="card"><h2>Kur prarandami taškai</h2><p class="small ink2">Vidutiniai taškai už metimą (iš 5) pagal rungtį ir atstumą. Kuo šviesesnis langelis, tuo silpnesnė vieta. Paspauskite langelį – visa analizė žemiau persiskaičiuos tik jam.</p>
-   <div class="scroll-x"><div class="heat"><span class="h l">Rungtis</span>${DIST.map(d=>`<span class="h">${d} m</span>`).join("")}<span class="h">Visi</span>`;
+  let h=`<div class="card"><h2>${t("Kur prarandami taškai")}</h2><p class="small ink2">${t("Vidutiniai taškai už metimą (iš 5) pagal rungtį ir atstumą. Kuo šviesesnis langelis, tuo silpnesnė vieta. Paspauskite langelį – visa analizė žemiau persiskaičiuos tik jam.")}</p>
+   <div class="scroll-x"><div class="heat"><span class="h l">${t("Rungtis")}</span>${DIST.map(d=>`<span class="h">${d} m</span>`).join("")}<span class="h">${t("Visi")}</span>`;
   AT.forEach(a=>{
     h+=`<span class="rl"><b>${a.n}</b>${esc(a.name)}</span>`;
     DIST.forEach(d=>{const c=cell(a.n,d);const col=c.v==null?{bg:"var(--surface-2)",fg:"var(--muted)"}:heatColor(c.v);
-      h+=`<button class="hc ${f.a===a.n&&f.d===d?"sel":""}" style="background:${col.bg};color:${col.fg}" data-act="hm" data-a="${a.n}" data-d="${d}" title="${c.n} metimai, pataikymas ${c.hit==null?"—":c.hit+" %"}"><b>${fmt1(c.v)}</b><span>${c.n?c.hit+" % · "+c.n:"nėra"}</span></button>`;});
-    const t=cell(a.n,0);h+=`<button class="hc tot ${f.a===a.n&&!f.d?"sel":""}" data-act="hm" data-a="${a.n}" data-d="0"><b>${fmt1(t.v)}</b><span>${t.n?t.hit+" %":""}</span></button>`;
+      h+=`<button class="hc ${f.a===a.n&&f.d===d?"sel":""}" style="background:${col.bg};color:${col.fg}" data-act="hm" data-a="${a.n}" data-d="${d}" title="${t("{n} metimai, pataikymas {h}",{n:c.n,h:c.hit==null?"—":c.hit+" %"})}"><b>${fmt1(c.v)}</b><span>${c.n?c.hit+" % · "+c.n:t("nėra")}</span></button>`;});
+    const tc=cell(a.n,0);h+=`<button class="hc tot ${f.a===a.n&&!f.d?"sel":""}" data-act="hm" data-a="${a.n}" data-d="0"><b>${fmt1(tc.v)}</b><span>${tc.n?tc.hit+" %":""}</span></button>`;
   });
-  h+=`<span class="rl"><b>Visos</b></span>`;
-  DIST.forEach(d=>{const t=cell(0,d);h+=`<button class="hc tot ${!f.a&&f.d===d?"sel":""}" data-act="hm" data-a="0" data-d="${d}"><b>${fmt1(t.v)}</b><span>${t.n?t.hit+" %":""}</span></button>`;});
+  h+=`<span class="rl"><b>${t("Visos")}</b></span>`;
+  DIST.forEach(d=>{const tc=cell(0,d);h+=`<button class="hc tot ${!f.a&&f.d===d?"sel":""}" data-act="hm" data-a="0" data-d="${d}"><b>${fmt1(tc.v)}</b><span>${tc.n?tc.hit+" %":""}</span></button>`;});
   const T=cell(0,0);h+=`<button class="hc tot" data-act="hm" data-a="0" data-d="0"><b>${fmt1(T.v)}</b><span>${T.hit} %</span></button>`;
-  return h+`</div></div><p class="small muted">Po skaičiumi: pataikymo procentas · metimų skaičius.</p></div>`;
+  return h+`</div></div><p class="small muted">${t("Po skaičiumi: pataikymo procentas · metimų skaičius.")}</p></div>`;
 }
 function missAgg(shots){
   const miss=shots.filter(x=>x.o==="miss");const c={};miss.forEach(x=>{const k=x.m||"?";c[k]=(c[k]||0)+1;});
@@ -848,67 +874,67 @@ function insightsHtml(ss,f,shots){
   const all=flatShots(ss,{a:0,d:0});if(all.length<8)return"";
   const cells=[];AT.forEach(a=>DIST.forEach(d=>{const sh=all.filter(x=>x.a===a.n&&x.d===d);if(sh.length>=3)cells.push({a:a.n,d,v:avg(sh.map(x=>x.p)),n:sh.length});}));
   cells.sort((x,y)=>x.v-y.v);const items=[];
-  if(cells.length>=3){const w=cells.slice(0,2);items.push(`Silpniausios vietos: ${w.map(c=>`<b>${c.a} rungtis, ${c.d} m</b> (${fmt1(c.v)} t./metimą)`).join(" ir ")}.`);
-    const b=cells[cells.length-1];items.push(`Stipriausia vieta: <b>${b.a} rungtis, ${b.d} m</b> (${fmt1(b.v)} t./metimą).`);}
+  if(cells.length>=3){const w=cells.slice(0,2);items.push(t("Silpniausios vietos: {list}.",{list:w.map(c=>t("<b>{a} rungtis, {d} m</b> ({v} t./metimą)",{a:c.a,d:c.d,v:fmt1(c.v)})).join(t(" ir "))}));
+    const b=cells[cells.length-1];items.push(t("Stipriausia vieta: <b>{a} rungtis, {d} m</b> ({v} t./metimą).",{a:b.a,d:b.d,v:fmt1(b.v)}));}
   const M=missAgg(shots);
   if(M.miss.length>=4){
     const dm=M.short+M.long,lr=M.left+M.right;
-    if(dm>0)items.push(M.short>=M.long?`Dauguma išilginių klaidų – <b>per trumpai</b> (${pct(M.short,dm)} %): rutulys krenta prieš taikinį. Verta dirbti su metimo jėga ir aukščiu.`:`Dauguma išilginių klaidų – <b>per toli</b> (${pct(M.long,dm)} %): rutulys praskrenda virš taikinio.`);
-    if(lr>0&&Math.abs(M.left-M.right)/lr>=0.2)items.push(`Šoninės klaidos krypsta į <b>${M.left>M.right?"kairę":"dešinę"}</b> (${pct(Math.max(M.left,M.right),lr)} % šoninių klaidų). Patikrinkite pečių ir rankos liniją.`);
-    const ob=M.c.OB||0;if(ob>=2)items.push(`Pirma pataikyta į kliūtį: <b>${ob}</b> kartus(-ų) (${pct(ob,M.miss.length)} % nepataikymų).`);
+    if(dm>0)items.push(M.short>=M.long?t("Dauguma išilginių klaidų – <b>per trumpai</b> ({p} %): rutulys krenta prieš taikinį. Verta dirbti su metimo jėga ir aukščiu.",{p:pct(M.short,dm)}):t("Dauguma išilginių klaidų – <b>per toli</b> ({p} %): rutulys praskrenda virš taikinio.",{p:pct(M.long,dm)}));
+    if(lr>0&&Math.abs(M.left-M.right)/lr>=0.2)items.push(t(M.left>M.right?"Šoninės klaidos krypsta į <b>kairę</b> ({p} % šoninių klaidų). Patikrinkite pečių ir rankos liniją.":"Šoninės klaidos krypsta į <b>dešinę</b> ({p} % šoninių klaidų). Patikrinkite pečių ir rankos liniją.",{p:pct(Math.max(M.left,M.right),lr)}));
+    const ob=M.c.OB||0;if(ob>=2)items.push(t("Pirma pataikyta į kliūtį: <b>{n}</b> kartus(-ų) ({p} % nepataikymų).",{n:ob,p:pct(ob,M.miss.length)}));
   }
-  const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(`${pct(side,ts.length)} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.`);}
+  const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(t("{p} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.",{p:pct(side,ts.length)}));}
   if(!items.length)return"";
-  return `<div class="card"><h2>Pastebėjimai</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+  return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
 }
 function distHtml(ss,f){
   const all=flatShots(ss,{a:0,d:f.d});
   const rows=AT.filter(a=>!f.a||a.n===f.a).map(a=>{const sh=all.filter(x=>x.a===a.n);const n=sh.length;const c=p=>sh.filter(x=>x.p===p).length;return{a,n,seg:[5,3,1,0].map(p=>({p,v:c(p)}))};});
   const lab={5:"5",3:"3",1:"1",0:"0"};
-  return `<div class="card"><h2>Rezultatų pasiskirstymas</h2><p class="small ink2">Kokia dalis metimų baigėsi 5, 3, 1 ir 0 taškų${f.d?` (${f.d} m)`:""}.</p>
-   <div class="legend"><span><i style="background:var(--o5)"></i>5 t. (karo / išmušė taikinuką)</span><span><i style="background:var(--o3)"></i>3 t.</span><span><i style="background:var(--o1)"></i>1 t.</span><span><i style="background:var(--o0)"></i>0 t.</span></div>
-   <div class="bars">${rows.map(r=>`<div class="bar-row"><span class="rl"><b>${r.a.n}</b> ${esc(r.a.name)}</span>${r.n?`<div class="sbar" role="img" aria-label="${r.seg.map(s=>s.p+" taškai: "+pct(s.v,r.n)+" %").join(", ")}">${r.seg.filter(s=>s.v).map(s=>{const w=s.v/r.n*100;return `<div style="flex:0 0 calc(${w}% - 2px);background:var(--o${s.p});color:var(--o${s.p}-t)" title="${s.p} t.: ${s.v} (${Math.round(w)} %)">${w>=12?Math.round(w)+"%":""}</div>`;}).join("")}</div>`:`<span class="small muted">nėra metimų</span>`}</div>`).join("")}</div>
+  return `<div class="card"><h2>${t("Rezultatų pasiskirstymas")}</h2><p class="small ink2">${t("Kokia dalis metimų baigėsi 5, 3, 1 ir 0 taškų")}${f.d?` (${f.d} m)`:""}.</p>
+   <div class="legend"><span><i style="background:var(--o5)"></i>${t("5 t. (karo / išmušė taikinuką)")}</span><span><i style="background:var(--o3)"></i>${t("3 t.")}</span><span><i style="background:var(--o1)"></i>${t("1 t.")}</span><span><i style="background:var(--o0)"></i>${t("0 t.")}</span></div>
+   <div class="bars">${rows.map(r=>`<div class="bar-row"><span class="rl"><b>${r.a.n}</b> ${esc(r.a.name)}</span>${r.n?`<div class="sbar" role="img" aria-label="${r.seg.map(s=>t("{p} taškai",{p:s.p})+": "+pct(s.v,r.n)+" %").join(", ")}">${r.seg.filter(s=>s.v).map(s=>{const w=s.v/r.n*100;return `<div style="flex:0 0 calc(${w}% - 2px);background:var(--o${s.p});color:var(--o${s.p}-t)" title="${t("{p} t.",{p:s.p})}: ${s.v} (${Math.round(w)} %)">${w>=12?Math.round(w)+"%":""}</div>`;}).join("")}</div>`:`<span class="small muted">${t("nėra metimų")}</span>`}</div>`).join("")}</div>
   </div>`;
 }
 function missHtml(shots,f){
   const M=missAgg(shots);const tot=M.miss.length;
-  if(!tot)return `<div class="card"><h2>Klaidų kryptys</h2><p class="empty">Nepataikymų nėra – puiku!</p></div>`;
+  if(!tot)return `<div class="card"><h2>${t("Klaidų kryptys")}</h2><p class="empty">${t("Nepataikymų nėra – puiku!")}</p></div>`;
   const max=Math.max(1,...DIRS.map(([k])=>M.c[k]||0));
   const cs=getComputedStyle(document.documentElement);
   let grid=DIRS.map(([k,l])=>{const v=M.c[k]||0;const col=v?heatColor(1+4*v/max):{bg:"var(--surface-2)",fg:"var(--muted)"};
     return `<div style="background:${col.bg};color:${col.fg}"><b>${v}</b>${esc(l)}<span>${v?pct(v,tot)+" %":""}</span></div>`;}).join("");
   const dm=M.short+M.long,lr=M.left+M.right;
   const bar=(a,b,la,lb)=>{const t=a+b;if(!t)return"";const wa=a/t*100;return `<div class="stack" style="gap:4px"><div class="row between small"><span>${la} <b>${pct(a,t)} %</b></span><span><b>${pct(b,t)} %</b> ${lb}</span></div><div class="sbar" style="height:14px"><div style="flex:0 0 calc(${wa}% - 1px);background:var(--o3)"></div><div style="flex:1;background:var(--o1)"></div></div></div>`;};
-  return `<div class="card"><h2>Klaidų kryptys</h2><p class="small ink2">Kur nuėjo rutulys, kai nepataikėte. Viršus – per toli, apačia – per trumpai (jūs stovite apačioje). Iš viso nepataikymų: <b>${tot}</b>${M.c["?"]?`, iš jų ${M.c["?"]} be nurodytos krypties`:""}.</p>
+  return `<div class="card"><h2>${t("Klaidų kryptys")}</h2><p class="small ink2">${t("Kur nuėjo rutulys, kai nepataikėte. Viršus – per toli, apačia – per trumpai (jūs stovite apačioje). Iš viso nepataikymų: <b>{n}</b>",{n:tot})}${M.c["?"]?t(", iš jų {n} be nurodytos krypties",{n:M.c["?"]}):""}.</p>
    <div class="compass">${grid}</div>
-   ${bar(M.short,M.long,"Per trumpai","Per toli")}
-   ${bar(M.left,M.right,"Kairėn","Dešinėn")}
-   ${(M.c.OB||M.c.NM)?`<p class="small ink2">${M.c.OB?`Pirma kliūtis: <b>${M.c.OB}</b>. `:""}${M.c.NM?`Palietė taikinuką, bet nepajudino: <b>${M.c.NM}</b>.`:""}</p>`:""}
+   ${bar(M.short,M.long,t("Per trumpai"),t("Per toli"))}
+   ${bar(M.left,M.right,t("Kairėn"),t("Dešinėn"))}
+   ${(M.c.OB||M.c.NM)?`<p class="small ink2">${M.c.OB?t("Pirma kliūtis: <b>{n}</b>. ",{n:M.c.OB}):""}${M.c.NM?t("Palietė taikinuką, bet nepajudino: <b>{n}</b>.",{n:M.c.NM}):""}</p>`:""}
   </div>`;
 }
 function contactHtml(shots){
   const hits=shots.filter(x=>x.p>0);if(!hits.length)return"";
   const row=(l,sh)=>{const n=sh.length;if(!n)return"";const a14=sh.filter(x=>x.a<5);return `<tr><td>${l}</td><td>${n}</td><td>${pct(n,hits.length)} %</td><td>${fmt1(avg(sh.map(x=>x.p)))}</td><td>${a14.length?pct(a14.filter(x=>x.o==="carreau").length,a14.length)+" %":"—"}</td></tr>`;};
   const noC=hits.filter(x=>!x.c).length;
-  return `<div class="card"><h2>Pataikymo būdas</h2><p class="small ink2">Kaip ir kur pataikėte. Stulpelis „Vid.“ – vidutiniai taškai tokiu būdu pataikius, „Karo“ – kiek iš tų pataikymų 1–4 rungtyse buvo karo.</p>
-   <div class="scroll-x"><table class="tbl"><thead><tr><th>Būdas</th><th>Kartų</th><th>Dalis</th><th>Vid.</th><th>Karo</th></tr></thead><tbody>
-   ${row("Tiesiai į rutulį",hits.filter(x=>x.c==="F"))}${row("Su atšokimu",hits.filter(x=>x.c==="B"))}
-   ${row("Į kairę pusę",hits.filter(x=>x.h==="L"))}${row("Į centrą",hits.filter(x=>x.h==="C"))}${row("Į dešinę pusę",hits.filter(x=>x.h==="R"))}
-   </tbody></table></div>${noC?`<p class="small muted">${noC} pataikymai be nurodyto būdo neįtraukti.</p>`:""}</div>`;
+  return `<div class="card"><h2>${t("Pataikymo būdas")}</h2><p class="small ink2">${t("Kaip ir kur pataikėte. Stulpelis „Vid.“ – vidutiniai taškai tokiu būdu pataikius, „Karo“ – kiek iš tų pataikymų 1–4 rungtyse buvo karo.")}</p>
+   <div class="scroll-x"><table class="tbl"><thead><tr><th>${t("Būdas")}</th><th>${t("Kartų")}</th><th>${t("Dalis")}</th><th>${t("Vid.")}</th><th>${t("Karo")}</th></tr></thead><tbody>
+   ${row(t("Tiesiai į rutulį"),hits.filter(x=>x.c==="F"))}${row(t("Su atšokimu"),hits.filter(x=>x.c==="B"))}
+   ${row(t("Į kairę pusę"),hits.filter(x=>x.h==="L"))}${row(t("Į centrą"),hits.filter(x=>x.h==="C"))}${row(t("Į dešinę pusę"),hits.filter(x=>x.h==="R"))}
+   </tbody></table></div>${noC?`<p class="small muted">${t("{n} pataikymai be nurodyto būdo neįtraukti.",{n:noC})}</p>`:""}</div>`;
 }
 function changeHtml(ss,f){
   const all=flatShots(ss,{a:0,d:0});if(ss.length<2)return"";
   const row=(label,pred,sel)=>{
-    const sh=all.filter(pred);if(sh.length<4)return `<tr><td>${label}</td><td colspan="4" class="muted">per mažai duomenų</td></tr>`;
+    const sh=all.filter(pred);if(sh.length<4)return `<tr><td>${label}</td><td colspan="4" class="muted">${t("per mažai duomenų")}</td></tr>`;
     const bySess=ss.map(s=>{const x=sh.filter(y=>y.sid===s.id);return x.length?avg(x.map(y=>y.p))*20:null;}).filter(v=>v!=null);
     const half=Math.floor(sh.length/2);const a=avg(sh.slice(0,half).map(x=>x.p))*20,b=avg(sh.slice(half).map(x=>x.p))*20;const d=b-a;
     const c=Math.abs(d)<2?"flat":d>0?"up":"down";
     return `<tr><td>${label}</td><td>${sparkline(bySess)}</td><td>${fmt0(a)}</td><td>${fmt0(b)}</td><td><span class="delta ${c}">${c==="up"?"▲":c==="down"?"▼":"■"} ${d>0?"+":""}${fmt0(d)}</span></td></tr>`;
   };
-  return `<div class="card"><h2>Ar tobulėju?</h2><p class="small ink2">Laikotarpio metimai padalinti pusiau: pirmoji pusė lyginama su antrąja (100 balų skalėje). Kreivė – rezultatai kiekvienoje treniruotėje.</p>
-   <div class="scroll-x"><table class="tbl"><thead><tr><th>Rungtis</th><th>Eiga</th><th>Pradžia</th><th>Dabar</th><th>Pokytis</th></tr></thead><tbody>
+  return `<div class="card"><h2>${t("Ar tobulėju?")}</h2><p class="small ink2">${t("Laikotarpio metimai padalinti pusiau: pirmoji pusė lyginama su antrąja (100 balų skalėje). Kreivė – rezultatai kiekvienoje treniruotėje.")}</p>
+   <div class="scroll-x"><table class="tbl"><thead><tr><th>${t("Rungtis")}</th><th>${t("Eiga")}</th><th>${t("Pradžia")}</th><th>${t("Dabar")}</th><th>${t("Pokytis")}</th></tr></thead><tbody>
    ${AT.map(a=>row(`${a.n}. ${esc(a.name)}`,x=>x.a===a.n)).join("")}</tbody></table></div>
-   <div class="scroll-x"><table class="tbl"><thead><tr><th>Atstumas</th><th>Eiga</th><th>Pradžia</th><th>Dabar</th><th>Pokytis</th></tr></thead><tbody>
+   <div class="scroll-x"><table class="tbl"><thead><tr><th>${t("Atstumas")}</th><th>${t("Eiga")}</th><th>${t("Pradžia")}</th><th>${t("Dabar")}</th><th>${t("Pokytis")}</th></tr></thead><tbody>
    ${DIST.map(d=>row(`${d} m`,x=>x.d===d)).join("")}</tbody></table></div></div>`;
 }
 function sparkline(vals){
@@ -920,7 +946,7 @@ function compareHtml(f){
   const rows=dataPlayers().filter(p=>!p.archived).map(p=>{const ss=filteredSessions(Object.assign({},f,{player:p.id}));const sh=flatShots(ss,f);const m=metrics(sh);
     const ser=ss.filter(s=>s.mode==="full").flatMap(s=>seriesTotals(s).filter(t=>t.n===20).map(t=>t.sum));return{p,m,ss,best:ser.length?Math.max(...ser):null};}).filter(r=>r.m.n).sort((a,b)=>b.m.score-a.m.score);
   if(!rows.length)return"";
-  return `<div class="card"><h2>Žaidėjų palyginimas</h2><div class="scroll-x"><table class="tbl"><thead><tr><th>Žaidėjas</th><th>Treniruotės</th><th>Vid./100</th><th>Pataik.</th><th>Karo</th><th>Geriausia</th></tr></thead><tbody>
+  return `<div class="card"><h2>${t("Žaidėjų palyginimas")}</h2><div class="scroll-x"><table class="tbl"><thead><tr><th>${t("Žaidėjas")}</th><th>${t("Treniruotės")}</th><th>${t("Vid./100")}</th><th>${t("Pataik.")}</th><th>${t("Karo")}</th><th>${t("Geriausia")}</th></tr></thead><tbody>
    ${rows.map(r=>`<tr><td><button class="chip" style="min-height:32px;padding:4px 10px" data-act="f-player" data-v="${r.p.id}">${esc(r.p.name)}</button></td><td>${r.ss.length}</td><td><b>${fmt1(r.m.score)}</b></td><td>${r.m.hit} %</td><td>${r.m.car==null?"—":r.m.car+" %"}</td><td>${r.best==null?"—":r.best}</td></tr>`).join("")}
   </tbody></table></div></div>`;
 }
@@ -942,18 +968,18 @@ function drawCharts(){
   if(pts.length>1)g+=`<polyline points="${pts.map((p,i)=>X(i).toFixed(1)+","+Y(p.ma).toFixed(1)).join(" ")}" fill="none" stroke="var(--o5)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
   const last=pts[pts.length-1];if(last&&pts.length>1){g+=`<circle cx="${X(pts.length-1)}" cy="${Y(last.ma)}" r="5" fill="var(--o5)" stroke="var(--surface)" stroke-width="2"/><text x="${X(pts.length-1)-8}" y="${Y(last.ma)-10}" text-anchor="end" font-size="12" font-weight="700" fill="var(--ink)">${fmt1(last.ma)}</text>`;}
   g+=`<line id="xh" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/><rect x="${ml}" y="0" width="${iw}" height="${H}" fill="transparent" id="hit"/>`;
-  el.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Progreso grafikas">${g}</svg><div class="tip" id="tip" hidden></div>`;
+  el.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("Progreso grafikas")}">${g}</svg><div class="tip" id="tip" hidden></div>`;
   const hit=el.querySelector("#hit"),tip=el.querySelector("#tip"),xh=el.querySelector("#xh");
   const show=e=>{const r=el.getBoundingClientRect();const x=e.clientX-r.left;let bi=0,bd=1e9;pts.forEach((p,i)=>{const d=Math.abs(X(i)-x);if(d<bd){bd=d;bi=i;}});const p=pts[bi];if(!p)return;
     xh.setAttribute("x1",X(bi));xh.setAttribute("x2",X(bi));xh.setAttribute("visibility","visible");
-    tip.hidden=false;tip.innerHTML=`${dateLt(p.s.date)} · ${esc(playerName(p.s.playerId))}<br><b>${fmt1(p.v)}</b> / 100 · ${p.n} met.<br>Vidurkis: ${fmt1(p.ma)}`;
+    tip.hidden=false;tip.innerHTML=`${dateLt(p.s.date)} · ${esc(playerName(p.s.playerId))}<br><b>${fmt1(p.v)}</b> / 100 · ${t("{n} met.",{n:p.n})}<br>${t("Vidurkis:")} ${fmt1(p.ma)}`;
     const tx=Math.min(Math.max(X(bi),80),W-80);tip.style.left=tx+"px";tip.style.top=(Math.min(Y(p.v),Y(p.ma))-8)+"px";};
   hit.addEventListener("pointermove",show);hit.addEventListener("pointerdown",show);
   hit.addEventListener("pointerleave",()=>{tip.hidden=true;xh.setAttribute("visibility","hidden");});
   const tr=$("#ch-trend");
-  if(tr&&pts.length>=4){const t=Math.max(2,Math.floor(pts.length/3));const a=avg(pts.slice(0,t).map(p=>p.v)),b=avg(pts.slice(-t).map(p=>p.v));const d=b-a;const c=Math.abs(d)<2?"flat":d>0?"up":"down";
-    tr.innerHTML=`Pirmų ${t} treniruočių vidurkis <b>${fmt1(a)}</b>, paskutinių ${t} – <b>${fmt1(b)}</b>: <span class="delta ${c}">${c==="up"?"▲ tobulėjate":c==="down"?"▼ rezultatai krito":"■ be esminio pokyčio"} (${d>0?"+":""}${fmt1(d)})</span>`;}
-  else if(tr)tr.textContent=pts.length<4?"Tendencijai reikia bent 4 treniruočių pasirinktame laikotarpyje.":"";
+  if(tr&&pts.length>=4){const tn=Math.max(2,Math.floor(pts.length/3));const a=avg(pts.slice(0,tn).map(p=>p.v)),b=avg(pts.slice(-tn).map(p=>p.v));const d=b-a;const c=Math.abs(d)<2?"flat":d>0?"up":"down";
+    tr.innerHTML=`${t("Pirmų {k} treniruočių vidurkis <b>{a}</b>, paskutinių {k} – <b>{b}</b>:",{k:tn,a:fmt1(a),b:fmt1(b)})} <span class="delta ${c}">${c==="up"?t("▲ tobulėjate"):c==="down"?t("▼ rezultatai krito"):t("■ be esminio pokyčio")} (${d>0?"+":""}${fmt1(d)})</span>`;}
+  else if(tr)tr.textContent=pts.length<4?t("Tendencijai reikia bent 4 treniruočių pasirinktame laikotarpyje."):"";
 }
 
 /* ----- History ----- */
@@ -962,48 +988,54 @@ function viewHist(){
   const pls=dataPlayers();const fp=S.f.player;
   if(fp)ss=ss.filter(s=>s.playerId===fp);
   let h="";
-  if(isDemo())h+=`<div class="banner"><span>Rodomi <b>pavyzdiniai duomenys</b>.</span></div>`;
-  if(pls.length>1)h+=`<div class="chips">${chip("f-player","","Visi",!fp)}${pls.filter(p=>!p.archived).map(p=>chip("f-player",p.id,p.name,fp===p.id)).join("")}</div>`;
-  if(!ss.length)return h+`<div class="card"><p class="empty">Treniruočių dar nėra.</p></div>`;
+  if(isDemo())h+=`<div class="banner"><span>${t("Rodomi <b>pavyzdiniai duomenys</b>.")}</span></div>`;
+  if(pls.length>1)h+=`<div class="chips">${chip("f-player","",t("Visi"),!fp)}${pls.filter(p=>!p.archived).map(p=>chip("f-player",p.id,p.name,fp===p.id)).join("")}</div>`;
+  if(!ss.length)return h+`<div class="card"><p class="empty">${t("Treniruočių dar nėra.")}</p></div>`;
   h+=ss.slice(0,150).map(s=>{
     const open=S.openHist===s.id;const tots=seriesTotals(s);const full=tots.filter(t=>t.n===20);
     const sc=s.mode==="full"&&full.length?(full.length===1?full[0].sum:fmt1(avg(full.map(t=>t.sum)))):fmt1(sessScore(s));
     let body="";
     if(open){
       if(s.note)body+=`<div class="small ink2">„${esc(s.note)}“</div>`;
-      if(s.mode==="full")body+=`<table class="tbl"><thead><tr><th>Serija</th>${AT.map(a=>`<th>${a.n}</th>`).join("")}<th>Σ</th></tr></thead><tbody>${tots.map(t=>{const sh=seriesShots(s,t.k);return `<tr><td>${t.k+1}${t.n<20?` <span class="muted small">(${t.n}/20)</span>`:""}</td>${AT.map(a=>`<td>${sh.filter(x=>x.a===a.n).reduce((q,y)=>q+y.p,0)}</td>`).join("")}<td><b>${t.sum}</b></td></tr>`;}).join("")}</tbody></table>`;
-      else{const combos={};s.shots.forEach(x=>{const k=x.a+"|"+x.d;(combos[k]=combos[k]||[]).push(x.p);});body+=`<table class="tbl"><thead><tr><th>Pratimas</th><th>Metimai</th><th>Vid.</th><th>Pataik.</th></tr></thead><tbody>${Object.entries(combos).map(([k,v])=>{const[a,d]=k.split("|");return `<tr><td>${a} rungtis, ${d} m</td><td>${v.length}</td><td>${fmt1(avg(v))}</td><td>${pct(v.filter(x=>x>0).length,v.length)} %</td></tr>`;}).join("")}</tbody></table>`;}
+      if(s.mode==="full")body+=`<table class="tbl"><thead><tr><th>${t("Serija")}</th>${AT.map(a=>`<th>${a.n}</th>`).join("")}<th>Σ</th></tr></thead><tbody>${tots.map(t=>{const sh=seriesShots(s,t.k);return `<tr><td>${t.k+1}${t.n<20?` <span class="muted small">(${t.n}/20)</span>`:""}</td>${AT.map(a=>`<td>${sh.filter(x=>x.a===a.n).reduce((q,y)=>q+y.p,0)}</td>`).join("")}<td><b>${t.sum}</b></td></tr>`;}).join("")}</tbody></table>`;
+      else{const combos={};s.shots.forEach(x=>{const k=x.a+"|"+x.d;(combos[k]=combos[k]||[]).push(x.p);});body+=`<table class="tbl"><thead><tr><th>${t("Pratimas")}</th><th>${t("Metimai")}</th><th>${t("Vid.")}</th><th>${t("Pataik.")}</th></tr></thead><tbody>${Object.entries(combos).map(([k,v])=>{const[a,d]=k.split("|");return `<tr><td>${t("{a} rungtis, {d} m",{a,d})}</td><td>${v.length}</td><td>${fmt1(avg(v))}</td><td>${pct(v.filter(x=>x>0).length,v.length)} %</td></tr>`;}).join("")}</tbody></table>`;}
       if(!isDemo()){
-        if(S.confirmDel===s.id)body+=`<div class="confirm"><span>Ištrinti šią treniruotę (${s.shots.length} metimai)? To atšaukti negalima.</span><div class="row"><button class="btn warn sm" data-act="h-del-yes" data-v="${s.id}">Taip, ištrinti</button><button class="btn ghost sm" data-act="h-del-no">Ne</button></div></div>`;
-        else body+=`<div class="row"><button class="btn sm" data-act="h-resume" data-v="${s.id}">${s.done?"Redaguoti / tęsti":"Tęsti"}</button><button class="btn sm ghost" data-act="h-del" data-v="${s.id}">Ištrinti</button></div>`;
+        if(S.confirmDel===s.id)body+=`<div class="confirm"><span>${t("Ištrinti šią treniruotę ({n} metimai)? To atšaukti negalima.",{n:s.shots.length})}</span><div class="row"><button class="btn warn sm" data-act="h-del-yes" data-v="${s.id}">${t("Taip, ištrinti")}</button><button class="btn ghost sm" data-act="h-del-no">${t("Ne")}</button></div></div>`;
+        else body+=`<div class="row"><button class="btn sm" data-act="h-resume" data-v="${s.id}">${s.done?t("Redaguoti / tęsti"):t("Tęsti")}</button><button class="btn sm ghost" data-act="h-del" data-v="${s.id}">${t("Ištrinti")}</button></div>`;
       }
     }
-    return `<div class="card hist-item"><button class="hist-head" data-act="h-open" data-v="${s.id}" aria-expanded="${open}"><div class="stack" style="gap:3px"><span><b>${dateLt(s.date)}</b> · ${esc(playerName(s.playerId))}</span><span class="row" style="gap:6px"><span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span><span class="small muted">${s.mode==="full"?(tots.length+" serija(-os)"):"Pratimas"} · ${s.shots.length} met.${s.done?"":" · nebaigta"}</span></span></div><span class="sc">${sc}<small>${s.mode==="full"&&full.length?" /100":" /100*"}</small></span></button>${body}</div>`;
+    return `<div class="card hist-item"><button class="hist-head" data-act="h-open" data-v="${s.id}" aria-expanded="${open}"><div class="stack" style="gap:3px"><span><b>${dateLt(s.date)}</b> · ${esc(playerName(s.playerId))}</span><span class="row" style="gap:6px"><span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span><span class="small muted">${s.mode==="full"?t("{n} serija(-os)",{n:tots.length}):t("Pratimas")} · ${t("{n} met.",{n:s.shots.length})}${s.done?"":" · "+t("nebaigta")}</span></span></div><span class="sc">${sc}<small>${s.mode==="full"&&full.length?" /100":" /100*"}</small></span></button>${body}</div>`;
   }).join("");
-  h+=`<p class="small muted">* Pratimų ir nepilnų serijų rezultatas perskaičiuotas į 100 balų skalę (vid. taškai × 20).</p>`;
+  h+=`<p class="small muted">${t("* Pratimų ir nepilnų serijų rezultatas perskaičiuotas į 100 balų skalę (vid. taškai × 20).")}</p>`;
   return h;
 }
 
 /* ----- Players & data ----- */
+function langCard(){
+  return `<div class="card"><h2>${t("Kalba")}</h2><div class="chips">${LANGS.map(([k,l])=>chip("lang",k,l,LANG===k)).join("")}</div></div>`;
+}
 function viewPlayers(){
-  const pl=S.players.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||(a.name||"").localeCompare(b.name||"","lt"));
-  let h=`<div class="card"><h2>Žaidėjai</h2>`;
-  if(!pl.length)h+=`<p class="muted">Žaidėjų dar nėra.</p>`;
+  const pl=S.players.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||(a.name||"").localeCompare(b.name||"",LANG));
+  let h=`<div class="card"><h2>${t("Žaidėjai")}</h2>`;
+  if(!pl.length)h+=`<p class="muted">${t("Žaidėjų dar nėra.")}</p>`;
   h+=pl.map(p=>{const n=S.sessions.filter(s=>s.playerId===p.id).length;
-    if(S.renaming===p.id)return `<div class="row"><input type="text" id="rn-${p.id}" value="${esc(p.name)}" style="flex:1;min-width:0"><button class="btn sm" data-act="pl-rename-save" data-v="${p.id}">Išsaugoti</button></div>`;
-    return `<div class="row between"><div><b>${esc(p.name)}</b>${p.archived?' <span class="tag">archyve</span>':""}<br><span class="small muted">${n} treniruotės</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">Pervadinti</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?"Grąžinti":"Į archyvą"}</button></div></div>`;}).join("");
-  h+=`<div class="row"><input type="text" id="pl-new" placeholder="Naujo žaidėjo vardas" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">Pridėti</button></div></div>`;
-  h+=`<div class="card"><h2>Duomenys</h2>
-   <p class="small ink2">${S.store==="db"?"Duomenys saugomi šios programėlės bendroje duomenų bazėje – juos mato ir gali pildyti visi, kuriems pasidalinta programėle (su „Contributor“ ar aukštesne teise).":"Duomenys saugomi tik šiame telefone. Kartą per savaitę ar po svarbios treniruotės pasidarykite atsarginę kopiją (JSON) ir išsisaugokite ją, pvz., el. pašte ar debesyje. Tą patį failą galite įkelti kitame telefone."}</p>
+    if(S.renaming===p.id)return `<div class="row"><input type="text" id="rn-${p.id}" value="${esc(p.name)}" style="flex:1;min-width:0"><button class="btn sm" data-act="pl-rename-save" data-v="${p.id}">${t("Išsaugoti")}</button></div>`;
+    return `<div class="row between"><div><b>${esc(p.name)}</b>${p.archived?` <span class="tag">${t("archyve")}</span>`:""}<br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?t("Grąžinti"):t("Į archyvą")}</button></div></div>`;}).join("");
+  h+=`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
+  h+=langCard();
+  h+=`<div class="card"><h2>${t("Duomenys")}</h2>
+   <p class="small ink2">${S.store==="db"?t("Duomenys saugomi šios programėlės bendroje duomenų bazėje – juos mato ir gali pildyti visi, kuriems pasidalinta programėle (su „Contributor“ ar aukštesne teise)."):t("Duomenys saugomi tik šiame telefone. Kartą per savaitę ar po svarbios treniruotės pasidarykite atsarginę kopiją (JSON) ir išsisaugokite ją, pvz., el. pašte ar debesyje. Tą patį failą galite įkelti kitame telefone.")}</p>
    ${S.store==="local"?`<p class="small">${backupStatusText()}</p>`:""}
-   <div class="row"><button class="btn sm ghost" data-act="exp-json">Atsarginė kopija (JSON)</button><button class="btn sm ghost" data-act="exp-csv">Visi metimai (CSV)</button><button class="btn sm ghost" data-act="imp">Įkelti iš kopijos</button></div>
+   <div class="row"><button class="btn sm ghost" data-act="exp-json">${t("Atsarginė kopija (JSON)")}</button><button class="btn sm ghost" data-act="exp-csv">${t("Visi metimai (CSV)")}</button><button class="btn sm ghost" data-act="imp">${t("Įkelti iš kopijos")}</button></div>
    ${S.msg?`<p class="small">${esc(S.msg)}</p>`:""}
   </div>`;
-  h+=`<div class="card"><h2>Taškų skaičiavimas</h2><dl class="rules">
-   <dt>1–4 rungtys (taikinys – rutulys)</dt><dd><b>5</b> – karo: taikinys visiškai išėjo iš apskritimo, jūsų rutulys liko jame. <b>3</b> – taikinys išėjo, bet ir jūsų rutulys išėjo. <b>1</b> – palietėte taikinį, bet jis liko apskritime, arba taikinys išėjo, tačiau pajudėjo kliūtis. <b>0</b> – nepataikėte, pirma palietėte kliūtį arba žemę už apskritimo ribų.</dd>
-   <dt>5 rungtis (taikinukas)</dt><dd><b>5</b> – taikinukas išėjo iš apskritimo. <b>3</b> – pajudėjo, bet liko. <b>0</b> – nepajudėjo.</dd>
-   <dt>Serija</dt><dd>5 rungtys × 4 atstumai (6, 7, 8, 9 m) = 20 metimų, daugiausia 100 taškų. Esant lygiam rezultatui laimi tas, kuris turi daugiau 5 taškų metimų, po to – daugiau 3 taškų.</dd>
-   <dt>Išdėstymai</dt><dd>${AT.map(a=>`${a.n}. ${esc(a.desc)}`).join("<br>")}</dd>
+  h+=`<div class="card"><h2>${t("Taškų skaičiavimas")}</h2><dl class="rules">
+   <dt>${t("1–4 rungtys (taikinys – rutulys)")}</dt><dd>${t("<b>5</b> – karo: taikinys visiškai išėjo iš apskritimo, jūsų rutulys liko jame. <b>3</b> – taikinys išėjo, bet ir jūsų rutulys išėjo. <b>1</b> – palietėte taikinį, bet jis liko apskritime. <b>0</b> – nepataikėte, pirma palietėte kliūtį arba rutulys nukrito ant apskritimo linijos ar už jos (net ir paskui pataikius į taikinį).")}</dd>
+   <dt>${t("2 ir 4 rungtys (kliūtis priekyje)")}</dt><dd>${t("<b>1</b> – jei pirma pataikėte į taikinį, o kliūtį jūsų rutulys palietė grįždamas. Taškas skiriamas tik tada, kai rutulys nukrito už priekinės kliūties, kitaip – 0.")}</dd>
+   <dt>${t("3 rungtis (kliūtys šonuose)")}</dt><dd>${t("<b>1</b> – jei po taikinio palietėte kliūtį ir ji liko apskritime. <b>0</b> – jei iš apskritimo išėjo ir taikinys, ir kliūtis.")}</dd>
+   <dt>${t("5 rungtis (taikinukas)")}</dt><dd>${t("<b>5</b> – taikinukas išėjo iš apskritimo. <b>3</b> – pajudėjo, bet liko. <b>0</b> – nepajudėjo.")}</dd>
+   <dt>${t("Serija")}</dt><dd>${t("5 rungtys × 4 atstumai (6, 7, 8, 9 m) = 20 metimų, daugiausia 100 taškų. Esant lygiam rezultatui laimi tas, kuris turi daugiau 5 taškų metimų, po to – daugiau 3 taškų.")}</dd>
+   <dt>${t("Išdėstymai")}</dt><dd>${AT.map(a=>`${a.n}. ${esc(a.desc)}`).join("<br>")}</dd>
   </dl></div>`;
   return h;
 }
@@ -1025,14 +1057,14 @@ async function doExport(kind){
   try{
     if(kind==="json"){await saveFile(`tir-de-precision-${today()}.json`,JSON.stringify({version:1,exported:new Date().toISOString(),players:S.players,sessions:S.sessions},null,1),"application/json");}
     else{
-      const rows=[["data","zaidejas","tipas","rezimas","serija","rungtis","atstumas_m","rezultatas","taskai","klaidos_kryptis","kontaktas","vieta"]];
-      S.sessions.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(s=>s.shots.forEach(x=>rows.push([s.date,playerName(s.playerId),KIND[s.kind]||"",s.mode==="full"?"serija":"pratimas",s.mode==="full"?x.s+1:"",x.a,x.d,OUT_LABEL[x.o]||x.o,x.p,x.m?DIR_LABEL[x.m]||x.m:"",x.c?CONTACT[x.c]:"",x.h?SIDE[x.h]:""])));
+      const rows=[[t("data"),t("zaidejas"),t("tipas"),t("rezimas"),t("serija"),t("rungtis"),t("atstumas_m"),t("rezultatas"),t("taskai"),t("klaidos_kryptis"),t("kontaktas"),t("vieta")]];
+      S.sessions.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(s=>s.shots.forEach(x=>rows.push([s.date,playerName(s.playerId),KIND[s.kind]||"",s.mode==="full"?t("serija"):t("pratimas"),s.mode==="full"?x.s+1:"",x.a,x.d,OUT_LABEL[x.o]||x.o,x.p,x.m?DIR_LABEL[x.m]||x.m:"",x.c?CONTACT[x.c]:"",x.h?SIDE[x.h]:""])));
       const csv="﻿"+rows.map(r=>r.map(v=>{v=String(v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(";")).join("\n");
-      await saveFile(`tir-de-precision-metimai-${today()}.csv`,csv,"text/csv");
+      await saveFile(`tir-de-precision-${t("metimai")}-${today()}.csv`,csv,"text/csv");
     }
-    S.msg="Failas paruoštas.";
-    if(kind==="json"){lsSet("tdp-lastbackup",Date.now());lsSet("tdp-backup-snooze",0);toast("Atsarginė kopija paruošta");}
-  }catch(e){S.msg=e&&e.code==="declined"?"Atsisiuntimas atšauktas.":"Nepavyko paruošti failo.";if(S.view!=="players")toast(S.msg);}
+    S.msg=t("Failas paruoštas.");
+    if(kind==="json"){lsSet("tdp-lastbackup",Date.now());lsSet("tdp-backup-snooze",0);toast(t("Atsarginė kopija paruošta"));}
+  }catch(e){S.msg=e&&e.code==="declined"?t("Atsisiuntimas atšauktas."):t("Nepavyko paruošti failo.");if(S.view!=="players")toast(S.msg);}
   render();
 }
 async function doImport(file){
@@ -1040,16 +1072,16 @@ async function doImport(file){
     const txt=await file.text();const d=JSON.parse(txt);
     const P=Array.isArray(d.players)?d.players:[],SS=Array.isArray(d.sessions)?d.sessions:[];
     let np=0,ns=0;
-    const norm=t=>String(t||"").trim().toLocaleLowerCase("lt");const map={};let nm=0;
+    const norm=t=>String(t||"").trim().toLocaleLowerCase(LANG);const map={};let nm=0;
     for(const p of P){if(!p.id)continue;
       const same=S.players.find(x=>x.id===p.id)||S.players.find(x=>norm(x.name)===norm(p.name));
       if(same){map[p.id]=same.id;if(same.id!==p.id)nm++;continue;}
-      const q={id:p.id,name:String(p.name||"Be vardo"),createdAt:p.createdAt||Date.now(),archived:!!p.archived};S.players.push(q);map[p.id]=q.id;await savePlayer(q);np++;}
+      const q={id:p.id,name:String(p.name||t("Be vardo")),createdAt:p.createdAt||Date.now(),archived:!!p.archived};S.players.push(q);map[p.id]=q.id;await savePlayer(q);np++;}
     for(const s of SS){if(!s.id||!Array.isArray(s.shots)||S.sessions.some(x=>x.id===s.id))continue;const q=clone(s);q.playerId=map[q.playerId]||q.playerId;q.updatedAt=Date.now();S.sessions.push(q);
       if(S.store==="db"){try{const b=clone(q);delete b.id;await DB.collection("sessions").doc(q.id).set(b);}catch(e){}}ns++;}
     if(S.store!=="db")saveLocalAll();
-    S.msg=`Įkelta: ${ns} treniruotės, ${np} nauji žaidėjai${nm?`, ${nm} sujungti pagal vardą`:""}.`;
-  }catch(e){S.msg="Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?";}
+    S.msg=t("Įkelta: {s} treniruotės, {p} nauji žaidėjai",{s:ns,p:np})+(nm?t(", {n} sujungti pagal vardą",{n:nm}):"")+".";
+  }catch(e){S.msg=t("Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?");}
   render();
 }
 
@@ -1101,6 +1133,7 @@ document.addEventListener("click",e=>{
     case"backup-later":lsSet("tdp-backup-snooze",Date.now()+SNOOZE_DAYS*864e5);render();break;
     case"exp-csv":doExport("csv");break;
     case"imp":$("#impfile").click();break;
+    case"lang":if(v!==LANG){lsSet("tdp-lang",v);location.reload();}break;
   }
 });
 function keepForm(){const n=$("#nf-note"),d=$("#nf-date");if(n)S.nf.note=n.value;if(d&&d.value)S.nf.date=d.value;}
