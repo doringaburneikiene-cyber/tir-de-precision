@@ -7,7 +7,7 @@ Petankės **tir de précision** (tikslaus mušimo) treniruočių registravimo ir
 - Keli žaidėjai vienoje treniruotėje su automatiniu keitimusi
 - Statistika: progresas, silpnos vietos pagal rungtį ir atstumą, klaidų kryptys
 - Knygelė: raktiniai žodžiai, ritualas, „jei nesiseka“ planas, įrašai po treniruočių, peržiūra prieš varžybas, 1 min. kvėpavimas
-- Virtualus treneris (Knygelė → Treneris): pokalbis su Claude, remiantis žaidėjo statistika ir knygele
+- Virtualus treneris „Karo“ (pokalbio mygtukas apačioje dešinėje): pokalbis su Claude, remiantis žaidėjo statistika ir knygele
 - Spalvų temos: Plienas, Rožė, Šalavijas (su tamsia versija)
 - Kalbos: lietuvių, anglų, prancūzų (parenkama pagal telefono kalbą, keičiama skiltyje „Žaidėjai“)
 - Veikia be interneto, įsidiegia į telefono pradžios ekraną (PWA)

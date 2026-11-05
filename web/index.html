@@ -255,7 +255,7 @@ ul.insight{padding:0;margin:0}
 .rules dd{margin:2px 0 0 0;color:var(--ink-2);font-size:14px}
 @media (prefers-reduced-motion:no-preference){.cell,.out,.chip{transition:background-color .12s,box-shadow .12s}}
 /* notebook */
-.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px}
 .seg button{border:0;border-radius:9px;background:transparent;color:var(--ink-2);font-weight:600;font-size:12.5px;line-height:1.15;min-height:40px;padding:4px 2px}
 .seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .cues{display:flex;flex-wrap:wrap;gap:8px}
@@ -307,6 +307,31 @@ ol.pre-rit li span{font-family:var(--f-cond);font-weight:700;font-size:16px;colo
 @keyframes tdot{0%,80%,100%{opacity:.3}40%{opacity:1}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .composer textarea{min-height:84px}
+.fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:30;width:58px;height:58px;border-radius:50%;border:0;background:var(--surface);color:var(--accent-strong);box-shadow:0 6px 20px rgba(0,0,0,.18),0 0 0 1px var(--line);display:flex;align-items:center;justify-content:center}
+.fab svg{width:28px;height:28px}
+.cp-back{position:fixed;inset:0;background:rgba(10,16,22,.4);z-index:39}
+.cp{position:fixed;z-index:40;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
+@media (min-width:560px){.cp{left:auto;right:16px;top:auto;bottom:16px;width:400px;height:min(680px,calc(100vh - 32px))}}
+.cp-h{display:flex;align-items:center;gap:10px;padding:10px 6px 10px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.cp-av{width:40px;height:40px;flex:0 0 40px;display:block}.cp-av svg{width:100%;height:100%;display:block}
+.cp-av.sm{width:30px;height:30px;flex-basis:30px}
+.cp-t{flex:1;display:flex;flex-direction:column;line-height:1.2;min-width:0}.cp-t b{font-size:16px}.cp-t span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-ib{border:0;background:none;width:44px;height:44px;border-radius:50%;color:var(--ink-2);display:flex;align-items:center;justify-content:center}.cp-ib svg{width:22px;height:22px}
+.cp-menu{position:absolute;top:62px;right:10px;z-index:2;background:var(--surface);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.22),0 0 0 1px var(--line);padding:6px;display:flex;flex-direction:column;min-width:250px;max-width:calc(100% - 20px)}
+.cp-menu .stack{padding:8px}
+.cp-mi{border:0;background:none;text-align:left;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;min-height:44px;color:var(--ink)}.cp-mi:disabled{opacity:.45}
+.cp-pl{padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:nowrap;overflow-x:auto}.cp-pl .chip{min-height:34px;padding:5px 12px;font-size:13px;white-space:nowrap}
+.cp-body{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.cm{display:flex;gap:8px;align-items:flex-end}.cm.me{justify-content:flex-end}
+.cm .msg{max-width:84%}
+.cp-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.cp-err{background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.cp-code{background:var(--surface);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.cp-quick{padding-left:38px}.cp-quick .chip{background:var(--surface);font-size:13px;min-height:36px}
+.cp-f{display:flex;gap:8px;align-items:flex-end;padding:10px;background:var(--surface);border-top:1px solid var(--line)}
+.cp-f textarea{flex:1;min-height:44px;max-height:120px;resize:none;border-radius:22px;padding:11px 14px}
+.cp-send{width:44px;height:44px;flex:0 0 44px;border:0;border-radius:50%;background:var(--btn);color:var(--btn-ink);display:flex;align-items:center;justify-content:center}.cp-send svg{width:20px;height:20px}.cp-send:disabled{opacity:.4}
+body.cp-lock{overflow:hidden}
 /* palette picker */
 .pals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .pal{border:0;border-radius:12px;padding:10px 8px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:76px}
@@ -375,6 +400,7 @@ ol.pre-rit li span{font-family:var(--f-cond);font-weight:700;font-size:16px;colo
 
 <div class="wrap" id="app"><div class="card"><p class="muted">Kraunama…</p></div></div>
 <nav class="nav" aria-label="Skiltys"><div class="nav-in" id="nav"></div></nav>
+<div id="coach-root"></div>
 <input type="file" id="impfile" accept=".json,application/json" hidden>
 
 <script src="i18n.js"></script>
@@ -463,7 +489,7 @@ const S={
   group:Object.assign({ids:[],rot:"shot"},lsGet("tdp-group",{})), curs:{}, adding:false, fix:false,
   f:Object.assign({player:"",period:"90",kind:"all",a:0,d:0},lsGet("tdp-f",{})),
   openHist:null, confirmDel:null, renaming:null, msg:"",
-  coachBusy:null, coachErr:"", coachDraft:"", coachNeedCode:false, coachConfirmClear:false,
+  coachBusy:null, coachErr:"", coachDraft:"", coachNeedCode:false, coachConfirmClear:false, coachOpen:false, coachMenu:false, coachP:null,
   noteTab:"plan", noteP:null, planEdit:null, reflectQ:[], reflectId:null, rd:null, preFromStart:false, reflectBack:null
 };
 let DB=null, DL=null;
@@ -731,6 +757,7 @@ function render(){
   renderNav();
   if(S.view==="stats"&&S.store!=="pending")drawCharts();
   tickTimer();
+  renderCoach();
 }
 function renderNav(){
   const items=[["rec",t("Treniruotė")],["stats",t("Statistika")],["note",t("Knygelė")],["hist",t("Istorija")],["players",t("Žaidėjai")]];
@@ -1042,12 +1069,11 @@ function viewNote(){
   const p=notePlayer();
   if(!p)return `<div class="card"><p class="empty">${t("Pirmiausia pridėkite žaidėją skiltyje „Treniruotė“.")}</p></div>`;
   const tab=S.noteTab||"plan";
-  let h=`<div class="seg" role="tablist">${[["plan",t("Mano planas")],["log",t("Įrašai")],["pre",t("Prieš varžybas")],["coach",t("Treneris")]].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="nt-tab" data-v="${k}">${l}</button>`).join("")}</div>`;
+  let h=`<div class="seg" role="tablist">${[["plan",t("Mano planas")],["log",t("Įrašai")],["pre",t("Prieš varžybas")]].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="nt-tab" data-v="${k}">${l}</button>`).join("")}</div>`;
   const pl=activePlayers();
   if(pl.length>1)h+=`<div class="chips">${pl.map(x=>chip("nt-p",x.id,x.name,x.id===p.id)).join("")}</div>`;
   if(tab==="plan")h+=S.planEdit?planEditor(p):planView(p);
   else if(tab==="log")h+=logView(p);
-  else if(tab==="coach")h+=coachView(p);
   else h+=preView(p);
   return h;
 }
@@ -1227,27 +1253,52 @@ function fmtCoach(txt){
     if(lines.every(l=>/^\s*([-•*]|\d+[.)])\s+/.test(l)))return `<ul>${lines.map(l=>`<li>${inl(l.replace(/^\s*([-•*]|\d+[.)])\s+/,""))}</li>`).join("")}</ul>`;
     return `<p>${lines.map(inl).join("<br>")}</p>`;}).join("");
 }
-function coachView(p){
-  const chat=chatOf(p.id);const busy=S.coachBusy===p.id;
-  let h=`<div class="card"><div class="row between"><h2>${t("Virtualus treneris")}</h2>${chat.length?`<button class="btn sm ghost" data-act="co-clear">${t("Išvalyti")}</button>`:""}</div>
-    <p class="small ink2">${t("Parašykite, kas nesiseka. Treneris remiasi jūsų statistika ir knygele, bet nemato jūsų metimų. Atsakymus kuria dirbtinis intelektas – vertinkite juos kritiškai.")}</p>
-    ${chat.length?"":`<div class="chips">${COACH_PROMPTS.map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`}</div>`;
-  if(S.coachConfirmClear)h+=`<div class="confirm"><span>${t("Ištrinti visą pokalbį su treneriu?")}</span><div class="row"><button class="btn warn sm" data-act="co-clear-yes">${t("Taip, ištrinti")}</button><button class="btn ghost sm" data-act="co-clear-no">${t("Ne")}</button></div></div>`;
-  if(chat.length||busy)h+=`<div class="chat" aria-live="polite">${chat.map(m=>m.r==="u"?`<div class="msg me">${esc(m.c).replace(/\n/g,"<br>")}</div>`:`<div class="msg co">${fmtCoach(m.c)}</div>`).join("")}${busy?`<div class="msg co typing"><span></span><span></span><span></span><span class="sr">${t("Treneris rašo…")}</span></div>`:""}</div>`;
-  if(S.coachErr)h+=`<div class="banner"><span>${S.coachErr}</span></div>`;
-  if(S.coachNeedCode)h+=`<div class="card"><label class="label" for="co-code">${t("Prieigos kodas")}</label><p class="small ink2">${t("Treneris kol kas veikia tik su prieigos kodu. Jį gausite iš programėlės savininko.")}</p><div class="row"><input type="text" id="co-code" value="${esc(lsGet("tdp-coach-code",""))}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm" data-act="co-code">${t("Išsaugoti")}</button></div></div>`;
-  if(chat.length&&!busy)h+=`<div class="chips">${COACH_PROMPTS.slice(0,3).map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`;
-  h+=`<div class="card composer"><label class="label" for="co-in">${t("Jūsų klausimas")}</label><textarea id="co-in" rows="3" maxlength="1200" placeholder="${t("pvz. Iš 9 m vis krenta per trumpai, o iš 6 m viskas gerai")}">${esc(S.coachDraft||"")}</textarea>
-    <div class="row between"><label class="small ink2" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="co-ctx" ${lsGet("tdp-coach-ctx",true)?"checked":""}> ${t("Siųsti treneriui mano statistiką")}</label><button class="btn" data-act="co-send" ${busy?"disabled":""}>${t("Siųsti")}</button></div></div>`;
-  return h;
+const COACH_AV='<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="var(--accent-soft)"/><circle cx="20" cy="21" r="11" fill="var(--ink-2)"/><path d="M10.5 17.5c6 2.2 13 2.2 19 0M10.5 24.5c6-2.2 13-2.2 19 0" fill="none" stroke="var(--surface)" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="15.5" r="2.2" fill="var(--surface)" opacity=".7"/><circle cx="31" cy="31" r="3.2" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/></svg>';
+function coachPlayer(){
+  const pl=activePlayers();if(!pl.length)return null;
+  let p=pl.find(x=>x.id===S.coachP);if(!p){p=pl.find(x=>x.id===S.noteP)||pl.find(x=>x.id===S.f.player)||pl[0];S.coachP=p.id;}
+  return p;
+}
+function keepCoachDraft(){const ci=$("#co-in");if(ci)S.coachDraft=ci.value;}
+function renderCoach(){
+  const root=$("#coach-root");if(!root)return;
+  keepCoachDraft();
+  const hideFab=S.store==="pending"||(S.view==="rec"&&active());
+  document.body.classList.toggle("cp-lock",!!S.coachOpen);
+  if(!S.coachOpen){root.innerHTML=hideFab?"":`<button class="fab" data-act="co-open" aria-label="${t("Virtualus treneris")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z" fill="currentColor"/></svg></button>`;return;}
+  const p=coachPlayer();const busy=p&&S.coachBusy===p.id;const chat=p?chatOf(p.id):[];
+  let body=`<div class="cm co"><span class="cp-av sm">${COACH_AV}</span><div class="msg co">${t("Labas! Aš Karo, tavo DI treneris. Pažiūriu į tavo statistiką ir knygelę ir padedu suprasti, kas nesiseka ir ką treniruoti. Kuo galiu padėti?")}<p class="cp-note">${t("Atsakymus kuria dirbtinis intelektas – vertink juos kritiškai. Tavo metimų jis nemato.")}</p></div></div>`;
+  if(!p)body+=`<div class="cm co"><span class="cp-av sm">${COACH_AV}</span><div class="msg co">${t("Pirmiausia pridėk žaidėją skiltyje „Treniruotė“ – tada galėsiu pažiūrėti į tavo rezultatus.")}</div></div>`;
+  body+=chat.map(m=>m.r==="u"?`<div class="cm me"><div class="msg me">${esc(m.c).replace(/\n/g,"<br>")}</div></div>`:`<div class="cm co"><span class="cp-av sm">${COACH_AV}</span><div class="msg co">${fmtCoach(m.c)}</div></div>`).join("");
+  if(busy)body+=`<div class="cm co"><span class="cp-av sm">${COACH_AV}</span><div class="msg co typing"><span></span><span></span><span></span><span class="sr">${t("Treneris rašo…")}</span></div></div>`;
+  if(S.coachErr)body+=`<div class="cp-err" role="alert">${S.coachErr}</div>`;
+  if(S.coachNeedCode)body+=`<div class="cp-code"><label class="label" for="co-code">${t("Prieigos kodas")}</label><p class="small ink2">${t("Treneris kol kas veikia tik su prieigos kodu. Jį gausite iš programėlės savininko.")}</p><div class="row"><input type="text" id="co-code" value="${esc(lsGet("tdp-coach-code",""))}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm" data-act="co-code">${t("Išsaugoti")}</button></div></div>`;
+  if(p&&!busy)body+=`<div class="chips cp-quick">${(chat.length?COACH_PROMPTS.slice(0,3):COACH_PROMPTS).map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`;
+  const pl=activePlayers();
+  const menu=S.coachMenu?`<div class="cp-menu" role="menu">
+     ${S.coachConfirmClear?`<div class="stack"><span class="small">${t("Ištrinti visą pokalbį su treneriu?")}</span><div class="row"><button class="btn warn sm" data-act="co-clear-yes">${t("Taip, ištrinti")}</button><button class="btn ghost sm" data-act="co-clear-no">${t("Ne")}</button></div></div>`:`<button class="cp-mi" role="menuitem" data-act="co-clear" ${chat.length?"":"disabled"}>${t("Išvalyti pokalbį")}</button>`}
+     <button class="cp-mi" role="menuitemcheckbox" aria-checked="${lsGet("tdp-coach-ctx",true)}" data-act="co-ctx">${lsGet("tdp-coach-ctx",true)?"✓ ":""}${t("Siųsti treneriui mano statistiką")}</button>
+     <button class="cp-mi" role="menuitem" data-act="co-showcode">${t("Prieigos kodas")}</button></div>`:"";
+  root.innerHTML=`<div class="cp-back" data-act="co-close"></div><section class="cp" role="dialog" aria-modal="true" aria-label="${t("Virtualus treneris")}">
+    <header class="cp-h"><span class="cp-av">${COACH_AV}</span><div class="cp-t"><b>Karo</b><span>${t("DI treneris")}${p&&pl.length>1?"":p?" · "+esc(p.name):""}</span></div>
+      <button class="cp-ib" data-act="co-menu" aria-label="${t("Meniu")}" aria-expanded="${!!S.coachMenu}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button>
+      <button class="cp-ib" data-act="co-close" aria-label="${t("Uždaryti")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></header>
+    ${menu}
+    ${pl.length>1?`<div class="cp-pl chips">${pl.map(x=>chip("co-p",x.id,x.name,p&&x.id===p.id)).join("")}</div>`:""}
+    <div class="cp-body" id="cp-body" aria-live="polite">${body}</div>
+    <div class="cp-f"><label class="sr" for="co-in">${t("Jūsų klausimas")}</label><textarea id="co-in" rows="1" maxlength="1200" placeholder="${t("Parašyk klausimą…")}" ${p?"":"disabled"}>${esc(S.coachDraft||"")}</textarea>
+      <button class="cp-send" data-act="co-send" aria-label="${t("Siųsti")}" ${busy||!p?"disabled":""}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z" fill="currentColor"/></svg></button></div>
+  </section>`;
+  const bd=$("#cp-body");if(bd)bd.scrollTop=bd.scrollHeight;
 }
 async function coachSend(text){
-  const p=notePlayer();if(!p)return;text=String(text||"").trim();if(!text||S.coachBusy)return;
+  keepCoachDraft();const p=coachPlayer();if(!p)return;text=String(text||"").trim();if(!text||S.coachBusy)return;
+  const ciEl=$("#co-in");if(ciEl)ciEl.value="";
   const ctxOn=$("#co-ctx")?$("#co-ctx").checked:lsGet("tdp-coach-ctx",true);lsSet("tdp-coach-ctx",ctxOn);
   const chat=chatOf(p.id);chat.push({r:"u",c:text,t:Date.now()});saveChat(p.id,chat);
   S.coachDraft="";S.coachErr="";S.coachBusy=p.id;
   try{document.activeElement&&document.activeElement.blur();}catch(e){}
-  render();scrollChat();
+  renderCoach();
   let errMsg="";
   try{
     if(!navigator.onLine)throw{k:"offline"};
@@ -1260,10 +1311,10 @@ async function coachSend(text){
     errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
     if(k==="code")S.coachNeedCode=true;
     const c3=chatOf(p.id);if(c3.length&&c3[c3.length-1].r==="u"&&c3[c3.length-1].c===text){c3.pop();saveChat(p.id,c3);}
-    S.coachDraft=text;
+    S.coachDraft=text;const ce=$("#co-in");if(ce)ce.value=text;
   }
   S.coachBusy=null;S.coachErr=errMsg;
-  if(S.view==="note"&&S.noteTab==="coach"){render();scrollChat();}
+  renderCoach();
 }
 function scrollChat(){setTimeout(()=>{const m=document.querySelectorAll(".chat .msg");const last=m[m.length-1];if(last)last.scrollIntoView({block:"start",behavior:"smooth"});},30);}
 
@@ -1606,11 +1657,17 @@ document.addEventListener("click",e=>{
     case"breath":openBreath();break;
     case"co-quick":coachSend(t(COACH_PROMPTS[+v]||""));break;
     case"co-send":{const ci=$("#co-in");coachSend(ci?ci.value:"");break;}
-    case"co-clear":S.coachConfirmClear=true;render();break;
-    case"co-clear-no":S.coachConfirmClear=false;render();break;
-    case"co-clear-yes":{const p=notePlayer();if(p)saveChat(p.id,[]);S.coachConfirmClear=false;S.coachErr="";render();break;}
-    case"co-code":{const ci=$("#co-code");lsSet("tdp-coach-code",ci?ci.value.trim():"");S.coachNeedCode=false;S.coachErr="";render();break;}
-    case"ask-coach":{const ci=null;S.view="note";S.noteTab="coach";if(v)S.noteP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");lsSet("tdp-view","note");render();window.scrollTo(0,0);break;}
+    case"co-clear":S.coachConfirmClear=true;renderCoach();break;
+    case"co-clear-no":S.coachConfirmClear=false;renderCoach();break;
+    case"co-clear-yes":{const p=coachPlayer();if(p)saveChat(p.id,[]);S.coachConfirmClear=false;S.coachMenu=false;S.coachErr="";renderCoach();break;}
+    case"co-code":{const ci=$("#co-code");lsSet("tdp-coach-code",ci?ci.value.trim():"");S.coachNeedCode=false;S.coachErr="";renderCoach();break;}
+    case"co-open":S.coachOpen=true;S.coachMenu=false;renderCoach();break;
+    case"co-close":keepCoachDraft();S.coachOpen=false;S.coachMenu=false;S.coachConfirmClear=false;renderCoach();break;
+    case"co-menu":S.coachMenu=!S.coachMenu;S.coachConfirmClear=false;renderCoach();break;
+    case"co-ctx":lsSet("tdp-coach-ctx",!lsGet("tdp-coach-ctx",true));renderCoach();break;
+    case"co-showcode":S.coachNeedCode=true;S.coachMenu=false;renderCoach();break;
+    case"co-p":keepCoachDraft();S.coachP=v;S.coachErr="";renderCoach();break;
+    case"ask-coach":S.coachOpen=true;S.coachMenu=false;if(v)S.coachP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");renderCoach();break;
     case"pal":setPalette(v);break;
     case"nf-player":{const p=S.nf.pids||[];const i=p.indexOf(v);if(i>=0)p.splice(i,1);else p.push(v);S.nf.pids=p;keepForm();render();break;}
     case"rot":S.group.rot=v;saveGroup();render();break;
@@ -1658,7 +1715,7 @@ document.addEventListener("click",e=>{
   }
 });
 function keepForm(){const n=$("#nf-note"),d=$("#nf-date");if(n)S.nf.note=n.value;if(d&&d.value)S.nf.date=d.value;}
-document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id&&["pl-new","pl-new-rec","nf-newpl","sw-newpl"].includes(e.target.id)){e.preventDefault();addPlayer(e.target.id);}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.coachOpen){keepCoachDraft();S.coachOpen=false;S.coachMenu=false;renderCoach();return;}if(e.key==="Enter"&&e.target.id&&["pl-new","pl-new-rec","nf-newpl","sw-newpl"].includes(e.target.id)){e.preventDefault();addPlayer(e.target.id);}});
 $("#impfile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(f)doImport(f);e.target.value="";});
 let rsT;window.addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(S.view==="stats")drawCharts();},150);});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(S.view==="stats")render();});}catch(e){}

@@ -1,5 +1,5 @@
 // Pakeiskite VERSION kiekvieną kartą išleidžiant naują versiją.
-const VERSION = "tdp-v10";
+const VERSION = "tdp-v11";
 const SHELL = ["./", "index.html", "i18n.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
