@@ -58,7 +58,7 @@
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
 body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:14px 110px;display:flex;flex-direction:column;gap:14px}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:14px 156px;display:flex;flex-direction:column;gap:14px}
 h1,h2,h3{font-family:var(--f-cond);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance;line-height:1.1}
 h1{font-size:26px}
 h2{font-size:21px}
@@ -1263,7 +1263,7 @@ function keepCoachDraft(){const ci=$("#co-in");if(ci)S.coachDraft=ci.value;}
 function renderCoach(){
   const root=$("#coach-root");if(!root)return;
   keepCoachDraft();
-  const hideFab=S.store==="pending"||(S.view==="rec"&&active());
+  const hideFab=S.store==="pending";
   document.body.classList.toggle("cp-lock",!!S.coachOpen);
   if(!S.coachOpen){root.innerHTML=hideFab?"":`<button class="fab" data-act="co-open" aria-label="${t("Virtualus treneris")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z" fill="currentColor"/></svg></button>`;return;}
   const p=coachPlayer();const busy=p&&S.coachBusy===p.id;const chat=p?chatOf(p.id):[];
