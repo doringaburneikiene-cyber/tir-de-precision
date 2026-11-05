@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#13202C">
+<script>try{var tp=JSON.parse(localStorage.getItem("tdp-palette"));if(tp&&tp!=="steel")document.documentElement.setAttribute("data-palette",tp);}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tir de précision">
@@ -96,7 +97,7 @@ textarea{min-height:64px;resize:vertical}
 
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
-.nav-in{max-width:680px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.nav-in{max-width:680px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 .nav button{border:0;background:none;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted);min-height:58px}
 .nav button svg{width:22px;height:22px}
 .nav button[aria-current="page"]{color:var(--ink)}
@@ -249,6 +250,108 @@ ul.insight{padding:0;margin:0}
 .rules dt{font-weight:700;margin-top:8px}
 .rules dd{margin:2px 0 0 0;color:var(--ink-2);font-size:14px}
 @media (prefers-reduced-motion:no-preference){.cell,.out,.chip{transition:background-color .12s,box-shadow .12s}}
+/* notebook */
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;border-radius:9px;background:transparent;color:var(--ink-2);font-weight:600;font-size:13px;min-height:38px;padding:4px}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.cues{display:flex;flex-wrap:wrap;gap:8px}
+.cue{background:var(--ink);color:var(--surface);border-radius:999px;padding:9px 14px;font-size:15px;font-weight:600}
+ol.ritual{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+ol.ritual li{display:flex;gap:10px;align-items:center;font-size:15px}
+.rn{flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;font-family:var(--f-cond);font-weight:700;font-size:15px}
+.ifs{display:flex;flex-direction:column;gap:8px}
+.ifrow{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.ifrow.row{flex-direction:row}
+.tag.stat{background:var(--o1);color:var(--o1-t)}
+.banner.info{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+.rate{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;align-items:center}
+.rl2{font-size:14px;font-weight:600}
+.rbtns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.rbtns button{border:0;min-height:44px;border-radius:9px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);font-family:var(--f-cond);font-weight:700;font-size:17px}
+.rbtns button[aria-checked="true"]{background:var(--ink);color:var(--surface);box-shadow:none}
+.pre{background:#101A24;color:#EBF0F3;border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:16px;color-scheme:dark}
+.pre-l{color:#F2BE6B}
+.pre-h{font-size:28px;color:#FFFFFF}
+.pre-cues{display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid #2B3642}
+.pre-cues p{font-family:var(--f-cond);font-weight:700;font-size:32px;line-height:1.12;color:#FFFFFF}
+.pre-muted{color:#ADB8C3;font-size:14px}
+.pre-sec{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#ADB8C3}
+ol.pre-rit{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ol.pre-rit li{background:#1E2A36;border-radius:10px;padding:8px 10px;font-size:14px;display:flex;gap:8px;align-items:center}
+ol.pre-rit li span{font-family:var(--f-cond);font-weight:700;font-size:16px;color:#F2BE6B}
+.pre-if{font-size:15px;line-height:1.35}
+.pre-if span{color:#ADB8C3}
+.pre-card{background:#1E2A36;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.pre-best{font-family:var(--f-cond);font-weight:700;font-size:22px;color:#FFFFFF}
+.pre-best small{font-size:13px;color:#ADB8C3}
+.pre-warn{background:#2A2416;border-radius:12px;padding:10px 12px;font-size:14px;color:#F5E6CC}
+.btn.pre-go{background:#E7A847;color:#101A24;min-height:52px;font-size:17px}
+.btn.pre-ghost{background:transparent;color:#EBF0F3;box-shadow:inset 0 0 0 1.5px #3A4755}
+.breath .cel-card{gap:14px}
+.bcirc{width:180px;height:180px;margin:6px auto;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+.bdot{width:180px;height:180px;border-radius:50%;background:var(--o3);opacity:.85;transform:scale(.6);transition:transform .1s linear}
+.bphase{font-family:var(--f-cond);font-weight:700;font-size:28px;color:var(--ink)}
+/* palette picker */
+.pals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pal{border:0;border-radius:12px;padding:10px 8px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:76px}
+.pal[aria-pressed="true"]{box-shadow:inset 0 0 0 2.5px var(--accent)}
+.pal .sw{display:flex;gap:4px}
+.pal .sw i{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+/* palettes: rose (grey-pink) */
+:root[data-palette="rose"]{
+  --bg:#ECE8EA; --surface:#FCFBFB; --surface-2:#F4F0F2; --ink:#2A1F26; --ink-2:#5C4F57; --muted:#7A6C74;
+  --line:#DDD3D8; --line-2:#CBBFC5;
+  --accent:#D0668F; --accent-strong:#9A2F5A; --accent-soft:#F8E3EC;
+  --btn:#2A1F26; --btn-ink:#FFFFFF;
+  --o5:#6B2152; --o5-t:#FFFFFF; --o3:#B84F7A; --o3-t:#FFFFFF; --o1:#EDB3C8; --o1-t:#3A1029; --o0:#CFC6CB; --o0-t:#2A1F26;
+  --heat-0:#FBEFF3; --heat-1:#5A1A43;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-palette="rose"]:not([data-theme="light"]){
+    --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#C4B6BF; --muted:#8E808A;
+    --line:#3A2F3C; --line-2:#4A3D4C;
+    --accent:#E58AAE; --accent-strong:#F2A9C6; --accent-soft:#3D2433;
+    --btn:#F2ECF0; --btn-ink:#17121A;
+    --o5:#F4C6D8; --o5-t:#3A1029; --o3:#B84F7A; --o3-t:#FFFFFF; --o1:#6E2F50; --o1-t:#FFFFFF; --o0:#3A3140; --o0-t:#F2ECF0;
+    --heat-0:#241B26; --heat-1:#F4C6D8;
+  }
+}
+:root[data-palette="rose"][data-theme="dark"]{
+  --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#C4B6BF; --muted:#8E808A;
+  --line:#3A2F3C; --line-2:#4A3D4C;
+  --accent:#E58AAE; --accent-strong:#F2A9C6; --accent-soft:#3D2433;
+  --btn:#F2ECF0; --btn-ink:#17121A;
+  --o5:#F4C6D8; --o5-t:#3A1029; --o3:#B84F7A; --o3-t:#FFFFFF; --o1:#6E2F50; --o1-t:#FFFFFF; --o0:#3A3140; --o0-t:#F2ECF0;
+  --heat-0:#241B26; --heat-1:#F4C6D8;
+}
+/* palettes: sage (grey-green) */
+:root[data-palette="sage"]{
+  --bg:#E6ECE8; --surface:#FBFCFB; --surface-2:#F0F4F1; --ink:#1B2620; --ink-2:#4B5A52; --muted:#6B7A71;
+  --line:#D2DCD5; --line-2:#BECAC2;
+  --accent:#7FB394; --accent-strong:#2F6B4C; --accent-soft:#E1F0E7;
+  --btn:#1B2620; --btn-ink:#FFFFFF;
+  --o5:#1F4D3A; --o5-t:#FFFFFF; --o3:#357A5B; --o3-t:#FFFFFF; --o1:#A9D2BC; --o1-t:#12291E; --o0:#C8D0CB; --o0-t:#1B2620;
+  --heat-0:#EEF5F0; --heat-1:#1A4232;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-palette="sage"]:not([data-theme="light"]){
+    --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#AFC0B5; --muted:#7F9086;
+    --line:#2B3830; --line-2:#3A4A40;
+    --accent:#8CC4A4; --accent-strong:#A9D8BC; --accent-soft:#1F3328;
+    --btn:#E9F0EB; --btn-ink:#0F1512;
+    --o5:#BFE3CF; --o5-t:#10261A; --o3:#3F8F69; --o3-t:#FFFFFF; --o1:#1F5A40; --o1-t:#FFFFFF; --o0:#36423B; --o0-t:#E9F0EB;
+    --heat-0:#1A241F; --heat-1:#A9D8BC;
+  }
+}
+:root[data-palette="sage"][data-theme="dark"]{
+  --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#AFC0B5; --muted:#7F9086;
+  --line:#2B3830; --line-2:#3A4A40;
+  --accent:#8CC4A4; --accent-strong:#A9D8BC; --accent-soft:#1F3328;
+  --btn:#E9F0EB; --btn-ink:#0F1512;
+  --o5:#BFE3CF; --o5-t:#10261A; --o3:#3F8F69; --o3-t:#FFFFFF; --o1:#1F5A40; --o1-t:#FFFFFF; --o0:#36423B; --o0-t:#E9F0EB;
+  --heat-0:#1A241F; --heat-1:#A9D8BC;
+}
+
 </style>
 </head>
 <body>
@@ -343,7 +446,8 @@ const S={
   nf:{pids:null,mode:"full",kind:"train",date:today(),note:""},
   group:Object.assign({ids:[],rot:"shot"},lsGet("tdp-group",{})), curs:{}, adding:false, fix:false,
   f:Object.assign({player:"",period:"90",kind:"all",a:0,d:0},lsGet("tdp-f",{})),
-  openHist:null, confirmDel:null, renaming:null, msg:""
+  openHist:null, confirmDel:null, renaming:null, msg:"",
+  noteTab:"plan", noteP:null, planEdit:null, reflectQ:[], reflectId:null, rd:null, preFromStart:false, reflectBack:null
 };
 let DB=null, DL=null;
 
@@ -487,6 +591,7 @@ const IC={
  rec:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
  stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
  hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>',
+ note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>',
  players:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.5c2.4.2 4 1.8 4.6 4.5"/></svg>'
 };
 
@@ -597,12 +702,13 @@ function backupStatusText(){
 function render(){
   const app=$("#app");
   let h="";
-  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div>${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</header>`;
-  if(S.store!=="pending"&&S.view!=="players"&&!(S.view==="rec"&&active()))h+=backupBanner();
+  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),note:t("Knygelė"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div>${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</header>`;
+  if(S.store!=="pending"&&S.view!=="players"&&S.view!=="note"&&!(S.view==="rec"&&active()))h+=backupBanner();
   if(S.store==="pending"){h+=`<div class="card"><p class="muted">${t("Kraunami duomenys…")}</p></div>`;}
   else if(S.view==="rec")h+=viewRec();
   else if(S.view==="stats")h+=viewStats();
   else if(S.view==="hist")h+=viewHist();
+  else if(S.view==="note")h+=viewNote();
   else h+=viewPlayers();
   app.innerHTML=h;
   renderNav();
@@ -610,7 +716,7 @@ function render(){
   tickTimer();
 }
 function renderNav(){
-  const items=[["rec",t("Treniruotė")],["stats",t("Statistika")],["hist",t("Istorija")],["players",t("Žaidėjai")]];
+  const items=[["rec",t("Treniruotė")],["stats",t("Statistika")],["note",t("Knygelė")],["hist",t("Istorija")],["players",t("Žaidėjai")]];
   $("#nav").innerHTML=items.map(([k,l])=>`<button data-act="nav" data-v="${k}" ${S.view===k?'aria-current="page"':""}>${IC[k]}<span>${l}</span></button>`).join("");
 }
 function chip(act,val,label,on,extra){return `<button class="chip" data-act="${act}" data-v="${esc(val)}" aria-pressed="${on?"true":"false"}"${extra||""}>${esc(label)}</button>`;}
@@ -800,6 +906,7 @@ function startSession(){
   made.forEach(x=>{S.sessions.push(x);persistSession(x);});
   S.group.ids=made.map(x=>x.id);saveGroup();S.curs={};
   setActive(made[0].id);S.cur={a:1,d:6};S.editing=false;nf.note="";
+  if(nf.kind==="comp"){const pp=S.players.find(x=>x.id===nf.pids[0]);if(pp&&planHas(pp)){S.view="note";S.noteTab="pre";S.noteP=pp.id;S.preFromStart=true;S.planEdit=null;}}
   render();window.scrollTo(0,0);
 }
 function addToGroup(pid){
@@ -862,7 +969,202 @@ function endSession(){
   [...new Set(g.filter(x=>x.shots.length).map(x=>x.playerId))].forEach(checkWeek);
   setActive(null);S.view=focus?"stats":"rec";lsSet("tdp-view",S.view);
   if(focus){S.f.player=g.filter(s=>s.shots.length).length>1?"":focus.playerId;lsSet("tdp-f",S.f);}
+  const doneIds=g.filter(x=>x.shots.length).map(x=>x.id);
+  if(doneIds.length&&!lsGet("tdp-reflect-off",false)){S.reflectBack="stats";openReflect(doneIds);}
   render();window.scrollTo(0,0);
+}
+
+/* ----- Notebook (Knygelė) ----- */
+const RF_TAGS=["Vėjas","Nuovargis","Nauji rutuliai","Kieta aikštelė","Minkšta aikštelė","Žiūrovai","Karštis","Šaltis"];
+const emptyPlan=()=>({cues:[],ritual:[],ifs:[]});
+function planOf(p){const pl=p&&p.plan;return{cues:(pl&&pl.cues)||[],ritual:(pl&&pl.ritual)||[],ifs:(pl&&pl.ifs)||[]};}
+function planHas(p){const x=planOf(p);return x.cues.length+x.ritual.length+x.ifs.length>0;}
+function notePlayer(){
+  const pl=activePlayers();if(!pl.length)return null;
+  let p=pl.find(x=>x.id===S.noteP);if(!p){p=pl.find(x=>x.id===S.f.player)||pl[0];S.noteP=p.id;}
+  return p;
+}
+function playerShots(pid,days){
+  const cut=days?periodCut(String(days)):null;
+  return flatShots(S.sessions.filter(s=>s.playerId===pid&&(!cut||s.date>=cut)),{a:0,d:0});
+}
+const TIP={
+  short:["Krenta per trumpai","Aukštesnis mojis, žiūriu už taikinio"],
+  long:["Praskrenda per toli","Žemesnė, tiesesnė trajektorija"],
+  left:["Klaidos į kairę","Ranka arti kūno, pečiai į taikinį"],
+  right:["Klaidos į dešinę","Ranka arti kūno, pečiai į taikinį"],
+  ob:["Pirma kliūtis 2 ar 4 rungtyje","Aukštesnė trajektorija, kritimas už kliūties"],
+  side:["Pataikau į rutulio šoną","Žiūriu į rutulio centrą iki pat paleidimo"]
+};
+function dominantIssue(shots){
+  const M=missAgg(shots);if(M.miss.length<4)return null;
+  const out=[];const dm=M.short+M.long,lr=M.left+M.right;
+  if(dm>=3)out.push({k:M.short>=M.long?"short":"long",w:Math.max(M.short,M.long)});
+  if(lr>=3&&Math.abs(M.left-M.right)/lr>=0.2)out.push({k:M.left>M.right?"left":"right",w:Math.max(M.left,M.right)});
+  if((M.c.OB||0)>=2)out.push({k:"ob",w:M.c.OB});
+  const hits=shots.filter(x=>x.p>0&&x.h);if(hits.length>=6&&hits.filter(x=>x.h!=="C").length/hits.length>=0.4)out.push({k:"side",w:hits.filter(x=>x.h!=="C").length});
+  return out.sort((a,b)=>b.w-a.w);
+}
+function planSuggestions(p){
+  const iss=dominantIssue(playerShots(p.id,90))||[];const have=planOf(p).ifs.map(x=>x.w);
+  return iss.map(i=>({w:t(TIP[i.k][0]),t:t(TIP[i.k][1])})).filter(s=>!have.includes(s.w));
+}
+function weakSpot(pid){
+  const all=playerShots(pid,90);const cells=[];
+  AT.forEach(a=>DIST.forEach(d=>{const sh=all.filter(x=>x.a===a.n&&x.d===d);if(sh.length>=3)cells.push({a:a.n,d,v:avg(sh.map(x=>x.p)),sh});}));
+  if(cells.length<3)return null;cells.sort((x,y)=>x.v-y.v);const c=cells[0];
+  const iss=dominantIssue(c.sh);return{a:c.a,d:c.d,tip:iss&&iss.length?t(TIP[iss[0].k][1]):""};
+}
+function bestSeries(pid){
+  let best=null;
+  S.sessions.filter(s=>s.playerId===pid&&s.mode==="full").forEach(s=>seriesTotals(s).filter(tt=>tt.n===20).forEach(tt=>{if(!best||tt.sum>best.sum)best={sum:tt.sum,s};}));
+  return best;
+}
+function viewNote(){
+  if(S.reflectId)return viewReflect();
+  const p=notePlayer();
+  if(!p)return `<div class="card"><p class="empty">${t("Pirmiausia pridėkite žaidėją skiltyje „Treniruotė“.")}</p></div>`;
+  const tab=S.noteTab||"plan";
+  let h=`<div class="seg" role="tablist">${[["plan",t("Mano planas")],["log",t("Įrašai")],["pre",t("Prieš varžybas")]].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="nt-tab" data-v="${k}">${l}</button>`).join("")}</div>`;
+  const pl=activePlayers();
+  if(pl.length>1)h+=`<div class="chips">${pl.map(x=>chip("nt-p",x.id,x.name,x.id===p.id)).join("")}</div>`;
+  if(tab==="plan")h+=S.planEdit?planEditor(p):planView(p);
+  else if(tab==="log")h+=logView(p);
+  else h+=preView(p);
+  return h;
+}
+function planView(p){
+  const pl=planOf(p);let h="";
+  if(!planHas(p))h+=`<div class="banner"><span>${t("Čia susirašykite, kas jums padeda susikaupti ir ką daryti, kai nesiseka. Prieš varžybas viską matysite viename ekrane.")}</span></div>`;
+  h+=`<div class="card"><div class="row between"><h2>${t("Raktiniai žodžiai")}</h2><button class="btn sm ghost" data-act="pl-edit">${t("Redaguoti")}</button></div>
+   ${pl.cues.length?`<div class="cues">${pl.cues.map(c=>`<span class="cue">${esc(c)}</span>`).join("")}</div>`:`<p class="muted small">${t("Dar nėra. Pvz.: „Ranka arti kūno“, „Žiūriu į taikinio viršų“.")}</p>`}
+   <p class="small muted">${t("3–5 trumpos frazės. Daugiau nebepadeda.")}</p></div>`;
+  h+=`<div class="card"><div class="row between"><h2>${t("Ritualas prieš metimą")}</h2><span class="small muted">${t("≈ 15 s")}</span></div>
+   ${pl.ritual.length?`<ol class="ritual">${pl.ritual.map((r,i)=>`<li><span class="rn">${i+1}</span><span>${esc(r)}</span></li>`).join("")}</ol>`:`<p class="muted small">${t("Dar nėra. Pvz.: pėdos apskritime, du ramūs įkvėpimai, žvilgsnis į taikinį, metimas.")}</p>`}
+   <p class="small muted">${t("Toks pat kiekvieną kartą – treniruotėje ir varžybose.")}</p></div>`;
+  h+=`<div class="card"><h2>${t("Jei nesiseka")}</h2>
+   ${pl.ifs.length?`<div class="ifs">${pl.ifs.map(x=>`<div class="ifrow"><div class="row between" style="gap:8px"><span class="label">${esc(x.w)}</span>${x.src==="stat"?`<span class="tag stat">${t("Iš statistikos")}</span>`:""}</div><span>${esc(x.t)}</span></div>`).join("")}</div>`:`<p class="muted small">${t("Dar nėra. Pvz.: „2 nepataikymai iš eilės → žingsnis atgal, iškvepiu, ritualas iš naujo“.")}</p>`}</div>`;
+  const sug=planSuggestions(p);
+  if(sug.length)h+=`<div class="card"><h3>${t("Pasiūlymai pagal jūsų statistiką")}</h3><p class="small ink2">${t("Pagal paskutinių 90 dienų klaidas. Pridėkite, jei tinka.")}</p>
+   ${sug.map((s,i)=>`<div class="row between ifrow"><div class="stack" style="gap:2px"><span class="label">${esc(s.w)}</span><span>${esc(s.t)}</span></div><button class="btn sm ghost" data-act="sug-add" data-v="${i}">${t("Pridėti")}</button></div>`).join("")}</div>`;
+  return h;
+}
+function planEditor(p){
+  const d=S.planEdit;
+  const cues=d.cues.length<5?d.cues.concat(Array(Math.max(1,3-d.cues.length)).fill("")).slice(0,5):d.cues;
+  return `<div class="card"><h2>${t("Raktiniai žodžiai")}</h2>
+   ${cues.map((c,i)=>`<input type="text" id="pe-cue-${i}" value="${esc(c)}" placeholder="${t("Raktinė frazė")}" maxlength="40">`).join("")}
+   ${cues.length<5?`<button class="btn sm ghost" data-act="pl-addrow" data-k="cue">${t("+ Pridėti frazę")}</button>`:""}</div>
+   <div class="card"><h2>${t("Ritualas prieš metimą")}</h2>
+   ${d.ritual.map((r,i)=>`<div class="row" style="gap:6px;flex-wrap:nowrap"><span class="rn">${i+1}</span><input type="text" id="pe-rit-${i}" value="${esc(r)}" placeholder="${t("Žingsnis")}" maxlength="60" style="flex:1;min-width:0"><button class="btn sm ghost" data-act="pl-delrow" data-k="rit" data-i="${i}" aria-label="${t("Pašalinti")}">✕</button></div>`).join("")}
+   ${d.ritual.length<6?`<button class="btn sm ghost" data-act="pl-addrow" data-k="rit">${t("+ Pridėti žingsnį")}</button>`:""}</div>
+   <div class="card"><h2>${t("Jei nesiseka")}</h2>
+   ${d.ifs.map((x,i)=>`<div class="ifrow stack"><input type="text" id="pe-ifw-${i}" value="${esc(x.w)}" placeholder="${t("Kai… (pvz. 2 nepataikymai iš eilės)")}" maxlength="60"><input type="text" id="pe-ift-${i}" value="${esc(x.t)}" placeholder="${t("Tada… (ką darau)")}" maxlength="90"><button class="btn sm ghost" data-act="pl-delrow" data-k="if" data-i="${i}">${t("Pašalinti")}</button></div>`).join("")}
+   ${d.ifs.length<6?`<button class="btn sm ghost" data-act="pl-addrow" data-k="if">${t("+ Pridėti situaciją")}</button>`:""}</div>
+   <div class="row"><button class="btn" data-act="pl-save" style="flex:2">${t("Išsaugoti")}</button><button class="btn ghost" data-act="pl-cancel" style="flex:1">${t("Atšaukti")}</button></div>`;
+}
+function collectPlan(){
+  const d=S.planEdit;if(!d)return;
+  d.cues=d.cues.length<5?d.cues.concat(Array(Math.max(1,3-d.cues.length)).fill("")).slice(0,5):d.cues;
+  d.cues=d.cues.map((c,i)=>{const el=$("#pe-cue-"+i);return el?el.value:c;});
+  d.ritual=d.ritual.map((r,i)=>{const el=$("#pe-rit-"+i);return el?el.value:r;});
+  d.ifs=d.ifs.map((x,i)=>{const a=$("#pe-ifw-"+i),b=$("#pe-ift-"+i);return{w:a?a.value:x.w,t:b?b.value:x.t,src:x.src};});
+}
+function savePlan(){
+  collectPlan();const p=notePlayer();if(!p||!S.planEdit)return;const d=S.planEdit;
+  p.plan={cues:d.cues.map(x=>x.trim()).filter(Boolean).slice(0,5),ritual:d.ritual.map(x=>x.trim()).filter(Boolean),ifs:d.ifs.map(x=>({w:x.w.trim(),t:x.t.trim(),src:x.src||""})).filter(x=>x.w||x.t)};
+  S.planEdit=null;savePlayer(p);toast(t("Planas išsaugotas"));render();
+}
+/* reflection */
+function rfScore(s){const tots=seriesTotals(s).filter(tt=>tt.n===20);return tots.length?avg(tots.map(tt=>tt.sum)):sessScore(s);}
+function openReflect(ids){S.reflectQ=ids.slice();S.reflectId=S.reflectQ.shift()||null;S.rd=null;S.view="note";lsSet("tdp-view","note");}
+function viewReflect(){
+  const s=S.sessions.find(x=>x.id===S.reflectId);if(!s){S.reflectId=null;return viewNote();}
+  if(!S.rd)S.rd=Object.assign({f:0,n:0,e:0,tags:[],good:"",bad:"",next:""},clone(s.reflect||{}));
+  const r=S.rd;const fullT=seriesTotals(s).filter(tt=>tt.n===20);
+  const rate=(k,l)=>`<div class="rate"><span class="rl2">${l}</span><div class="rbtns" role="radiogroup" aria-label="${l}">${[1,2,3,4,5].map(v=>`<button role="radio" aria-checked="${r[k]===v}" data-act="rf-rate" data-k="${k}" data-v="${v}">${v}</button>`).join("")}</div></div>`;
+  const ins=focusInsight(s.playerId);
+  return `<div class="card"><div class="row between" style="align-items:flex-end"><div class="stack" style="gap:2px"><span class="label">${t("Treniruotė baigta")}</span><h2 style="font-size:26px">${t("Kaip sekėsi?")}</h2></div>
+     <div style="text-align:right">${fullT.length?`<div class="bigscore num" style="font-size:36px">${fmt0(avg(fullT.map(tt=>tt.sum)))}<small> / 100</small></div>`:`<div class="bigscore num" style="font-size:30px">${s.shots.length}<small> ${t("met.")}</small></div>`}<span class="small muted">${esc(playerName(s.playerId))} · ${dateLt(s.date)}</span></div></div>
+    <p class="small ink2">${t("30 sekundžių. Įrašai susiejami su taškais – laikui bėgant pamatysite, kas jums padeda.")}</p>
+    ${rate("f",t("Susikaupimas"))}${rate("n",t("Jaudulys"))}${rate("e",t("Energija"))}
+    <div class="row between small muted" style="padding-left:112px"><span>${t("1 – labai menkai")}</span><span>${t("5 – labai stipriai")}</span></div>
+    <div class="field"><span class="label">${t("Žymės")}</span><div class="chips">${RF_TAGS.map(g=>chip("rf-tag",g,t(g),r.tags.includes(g))).join("")}</div></div>
+    <div class="field"><label class="label" for="rf-good">${t("Kas pavyko?")}</label><input type="text" id="rf-good" value="${esc(r.good)}" maxlength="140"></div>
+    <div class="field"><label class="label" for="rf-bad">${t("Kas trukdė?")}</label><input type="text" id="rf-bad" value="${esc(r.bad)}" maxlength="140"></div>
+    <div class="field"><label class="label" for="rf-next">${t("Ką kitą kartą darysiu kitaip?")}</label><input type="text" id="rf-next" value="${esc(r.next)}" maxlength="140"></div>
+    ${ins?`<div class="banner info"><span>${ins}</span></div>`:""}
+    <div class="row"><button class="btn" data-act="rf-save" style="flex:2">${t("Išsaugoti")}</button><button class="btn ghost" data-act="rf-skip" style="flex:1">${t("Praleisti")}</button></div>
+    ${S.reflectQ&&S.reflectQ.length?`<p class="small muted">${t("Po to – kitas žaidėjas ({n})",{n:S.reflectQ.length})}</p>`:""}
+  </div>`;
+}
+function keepReflect(){if(!S.rd)return;["good","bad","next"].forEach(k=>{const el=$("#rf-"+k);if(el)S.rd[k]=el.value;});}
+function nextReflect(){S.rd=null;S.reflectId=(S.reflectQ&&S.reflectQ.shift())||null;if(!S.reflectId){S.view=S.reflectBack||"stats";S.reflectBack=null;lsSet("tdp-view",S.view);}render();window.scrollTo(0,0);}
+function saveReflect(){
+  keepReflect();const s=S.sessions.find(x=>x.id===S.reflectId);
+  if(s){const r=S.rd;const any=r.f||r.n||r.e||r.tags.length||r.good.trim()||r.bad.trim()||r.next.trim();
+    if(any){s.reflect={f:r.f||0,n:r.n||0,e:r.e||0,tags:r.tags,good:r.good.trim(),bad:r.bad.trim(),next:r.next.trim(),at:Date.now()};persistSession(s);}}
+  nextReflect();
+}
+function reflected(pid){return S.sessions.filter(s=>s.playerId===pid&&s.reflect&&s.shots.length).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.createdAt||0)-(a.createdAt||0));}
+function focusInsight(pid){
+  const rs=reflected(pid).filter(s=>s.reflect.f);if(rs.length<4)return"";
+  const hi=rs.filter(s=>s.reflect.f>=4).map(rfScore),lo=rs.filter(s=>s.reflect.f<=2).map(rfScore);
+  if(hi.length<2||lo.length<2||Math.abs(avg(hi)-avg(lo))<3)return"";
+  return t("Kai susikaupimą vertinate <b>4–5</b>, jūsų vidurkis <b>{a}</b>; kai 1–2 – <b>{b}</b>. Pagal {n} treniruotes.",{a:fmt0(avg(hi)),b:fmt0(avg(lo)),n:rs.length});
+}
+function logInsights(pid){
+  const rs=reflected(pid);const items=[];
+  const fi=focusInsight(pid);if(fi)items.push(fi);
+  const rn=rs.filter(s=>s.reflect.n);
+  if(rn.length>=4){const hi=rn.filter(s=>s.reflect.n>=4).map(rfScore),lo=rn.filter(s=>s.reflect.n<=2).map(rfScore);
+    if(hi.length>=2&&lo.length>=2&&Math.abs(avg(hi)-avg(lo))>=3)items.push(t("Kai jaudulys stiprus (4–5), vidurkis <b>{a}</b>; kai mažas (1–2) – <b>{b}</b>.",{a:fmt0(avg(hi)),b:fmt0(avg(lo))}));}
+  RF_TAGS.forEach(g=>{const w=rs.filter(s=>s.reflect.tags&&s.reflect.tags.includes(g)).map(rfScore),wo=rs.filter(s=>!(s.reflect.tags||[]).includes(g)).map(rfScore);
+    if(w.length>=2&&wo.length>=2){const d=avg(w)-avg(wo);if(Math.abs(d)>=3)items.push(t("Su žyme „{g}“ vidurkis <b>{a}</b>, be jos – <b>{b}</b>.",{g:t(g),a:fmt0(avg(w)),b:fmt0(avg(wo))}));}});
+  return items;
+}
+function logView(p){
+  const rs=reflected(p.id);const off=lsGet("tdp-reflect-off",false);
+  let h=`<div class="card"><div class="row between"><h2>${t("Įrašai po treniruočių")}</h2><span class="small muted">${t("{n} įrašai",{n:rs.length})}</span></div>
+    <div class="row between small"><span class="ink2">${t("Klausti baigus treniruotę")}</span><div class="chips">${chip("rf-ask","1",t("Taip"),!off)}${chip("rf-ask","0",t("Ne"),off)}</div></div></div>`;
+  const ins=logInsights(p.id);
+  if(ins.length)h+=`<div class="card"><h3>${t("Ką rodo jūsų įrašai")}</h3><ul class="insight">${ins.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+  else h+=`<div class="banner"><span>${t("Kai turėsite bent 4 įrašus su įvertinimais, čia matysite, kaip susikaupimas, jaudulys ir sąlygos siejasi su jūsų taškais.")}</span></div>`;
+  const recent=S.sessions.filter(s=>s.playerId===p.id&&s.shots.length&&s.done).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.createdAt||0)-(a.createdAt||0)).slice(0,30);
+  if(!recent.length)return h+`<div class="card"><p class="empty">${t("Treniruočių dar nėra.")}</p></div>`;
+  h+=recent.map(s=>{const r=s.reflect;
+    return `<div class="card hist-item"><div class="row between"><span><b>${dateLt(s.date)}</b> <span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span></span><span class="sc" style="font-family:var(--f-cond);font-weight:700;font-size:22px">${fmt0(rfScore(s))}<small class="muted" style="font-size:12px"> /100</small></span></div>
+     ${r?`<div class="small ink2">${[r.f?t("Susikaupimas {v}/5",{v:r.f}):"",r.n?t("Jaudulys {v}/5",{v:r.n}):"",r.e?t("Energija {v}/5",{v:r.e}):""].filter(Boolean).join(" · ")}</div>
+       ${(r.tags||[]).length?`<div class="chips">${r.tags.map(g=>`<span class="tag">${esc(t(g))}</span>`).join("")}</div>`:""}
+       ${r.good?`<p class="small"><b>${t("Pavyko:")}</b> ${esc(r.good)}</p>`:""}${r.bad?`<p class="small"><b>${t("Trukdė:")}</b> ${esc(r.bad)}</p>`:""}${r.next?`<p class="small"><b>${t("Kitą kartą:")}</b> ${esc(r.next)}</p>`:""}`:`<p class="small muted">${t("Įrašo nėra.")}</p>`}
+     <div><button class="btn sm ghost" data-act="rf-open" data-v="${s.id}">${r?t("Taisyti įrašą"):t("Pridėti įrašą")}</button></div></div>`;}).join("");
+  return h;
+}
+function preView(p){
+  const pl=planOf(p);const best=bestSeries(p.id);const ws=weakSpot(p.id);
+  let h=`<div class="pre"><div class="row between" style="align-items:flex-start"><div class="stack" style="gap:2px"><span class="label pre-l">${t("Prieš varžybas")}</span><h2 class="pre-h">${t("Tavo planas vienoje vietoje")}</h2></div></div>`;
+  h+=pl.cues.length?`<div class="pre-cues">${pl.cues.map(c=>`<p>${esc(c)}</p>`).join("")}</div>`:`<p class="pre-muted">${t("Raktinių žodžių dar nėra – pridėkite juos skiltyje „Mano planas“.")}</p>`;
+  if(pl.ritual.length)h+=`<div class="stack"><span class="pre-sec">${t("Ritualas")}</span><ol class="pre-rit">${pl.ritual.map((r,i)=>`<li><span>${i+1}</span>${esc(r)}</li>`).join("")}</ol></div>`;
+  if(pl.ifs.length)h+=`<div class="stack" style="gap:6px"><span class="pre-sec">${t("Jei nesiseka")}</span>${pl.ifs.map(x=>`<p class="pre-if"><span>${esc(x.w)} →</span> ${esc(x.t)}</p>`).join("")}</div>`;
+  if(best){const q=(best.s.reflect&&best.s.reflect.good)||best.s.note||"";
+    h+=`<div class="pre-card"><div class="row between"><span class="pre-sec">${t("Kai sekėsi geriausiai")}</span><span class="pre-best">${best.sum}<small> / 100 · ${dateLt(best.s.date).slice(0,5)}</small></span></div>${q?`<p>„${esc(q)}“</p>`:`<p class="pre-muted">${t("Užrašų prie šios treniruotės nėra. Po treniruočių užpildykite trumpą įrašą – čia matysite, kas padėjo.")}</p>`}</div>`;}
+  if(ws)h+=`<div class="pre-warn"><b>${t("{a} rungtis iš {d} m",{a:ws.a,d:ws.d})}</b> – ${t("silpniausia vieta.")}${ws.tip?" "+esc(ws.tip)+".":""}</div>`;
+  h+=`<div class="stack"><button class="btn pre-go" data-act="breath">▶ ${t("1 min. kvėpavimas")}</button><button class="btn pre-ghost" data-act="pre-start">${S.preFromStart?t("Pradėti varžybų seriją"):t("Pradėti varžybų treniruotę")}</button></div></div>`;
+  return h;
+}
+/* breathing */
+let breathT=null;
+function openBreath(){
+  const ov=document.createElement("div");ov.className="cel breath";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+  ov.innerHTML=`<div class="cel-card"><h2>${t("1 min. kvėpavimas")}</h2><div class="bcirc" aria-hidden="true"><div class="bdot"></div></div><p class="bphase" aria-live="polite">${t("Įkvėpk")}</p><p class="small muted bleft"></p><button class="btn block" type="button">${t("Baigti")}</button></div>`;
+  document.body.appendChild(ov);
+  const ph=ov.querySelector(".bphase"),left=ov.querySelector(".bleft"),dot=ov.querySelector(".bdot");
+  const t0=Date.now();const close=()=>{clearInterval(breathT);ov.remove();};let still=false;try{still=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+  ov.querySelector("button").addEventListener("click",close);ov.querySelector("button").focus();
+  const tick=()=>{const el=(Date.now()-t0)/1000;if(el>=60){ph.textContent=t("Puiku. Esi pasiruošęs.");left.textContent="";dot.style.transform="scale(.6)";clearInterval(breathT);return;}
+    const c=el%12;let txt,sc;if(c<4){txt=t("Įkvėpk");sc=.6+.4*(c/4);}else if(c<6){txt=t("Sulaikyk");sc=1;}else{txt=t("Iškvėpk");sc=1-.4*((c-6)/6);}
+    ph.textContent=txt;if(!still)dot.style.transform=`scale(${sc.toFixed(3)})`;left.textContent=t("Liko {s} s",{s:Math.ceil(60-el)});};
+  tick();breathT=setInterval(tick,100);
 }
 
 /* ----- Stats ----- */
@@ -1097,6 +1399,13 @@ function viewHist(){
 }
 
 /* ----- Players & data ----- */
+const PALETTES=[["steel","Plienas",["#E7EBEE","#13202C","#E09A2A","#2A78D6"]],["rose","Rožė",["#ECE8EA","#2A1F26","#D0668F","#B84F7A"]],["sage","Šalavijas",["#E6ECE8","#1B2620","#7FB394","#357A5B"]]];
+function curPalette(){return document.documentElement.getAttribute("data-palette")||"steel";}
+function setPalette(v){lsSet("tdp-palette",v);if(v==="steel")document.documentElement.removeAttribute("data-palette");else document.documentElement.setAttribute("data-palette",v);render();}
+function themeCard(){
+  const cur=curPalette();
+  return `<div class="card"><h2>${t("Spalvos")}</h2><div class="pals">${PALETTES.map(([k,l,c])=>`<button class="pal" data-act="pal" data-v="${k}" aria-pressed="${cur===k}"><span class="sw" aria-hidden="true">${c.map(x=>`<i style="background:${x}"></i>`).join("")}</span>${t(l)}</button>`).join("")}</div><p class="small muted">${t("Tamsi versija įsijungia pagal telefono nustatymus.")}</p></div>`;
+}
 function langCard(){
   return `<div class="card"><h2>${t("Kalba")}</h2><div class="chips">${LANGS.map(([k,l])=>chip("lang",k,l,LANG===k)).join("")}</div></div>`;
 }
@@ -1109,6 +1418,7 @@ function viewPlayers(){
     return `<div class="row between"><div><b>${esc(p.name)}</b>${p.archived?` <span class="tag">${t("archyve")}</span>`:""}<br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?t("Grąžinti"):t("Į archyvą")}</button></div></div>`;}).join("");
   h+=`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
   h+=langCard();
+  h+=themeCard();
   h+=`<div class="card"><h2>${t("Duomenys")}</h2>
    <p class="small ink2">${S.store==="db"?t("Duomenys saugomi šios programėlės bendroje duomenų bazėje – juos mato ir gali pildyti visi, kuriems pasidalinta programėle (su „Contributor“ ar aukštesne teise)."):t("Duomenys saugomi tik šiame telefone. Kartą per savaitę ar po svarbios treniruotės pasidarykite atsarginę kopiją (JSON) ir išsisaugokite ją, pvz., el. pašte ar debesyje. Tą patį failą galite įkelti kitame telefone.")}</p>
    ${S.store==="local"?`<p class="small">${backupStatusText()}</p>`:""}
@@ -1176,7 +1486,24 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");if(!b)return;
   const act=b.dataset.act,v=b.dataset.v;
   switch(act){
-    case"nav":S.view=v;lsSet("tdp-view",v);S.msg="";render();window.scrollTo(0,0);break;
+    case"nav":S.view=v;lsSet("tdp-view",v);S.msg="";S.reflectId=null;S.reflectQ=[];S.rd=null;S.preFromStart=false;S.planEdit=null;render();window.scrollTo(0,0);break;
+    case"nt-tab":S.noteTab=v;S.planEdit=null;S.preFromStart=false;render();window.scrollTo(0,0);break;
+    case"nt-p":S.noteP=v;S.planEdit=null;render();break;
+    case"pl-edit":{const p=notePlayer();if(p){S.planEdit=clone(planOf(p));render();}break;}
+    case"pl-cancel":S.planEdit=null;render();break;
+    case"pl-save":savePlan();break;
+    case"pl-addrow":{collectPlan();const d=S.planEdit;if(!d)break;const k=b.dataset.k;if(k==="cue"&&d.cues.length<5)d.cues.push("");else if(k==="rit")d.ritual.push("");else if(k==="if")d.ifs.push({w:"",t:"",src:""});render();break;}
+    case"pl-delrow":{collectPlan();const d=S.planEdit;if(!d)break;const i=+b.dataset.i;if(b.dataset.k==="rit")d.ritual.splice(i,1);else d.ifs.splice(i,1);render();break;}
+    case"sug-add":{const p=notePlayer();if(!p)break;const sg=planSuggestions(p)[+v];if(!sg)break;const pl=planOf(p);p.plan={cues:pl.cues,ritual:pl.ritual,ifs:pl.ifs.concat([{w:sg.w,t:sg.t,src:"stat"}])};savePlayer(p);render();break;}
+    case"rf-rate":keepReflect();if(S.rd){const k=b.dataset.k;S.rd[k]=S.rd[k]===+v?0:+v;}render();break;
+    case"rf-tag":keepReflect();if(S.rd){const i=S.rd.tags.indexOf(v);if(i>=0)S.rd.tags.splice(i,1);else S.rd.tags.push(v);}render();break;
+    case"rf-save":saveReflect();break;
+    case"rf-skip":nextReflect();break;
+    case"rf-open":S.reflectBack="note";openReflect([v]);render();window.scrollTo(0,0);break;
+    case"rf-ask":lsSet("tdp-reflect-off",v==="0");render();break;
+    case"pre-start":{const p=notePlayer();if(S.preFromStart||active()){S.preFromStart=false;S.view="rec";}else{S.nf.kind="comp";if(p)S.nf.pids=[p.id];S.view="rec";}lsSet("tdp-view",S.view);render();window.scrollTo(0,0);break;}
+    case"breath":openBreath();break;
+    case"pal":setPalette(v);break;
     case"nf-player":{const p=S.nf.pids||[];const i=p.indexOf(v);if(i>=0)p.splice(i,1);else p.push(v);S.nf.pids=p;keepForm();render();break;}
     case"rot":S.group.rot=v;saveGroup();render();break;
     case"sw":S.pending=null;switchTo(v,false);render();break;

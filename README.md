@@ -6,6 +6,8 @@ Petankės **tir de précision** (tikslaus mušimo) treniruočių registravimo ir
 - Kiekvieno metimo rezultatas, klaidos kryptis, pataikymo būdas
 - Keli žaidėjai vienoje treniruotėje su automatiniu keitimusi
 - Statistika: progresas, silpnos vietos pagal rungtį ir atstumą, klaidų kryptys
+- Knygelė: raktiniai žodžiai, ritualas, „jei nesiseka“ planas, įrašai po treniruočių, peržiūra prieš varžybas, 1 min. kvėpavimas
+- Spalvų temos: Plienas, Rožė, Šalavijas (su tamsia versija)
 - Kalbos: lietuvių, anglų, prancūzų (parenkama pagal telefono kalbą, keičiama skiltyje „Žaidėjai“)
 - Veikia be interneto, įsidiegia į telefono pradžios ekraną (PWA)
 - Duomenys saugomi telefone; atsarginė kopija JSON, metimų eksportas CSV
