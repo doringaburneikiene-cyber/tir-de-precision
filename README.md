@@ -36,7 +36,8 @@ Kuri versija paskelbta, galima patikrinti atidarius `/sw.js` – eilutėje `cons
 ## Virtualaus trenerio nustatymai (Netlify → Environment variables)
 
 - `ANTHROPIC_API_KEY` – Claude API raktas (būtinas)
-- `COACH_CODE` – prieigos kodas; jei nustatytas, treneris veikia tik jį įvedus programėlėje
+- `COACH_CODE` – prieigos kodas; jei nustatytas, treneris veikia tik jį įvedus programėlėje. Keli kodai atskiriami kableliais (pvz. `almantas24,doringa24`) – kiekvienas turi savo mėnesio limitą.
+- `COACH_LIMIT` – kiek klausimų per mėnesį leidžiama vienam kodui (numatytasis 100; `0` – be ribos). Skaitiklis saugomas Netlify Blobs.
 - `COACH_MODEL` – modelis (numatytasis `claude-sonnet-5`)
 
 ## Ateities planai

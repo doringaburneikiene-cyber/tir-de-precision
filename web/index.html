@@ -1273,6 +1273,8 @@ function renderCoach(){
   if(busy)body+=`<div class="cm co"><span class="cp-av sm">${COACH_AV}</span><div class="msg co typing"><span></span><span></span><span></span><span class="sr">${t("Treneris rašo…")}</span></div></div>`;
   if(S.coachErr)body+=`<div class="cp-err" role="alert">${S.coachErr}</div>`;
   if(S.coachNeedCode)body+=`<div class="cp-code"><label class="label" for="co-code">${t("Prieigos kodas")}</label><p class="small ink2">${t("Treneris kol kas veikia tik su prieigos kodu. Jį gausite iš programėlės savininko.")}</p><div class="row"><input type="text" id="co-code" value="${esc(lsGet("tdp-coach-code",""))}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm" data-act="co-code">${t("Išsaugoti")}</button></div></div>`;
+  const lf=lsGet("tdp-coach-left",null);
+  if(lf&&lf.m===new Date().toISOString().slice(0,7)&&lf.n>0&&lf.n<=20)body+=`<p class="cp-note cp-left">${t("Šį mėnesį liko {n} klausimų iš {l}.",{n:lf.n,l:lf.l})}</p>`;
   if(p&&!busy)body+=`<div class="chips cp-quick">${(chat.length?COACH_PROMPTS.slice(0,3):COACH_PROMPTS).map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`;
   const pl=activePlayers();
   const menu=S.coachMenu?`<div class="cp-menu" role="menu">
@@ -1304,11 +1306,12 @@ async function coachSend(text){
     if(!navigator.onLine)throw{k:"offline"};
     const r=await fetch("/api/coach",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({lang:LANG,code:lsGet("tdp-coach-code",""),context:ctxOn?buildCoachContext(p):"",messages:chat.slice(-14).map(m=>({role:m.r==="u"?"user":"assistant",content:m.c}))})});
     let d={};try{d=await r.json();}catch(e){}
-    if(r.ok&&d.text){const c2=chatOf(p.id);c2.push({r:"a",c:d.text,t:Date.now()});saveChat(p.id,c2);S.coachNeedCode=false;}
+    if(r.ok&&d.text){const c2=chatOf(p.id);c2.push({r:"a",c:d.text,t:Date.now()});saveChat(p.id,c2);S.coachNeedCode=false;lsSet("tdp-coach-left",typeof d.left==="number"?{m:new Date().toISOString().slice(0,7),n:d.left,l:d.limit}:null);}
+    else if(d&&d.error==="limit"){lsSet("tdp-coach-left",{m:new Date().toISOString().slice(0,7),n:0,l:d.limit});throw{k:"limit"};}
     else throw{k:(d&&d.error)||(r.status===404?"not_configured":"upstream")};
   }catch(e){
     const k=e&&e.k||"offline";
-    errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
+    errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą."),limit:t("Šio mėnesio klausimų limitas išnaudotas. Treneris vėl atsakys nuo kito mėnesio 1 d.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
     if(k==="code")S.coachNeedCode=true;
     const c3=chatOf(p.id);if(c3.length&&c3[c3.length-1].r==="u"&&c3[c3.length-1].c===text){c3.pop();saveChat(p.id,c3);}
     S.coachDraft=text;const ce=$("#co-in");if(ce)ce.value=text;

@@ -1,0 +1,8 @@
+{
+  "name": "tir-de-precision",
+  "private": true,
+  "description": "Tir de précision treniruočių programėlė (PWA) ir virtualaus trenerio Netlify funkcija",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

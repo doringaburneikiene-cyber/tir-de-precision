@@ -1,6 +1,9 @@
 // Virtualus treneris: tarpininkas tarp programėlės ir Claude API.
 // API raktas laikomas Netlify aplinkos kintamajame ANTHROPIC_API_KEY ir niekada nepatenka į naršyklę.
-// Nebūtini kintamieji: COACH_CODE (prieigos kodas testuotojams), COACH_MODEL (numatytasis claude-sonnet-5).
+// Nebūtini kintamieji: COACH_CODE (prieigos kodas testuotojams; keli kodai – atskirti kableliais),
+// COACH_LIMIT (klausimų per mėnesį vienam kodui, numatytasis 100; 0 = be ribos), COACH_MODEL (numatytasis claude-sonnet-5).
+import { getStore } from "@netlify/blobs";
+import { createHash } from "node:crypto";
 
 const SYSTEM = `You are the virtual coach inside "Tir de précision", a training log app for pétanque precision shooting (tir de précision). You coach players who are preparing seriously for competitions, including European and World championships.
 
@@ -36,6 +39,13 @@ function limited(ip) {
   arr.push(now); hits.set(ip, arr);
   return arr.length > 40;
 }
+// Mėnesio skaitiklis vienam prieigos kodui (Netlify Blobs), kad testuojant nebūtų netikėtų išlaidų.
+const monthKey = (code) => new Date().toISOString().slice(0, 7) + "/" + (code ? createHash("sha256").update(code).digest("hex").slice(0, 16) : "open");
+async function usage(key) {
+  try { const store = getStore({ name: "coach-usage", consistency: "strong" }); const v = await store.get(key, { type: "json" }); return { store, n: (v && v.n) || 0 }; }
+  catch (e) { console.error("usage store", e); return { store: null, n: 0 }; }
+}
+
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
 export default async (req, context) => {
@@ -44,8 +54,13 @@ export default async (req, context) => {
   if (!key) return json(503, { error: "not_configured" });
   let body;
   try { body = await req.json(); } catch { return json(400, { error: "bad_request" }); }
-  const code = process.env.COACH_CODE;
-  if (code && String(body.code || "").trim() !== code) return json(401, { error: "code" });
+  const codes = String(process.env.COACH_CODE || "").split(",").map(c => c.trim()).filter(Boolean);
+  const given = String(body.code || "").trim();
+  if (codes.length && !codes.includes(given)) return json(401, { error: "code" });
+  const limit = Number(process.env.COACH_LIMIT ?? 100) || 0;
+  const ukey = monthKey(codes.length ? given : "");
+  const use = limit ? await usage(ukey) : { store: null, n: 0 };
+  if (limit && use.n >= limit) return json(429, { error: "limit", limit });
   const ip = (context && context.ip) || req.headers.get("x-nf-client-connection-ip") || "x";
   if (limited(ip)) return json(429, { error: "rate" });
 
@@ -82,7 +97,11 @@ export default async (req, context) => {
       return json(r.status === 429 || t === "rate_limit_error" ? 429 : 502, { error: t === "rate_limit_error" ? "rate" : "upstream", detail: t || r.status });
     }
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
-    return json(200, { text: text || "…" });
+    let left = null;
+    if (limit && use.store) {
+      try { await use.store.setJSON(ukey, { n: use.n + 1 }); left = Math.max(0, limit - use.n - 1); } catch (e) { console.error("usage save", e); }
+    }
+    return json(200, { text: text || "…", left, limit: limit || null });
   } catch (e) {
     return json(502, { error: "upstream" });
   }
