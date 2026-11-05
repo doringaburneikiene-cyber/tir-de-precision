@@ -255,8 +255,8 @@ ul.insight{padding:0;margin:0}
 .rules dd{margin:2px 0 0 0;color:var(--ink-2);font-size:14px}
 @media (prefers-reduced-motion:no-preference){.cell,.out,.chip{transition:background-color .12s,box-shadow .12s}}
 /* notebook */
-.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px}
-.seg button{border:0;border-radius:9px;background:transparent;color:var(--ink-2);font-weight:600;font-size:13px;min-height:38px;padding:4px}
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;border-radius:9px;background:transparent;color:var(--ink-2);font-weight:600;font-size:12.5px;line-height:1.15;min-height:40px;padding:4px 2px}
 .seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .cues{display:flex;flex-wrap:wrap;gap:8px}
 .cue{background:var(--ink);color:var(--surface);border-radius:999px;padding:9px 14px;font-size:15px;font-weight:600}
@@ -295,6 +295,18 @@ ol.pre-rit li span{font-family:var(--f-cond);font-weight:700;font-size:16px;colo
 .bcirc{width:180px;height:180px;margin:6px auto;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
 .bdot{width:180px;height:180px;border-radius:50%;background:var(--o3);opacity:.85;transform:scale(.6);transition:transform .1s linear}
 .bphase{font-family:var(--f-cond);font-weight:700;font-size:28px;color:var(--ink)}
+.chat{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:88%;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--ink);color:var(--surface);border-bottom-right-radius:4px}
+.msg.co{align-self:flex-start;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);border-bottom-left-radius:4px}
+.msg.co p{margin:0 0 8px}.msg.co p:last-child,.msg.co ul:last-child{margin-bottom:0}
+.msg.co ul{margin:0 0 8px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.typing{display:flex;gap:5px;align-items:center;min-height:40px}
+.typing span:not(.sr){width:8px;height:8px;border-radius:50%;background:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.typing span:not(.sr){animation:tdot 1.2s infinite}.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}}
+@keyframes tdot{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.composer textarea{min-height:84px}
 /* palette picker */
 .pals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .pal{border:0;border-radius:12px;padding:10px 8px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:14px;min-height:76px}
@@ -451,6 +463,7 @@ const S={
   group:Object.assign({ids:[],rot:"shot"},lsGet("tdp-group",{})), curs:{}, adding:false, fix:false,
   f:Object.assign({player:"",period:"90",kind:"all",a:0,d:0},lsGet("tdp-f",{})),
   openHist:null, confirmDel:null, renaming:null, msg:"",
+  coachBusy:null, coachErr:"", coachDraft:"", coachNeedCode:false, coachConfirmClear:false,
   noteTab:"plan", noteP:null, planEdit:null, reflectQ:[], reflectId:null, rd:null, preFromStart:false, reflectBack:null
 };
 let DB=null, DL=null;
@@ -1029,11 +1042,12 @@ function viewNote(){
   const p=notePlayer();
   if(!p)return `<div class="card"><p class="empty">${t("Pirmiausia pridėkite žaidėją skiltyje „Treniruotė“.")}</p></div>`;
   const tab=S.noteTab||"plan";
-  let h=`<div class="seg" role="tablist">${[["plan",t("Mano planas")],["log",t("Įrašai")],["pre",t("Prieš varžybas")]].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="nt-tab" data-v="${k}">${l}</button>`).join("")}</div>`;
+  let h=`<div class="seg" role="tablist">${[["plan",t("Mano planas")],["log",t("Įrašai")],["pre",t("Prieš varžybas")],["coach",t("Treneris")]].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="nt-tab" data-v="${k}">${l}</button>`).join("")}</div>`;
   const pl=activePlayers();
   if(pl.length>1)h+=`<div class="chips">${pl.map(x=>chip("nt-p",x.id,x.name,x.id===p.id)).join("")}</div>`;
   if(tab==="plan")h+=S.planEdit?planEditor(p):planView(p);
   else if(tab==="log")h+=logView(p);
+  else if(tab==="coach")h+=coachView(p);
   else h+=preView(p);
   return h;
 }
@@ -1171,6 +1185,88 @@ function openBreath(){
   tick();breathT=setInterval(tick,100);
 }
 
+/* ----- Virtual coach ----- */
+const COACH_PROMPTS=["Krenta per trumpai – ką daryti?","Daug klaidų į kairę","Kaip treniruoti 4 rungtį?","Jaudinuosi varžybose","Sudaryk man savaitės treniruočių planą","Kur mano silpniausia vieta?"];
+function chatOf(pid){return lsGet("tdp-chat-"+pid,[]);}
+function saveChat(pid,c){lsSet("tdp-chat-"+pid,c.slice(-40));}
+function pctS(a,b){return b?Math.round(a/b*100)+"%":"–";}
+function buildCoachContext(p){
+  const L=[];const ss=S.sessions.filter(s=>s.playerId===p.id&&s.shots&&s.shots.length);
+  const sh=playerShots(p.id,90);const all=flatShots(ss,{a:0,d:0});
+  L.push(`Player: ${p.name}. Sessions total: ${ss.length}, throws total: ${all.length}. Last 90 days: ${new Set(sh.map(x=>x.sid)).size} sessions, ${sh.length} throws.`);
+  if(sh.length){
+    const m=metrics(sh);L.push(`Last 90 days: average ${fmt1(m.score)}/100, hit rate ${m.hit}%, carreau rate in workshops 1-4 ${m.car==null?"–":m.car+"%"}.`);
+    L.push("By workshop (avg/100, throws): "+AT.map(a=>{const x=sh.filter(y=>y.a===a.n);return `W${a.n} ${x.length?fmt1(avg(x.map(y=>y.p))*20):"–"} (${x.length})`;}).join("; "));
+    L.push("By distance: "+DIST.map(d=>{const x=sh.filter(y=>y.d===d);return `${d}m ${x.length?fmt1(avg(x.map(y=>y.p))*20):"–"} (${x.length})`;}).join("; "));
+    const cells=[];AT.forEach(a=>DIST.forEach(d=>{const x=sh.filter(y=>y.a===a.n&&y.d===d);if(x.length>=3)cells.push({a:a.n,d,v:avg(x.map(y=>y.p)),n:x.length});}));
+    cells.sort((x,y)=>x.v-y.v);
+    if(cells.length>=3){L.push("Weakest spots (pts/throw of 5): "+cells.slice(0,3).map(c=>`W${c.a} ${c.d}m ${fmt1(c.v)} (${c.n} throws)`).join("; "));L.push("Strongest: "+cells.slice(-2).map(c=>`W${c.a} ${c.d}m ${fmt1(c.v)}`).join("; "));}
+    const M=missAgg(sh);const mt=M.miss.length;
+    if(mt){L.push(`Misses: ${mt}. Short ${pctS(M.short,mt)}, long ${pctS(M.long,mt)}, left ${pctS(M.left,mt)}, right ${pctS(M.right,mt)}, obstacle first ${pctS(M.c.OB||0,mt)}, close/other ${pctS(M.c.C||0,mt)}, no direction ${pctS(M.c["?"]||0,mt)}.`);
+      L.push("Misses by distance: "+DIST.map(d=>{const x=M.miss.filter(y=>y.d===d);const s2=x.filter(y=>["S","SW","SE"].includes(y.m)).length,l2=x.filter(y=>["N","NW","NE"].includes(y.m)).length;return `${d}m ${x.length} (short ${s2}, long ${l2})`;}).join("; "));}
+    const hit=sh.filter(x=>x.p>0);const hc=hit.filter(x=>x.c),hh=hit.filter(x=>x.h);
+    if(hc.length)L.push(`Hits: direct (au fer) ${pctS(hc.filter(x=>x.c==="F").length,hc.length)}, with bounce ${pctS(hc.filter(x=>x.c==="B").length,hc.length)}.`);
+    if(hh.length){const car=k=>{const x=hh.filter(y=>y.h===k&&y.a<5);return x.length?pctS(x.filter(y=>y.o==="carreau").length,x.length):"–";};L.push(`Spot on boule: left ${pctS(hh.filter(x=>x.h==="L").length,hh.length)}, centre ${pctS(hh.filter(x=>x.h==="C").length,hh.length)}, right ${pctS(hh.filter(x=>x.h==="R").length,hh.length)}. Carreau rate when hitting centre ${car("C")}, left ${car("L")}, right ${car("R")}.`);}
+    const half=Math.floor(sh.length/2);if(sh.length>=20)L.push(`Trend in last 90 days: first half ${fmt1(avg(sh.slice(0,half).map(x=>x.p))*20)}/100, second half ${fmt1(avg(sh.slice(half).map(x=>x.p))*20)}/100.`);
+  }
+  const rec=ss.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,6);
+  if(rec.length)L.push("Recent sessions: "+rec.map(s=>`${s.date} ${s.kind==="comp"?"competition":"training"} ${fmt0(rfScore(s))}/100 (${s.shots.length} throws)`).join("; "));
+  const best=bestSeries(p.id);if(best)L.push(`Best full series: ${best.sum}/100 on ${best.s.date}.`);
+  L.push(`Training days this week: ${weekDays(p.id).n}.`);
+  const pl=planOf(p);
+  if(pl.cues.length)L.push("Notebook cue words: "+pl.cues.join(" | "));
+  if(pl.ritual.length)L.push("Pre-throw routine: "+pl.ritual.map((r,i)=>`${i+1}) ${r}`).join(" "));
+  if(pl.ifs.length)L.push("If-it-goes-wrong plan: "+pl.ifs.map(x=>`${x.w} -> ${x.t}`).join(" | "));
+  const rs=reflected(p.id).slice(0,5);
+  if(rs.length)L.push("Recent self-reflections: "+rs.map(s=>{const r=s.reflect;return `${s.date} score ${fmt0(rfScore(s))}: focus ${r.f||"-"}/5, nerves ${r.n||"-"}/5, energy ${r.e||"-"}/5${(r.tags||[]).length?", tags "+r.tags.join(","):""}${r.good?`, went well: "${r.good}"`:""}${r.bad?`, got in the way: "${r.bad}"`:""}${r.next?`, next time: "${r.next}"`:""}`;}).join(" || "));
+  return L.join("\n").slice(0,7800);
+}
+function fmtCoach(txt){
+  const blocks=String(txt).split(/\n{2,}/);
+  return blocks.map(b=>{const lines=b.split("\n");const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+    if(lines.every(l=>/^\s*([-•*]|\d+[.)])\s+/.test(l)))return `<ul>${lines.map(l=>`<li>${inl(l.replace(/^\s*([-•*]|\d+[.)])\s+/,""))}</li>`).join("")}</ul>`;
+    return `<p>${lines.map(inl).join("<br>")}</p>`;}).join("");
+}
+function coachView(p){
+  const chat=chatOf(p.id);const busy=S.coachBusy===p.id;
+  let h=`<div class="card"><div class="row between"><h2>${t("Virtualus treneris")}</h2>${chat.length?`<button class="btn sm ghost" data-act="co-clear">${t("Išvalyti")}</button>`:""}</div>
+    <p class="small ink2">${t("Parašykite, kas nesiseka. Treneris remiasi jūsų statistika ir knygele, bet nemato jūsų metimų. Atsakymus kuria dirbtinis intelektas – vertinkite juos kritiškai.")}</p>
+    ${chat.length?"":`<div class="chips">${COACH_PROMPTS.map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`}</div>`;
+  if(S.coachConfirmClear)h+=`<div class="confirm"><span>${t("Ištrinti visą pokalbį su treneriu?")}</span><div class="row"><button class="btn warn sm" data-act="co-clear-yes">${t("Taip, ištrinti")}</button><button class="btn ghost sm" data-act="co-clear-no">${t("Ne")}</button></div></div>`;
+  if(chat.length||busy)h+=`<div class="chat" aria-live="polite">${chat.map(m=>m.r==="u"?`<div class="msg me">${esc(m.c).replace(/\n/g,"<br>")}</div>`:`<div class="msg co">${fmtCoach(m.c)}</div>`).join("")}${busy?`<div class="msg co typing"><span></span><span></span><span></span><span class="sr">${t("Treneris rašo…")}</span></div>`:""}</div>`;
+  if(S.coachErr)h+=`<div class="banner"><span>${S.coachErr}</span></div>`;
+  if(S.coachNeedCode)h+=`<div class="card"><label class="label" for="co-code">${t("Prieigos kodas")}</label><p class="small ink2">${t("Treneris kol kas veikia tik su prieigos kodu. Jį gausite iš programėlės savininko.")}</p><div class="row"><input type="text" id="co-code" value="${esc(lsGet("tdp-coach-code",""))}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm" data-act="co-code">${t("Išsaugoti")}</button></div></div>`;
+  if(chat.length&&!busy)h+=`<div class="chips">${COACH_PROMPTS.slice(0,3).map((q,i)=>`<button class="chip" data-act="co-quick" data-v="${i}">${esc(t(q))}</button>`).join("")}</div>`;
+  h+=`<div class="card composer"><label class="label" for="co-in">${t("Jūsų klausimas")}</label><textarea id="co-in" rows="3" maxlength="1200" placeholder="${t("pvz. Iš 9 m vis krenta per trumpai, o iš 6 m viskas gerai")}">${esc(S.coachDraft||"")}</textarea>
+    <div class="row between"><label class="small ink2" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="co-ctx" ${lsGet("tdp-coach-ctx",true)?"checked":""}> ${t("Siųsti treneriui mano statistiką")}</label><button class="btn" data-act="co-send" ${busy?"disabled":""}>${t("Siųsti")}</button></div></div>`;
+  return h;
+}
+async function coachSend(text){
+  const p=notePlayer();if(!p)return;text=String(text||"").trim();if(!text||S.coachBusy)return;
+  const ctxOn=$("#co-ctx")?$("#co-ctx").checked:lsGet("tdp-coach-ctx",true);lsSet("tdp-coach-ctx",ctxOn);
+  const chat=chatOf(p.id);chat.push({r:"u",c:text,t:Date.now()});saveChat(p.id,chat);
+  S.coachDraft="";S.coachErr="";S.coachBusy=p.id;
+  try{document.activeElement&&document.activeElement.blur();}catch(e){}
+  render();scrollChat();
+  let errMsg="";
+  try{
+    if(!navigator.onLine)throw{k:"offline"};
+    const r=await fetch("/api/coach",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({lang:LANG,code:lsGet("tdp-coach-code",""),context:ctxOn?buildCoachContext(p):"",messages:chat.slice(-14).map(m=>({role:m.r==="u"?"user":"assistant",content:m.c}))})});
+    let d={};try{d=await r.json();}catch(e){}
+    if(r.ok&&d.text){const c2=chatOf(p.id);c2.push({r:"a",c:d.text,t:Date.now()});saveChat(p.id,c2);S.coachNeedCode=false;}
+    else throw{k:(d&&d.error)||(r.status===404?"not_configured":"upstream")};
+  }catch(e){
+    const k=e&&e.k||"offline";
+    errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
+    if(k==="code")S.coachNeedCode=true;
+    const c3=chatOf(p.id);if(c3.length&&c3[c3.length-1].r==="u"&&c3[c3.length-1].c===text){c3.pop();saveChat(p.id,c3);}
+    S.coachDraft=text;
+  }
+  S.coachBusy=null;S.coachErr=errMsg;
+  if(S.view==="note"&&S.noteTab==="coach"){render();scrollChat();}
+}
+function scrollChat(){setTimeout(()=>{const m=document.querySelectorAll(".chat .msg");const last=m[m.length-1];if(last)last.scrollIntoView({block:"start",behavior:"smooth"});},30);}
+
 /* ----- Stats ----- */
 function periodCut(p,offset){
   if(p==="all")return null;const n=+p;const d=new Date();d.setDate(d.getDate()-n*(offset||1)+1);return ymd(d);
@@ -1277,7 +1373,8 @@ function insightsHtml(ss,f,shots){
   }
   const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(t("{p} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.",{p:pct(side,ts.length)}));}
   if(!items.length)return"";
-  return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+  const askP=f.player||(dataPlayers()[0]||{}).id||"";
+  return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul>${isDemo()?"":`<div><button class="btn sm ghost" data-act="ask-coach" data-v="${esc(askP)}">${t("Klausti trenerio")}</button></div>`}</div>`;
 }
 function distHtml(ss,f){
   const all=flatShots(ss,{a:0,d:f.d});
@@ -1491,8 +1588,8 @@ document.addEventListener("click",e=>{
   const act=b.dataset.act,v=b.dataset.v;
   switch(act){
     case"nav":S.view=v;lsSet("tdp-view",v);S.msg="";S.reflectId=null;S.reflectQ=[];S.rd=null;S.preFromStart=false;S.planEdit=null;render();window.scrollTo(0,0);break;
-    case"nt-tab":S.noteTab=v;S.planEdit=null;S.preFromStart=false;render();window.scrollTo(0,0);break;
-    case"nt-p":S.noteP=v;S.planEdit=null;render();break;
+    case"nt-tab":{const ci=$("#co-in");if(ci)S.coachDraft=ci.value;}S.coachErr="";S.noteTab=v;S.planEdit=null;S.preFromStart=false;render();window.scrollTo(0,0);break;
+    case"nt-p":{const ci=$("#co-in");if(ci)S.coachDraft=ci.value;}S.coachErr="";S.noteP=v;S.planEdit=null;render();break;
     case"pl-edit":{const p=notePlayer();if(p){S.planEdit=clone(planOf(p));render();}break;}
     case"pl-cancel":S.planEdit=null;render();break;
     case"pl-save":savePlan();break;
@@ -1507,6 +1604,13 @@ document.addEventListener("click",e=>{
     case"rf-ask":lsSet("tdp-reflect-off",v==="0");render();break;
     case"pre-start":{const p=notePlayer();if(S.preFromStart||active()){S.preFromStart=false;S.view="rec";}else{S.nf.kind="comp";if(p)S.nf.pids=[p.id];S.view="rec";}lsSet("tdp-view",S.view);render();window.scrollTo(0,0);break;}
     case"breath":openBreath();break;
+    case"co-quick":coachSend(t(COACH_PROMPTS[+v]||""));break;
+    case"co-send":{const ci=$("#co-in");coachSend(ci?ci.value:"");break;}
+    case"co-clear":S.coachConfirmClear=true;render();break;
+    case"co-clear-no":S.coachConfirmClear=false;render();break;
+    case"co-clear-yes":{const p=notePlayer();if(p)saveChat(p.id,[]);S.coachConfirmClear=false;S.coachErr="";render();break;}
+    case"co-code":{const ci=$("#co-code");lsSet("tdp-coach-code",ci?ci.value.trim():"");S.coachNeedCode=false;S.coachErr="";render();break;}
+    case"ask-coach":{const ci=null;S.view="note";S.noteTab="coach";if(v)S.noteP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");lsSet("tdp-view","note");render();window.scrollTo(0,0);break;}
     case"pal":setPalette(v);break;
     case"nf-player":{const p=S.nf.pids||[];const i=p.indexOf(v);if(i>=0)p.splice(i,1);else p.push(v);S.nf.pids=p;keepForm();render();break;}
     case"rot":S.group.rot=v;saveGroup();render();break;
