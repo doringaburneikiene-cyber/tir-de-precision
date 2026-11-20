@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#13202C">
-<script>try{var tp=JSON.parse(localStorage.getItem("tdp-palette"));if(tp&&tp!=="steel")document.documentElement.setAttribute("data-palette",tp);}catch(e){}</script>
+<script>try{var de=document.documentElement,tp=JSON.parse(localStorage.getItem("tdp-palette"));if(tp&&tp!=="steel")de.setAttribute("data-palette",tp);var tm=JSON.parse(localStorage.getItem("tdp-theme"));if(tm==="light"||tm==="dark")de.setAttribute("data-theme",tm);var fz=JSON.parse(localStorage.getItem("tdp-fz"));if(fz)de.style.setProperty("--fz",fz);}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tir de précision">
@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
 :root{
-  --bg:#E7EBEE; --surface:#FBFCFC; --surface-2:#F0F3F5; --ink:#13202C; --ink-2:#4A5663; --muted:#7A8591;
+  --bg:#E7EBEE; --surface:#FBFCFC; --surface-2:#F0F3F5; --ink:#13202C; --ink-2:#3B4753; --muted:#5C6874;
   --line:#D3D9DE; --line-2:#BFC7CE;
   --accent:#12B5B0; --accent-strong:#0A6E6B; --accent-soft:#D7F3F1;
   --btn:#13202C; --btn-ink:#FFFFFF;
@@ -34,7 +34,7 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#0E1318; --surface:#172029; --surface-2:#1E2933; --ink:#EBF0F3; --ink-2:#ADB8C3; --muted:#7E8A96;
+    --bg:#0E1318; --surface:#172029; --surface-2:#1E2933; --ink:#EBF0F3; --ink-2:#CAD3DB; --muted:#A4AFBA;
     --line:#2B3642; --line-2:#3A4755;
     --accent:#3CCFC8; --accent-strong:#6FE0DA; --accent-soft:#12302F;
     --btn:#EBF0F3; --btn-ink:#0E1318;
@@ -46,7 +46,7 @@
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0E1318; --surface:#172029; --surface-2:#1E2933; --ink:#EBF0F3; --ink-2:#ADB8C3; --muted:#7E8A96;
+  --bg:#0E1318; --surface:#172029; --surface-2:#1E2933; --ink:#EBF0F3; --ink-2:#CAD3DB; --muted:#A4AFBA;
   --line:#2B3642; --line-2:#3A4755;
   --accent:#3CCFC8; --accent-strong:#6FE0DA; --accent-soft:#12302F;
   --btn:#EBF0F3; --btn-ink:#0E1318;
@@ -57,7 +57,7 @@
 }
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
-body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body{zoom:var(--fz,1);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:14px 156px;display:flex;flex-direction:column;gap:14px}
 h1,h2,h3{font-family:var(--f-cond);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance;line-height:1.1}
 h1{font-size:26px}
@@ -66,7 +66,7 @@ h3{font-size:17px}
 p{margin:0}
 .muted{color:var(--muted)}
 .ink2{color:var(--ink-2)}
-.small{font-size:13px}
+.small{font-size:13.5px}
 .num{font-variant-numeric:tabular-nums}
 .label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -147,7 +147,7 @@ body.no-nav .nav{display:none}
 .cell.p1{background:var(--o1);color:var(--o1-t);box-shadow:none}
 .cell.p0{background:var(--o0);color:var(--o0-t);box-shadow:none}
 .cell.cur.p5,.cell.cur.p3,.cell.cur.p1,.cell.cur.p0{box-shadow:0 0 0 3px var(--accent)}
-.cell .mk{position:absolute;right:4px;bottom:2px;font-family:var(--f-body);font-size:10px;font-weight:600;opacity:.85}
+.cell .mk{position:absolute;right:4px;bottom:2px;font-family:var(--f-body);font-size:11px;font-weight:600;opacity:.85}
 .rt{font-family:var(--f-cond);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 
 .shot-title{display:flex;gap:14px;align-items:center}
@@ -171,7 +171,7 @@ body.no-nav .nav{display:none}
 .pad button[aria-pressed="true"]{background:var(--ink);color:var(--surface);box-shadow:none}
 .pad .ctr{padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:11px}
 .pad .ctr svg{width:40px;height:40px}
-.pad .ctr small{font-size:10px;font-weight:500;opacity:.75}
+.pad .ctr small{font-size:11px;font-weight:500;opacity:.75}
 .pad .ar{display:block;font-size:17px;line-height:1;margin-bottom:2px}
 .pad .pc{display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--accent-soft)}
 .pad .pc svg{width:48px;height:48px}
@@ -202,6 +202,8 @@ body.no-nav .nav{display:none}
 .wr h3{margin-top:2px}
 .tbl.ct td:nth-child(n+2),.tbl.ct th:nth-child(n+2){text-align:right}
 .tbl.ct tr.hl td{background:var(--accent-soft)}
+.tipbox{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.tipbox p{margin:0;line-height:1.45}
 .gchart{width:100%;height:auto;display:block}
 .goal h3{margin-top:4px}
 .gl{font-size:14px}
@@ -240,7 +242,7 @@ body.no-nav .nav{display:none}
 .week-row{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:10px;align-items:center}
 .week-row .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wdots{display:flex;gap:4px}
-.wdot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--surface-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.wdot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--surface-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
 .wdot.on{background:var(--o3);color:var(--o3-t);box-shadow:none}
 .wdot.today{box-shadow:inset 0 0 0 2px var(--accent)}
 .wdot.on.today{box-shadow:0 0 0 2px var(--accent)}
@@ -286,7 +288,7 @@ body.no-nav .nav{display:none}
 .hc{border:0;border-radius:8px;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .hc{padding:2px}
 .hc b{font-family:var(--f-cond);font-size:19px;line-height:1}
-.hc span{font-size:10px;opacity:.8}
+.hc span{font-size:11px;opacity:.8}
 .hc.sel{box-shadow:0 0 0 3px var(--accent)}
 .hc.tot{background:var(--surface-2)!important;color:var(--ink)!important}
 .bars{display:flex;flex-direction:column;gap:9px}
@@ -414,7 +416,7 @@ body.cp-lock{overflow:hidden}
 .pal .sw i{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 /* palettes: rose (grey-pink) */
 :root[data-palette="rose"]{
-  --bg:#ECE8EA; --surface:#FCFBFB; --surface-2:#F4F0F2; --ink:#2A1F26; --ink-2:#5C4F57; --muted:#7A6C74;
+  --bg:#ECE8EA; --surface:#FCFBFB; --surface-2:#F4F0F2; --ink:#2A1F26; --ink-2:#4C4048; --muted:#64565E;
   --line:#DDD3D8; --line-2:#CBBFC5;
   --accent:#D0668F; --accent-strong:#9A2F5A; --accent-soft:#F8E3EC;
   --btn:#2A1F26; --btn-ink:#FFFFFF;
@@ -423,7 +425,7 @@ body.cp-lock{overflow:hidden}
 }
 @media (prefers-color-scheme: dark){
   :root[data-palette="rose"]:not([data-theme="light"]){
-    --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#C4B6BF; --muted:#8E808A;
+    --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#DBD0D7; --muted:#B3A6AF;
     --line:#3A2F3C; --line-2:#4A3D4C;
     --accent:#E58AAE; --accent-strong:#F2A9C6; --accent-soft:#3D2433;
     --btn:#F2ECF0; --btn-ink:#17121A;
@@ -432,7 +434,7 @@ body.cp-lock{overflow:hidden}
   }
 }
 :root[data-palette="rose"][data-theme="dark"]{
-  --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#C4B6BF; --muted:#8E808A;
+  --bg:#17121A; --surface:#221A24; --surface-2:#2B222E; --ink:#F2ECF0; --ink-2:#DBD0D7; --muted:#B3A6AF;
   --line:#3A2F3C; --line-2:#4A3D4C;
   --accent:#E58AAE; --accent-strong:#F2A9C6; --accent-soft:#3D2433;
   --btn:#F2ECF0; --btn-ink:#17121A;
@@ -441,7 +443,7 @@ body.cp-lock{overflow:hidden}
 }
 /* palettes: sage (grey-green) */
 :root[data-palette="sage"]{
-  --bg:#E6ECE8; --surface:#FBFCFB; --surface-2:#F0F4F1; --ink:#1B2620; --ink-2:#4B5A52; --muted:#6B7A71;
+  --bg:#E6ECE8; --surface:#FBFCFB; --surface-2:#F0F4F1; --ink:#1B2620; --ink-2:#3C4A42; --muted:#56655C;
   --line:#D2DCD5; --line-2:#BECAC2;
   --accent:#7FB394; --accent-strong:#2F6B4C; --accent-soft:#E1F0E7;
   --btn:#1B2620; --btn-ink:#FFFFFF;
@@ -450,7 +452,7 @@ body.cp-lock{overflow:hidden}
 }
 @media (prefers-color-scheme: dark){
   :root[data-palette="sage"]:not([data-theme="light"]){
-    --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#AFC0B5; --muted:#7F9086;
+    --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#CBD8CF; --muted:#A3B3A9;
     --line:#2B3830; --line-2:#3A4A40;
     --accent:#8CC4A4; --accent-strong:#A9D8BC; --accent-soft:#1F3328;
     --btn:#E9F0EB; --btn-ink:#0F1512;
@@ -459,7 +461,7 @@ body.cp-lock{overflow:hidden}
   }
 }
 :root[data-palette="sage"][data-theme="dark"]{
-  --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#AFC0B5; --muted:#7F9086;
+  --bg:#0F1512; --surface:#18211C; --surface-2:#1F2A24; --ink:#E9F0EB; --ink-2:#CBD8CF; --muted:#A3B3A9;
   --line:#2B3830; --line-2:#3A4A40;
   --accent:#8CC4A4; --accent-strong:#A9D8BC; --accent-soft:#1F3328;
   --btn:#E9F0EB; --btn-ink:#0F1512;
@@ -1321,7 +1323,7 @@ function weekReportCard(p){
   if(r.up.length)h+=`<div><h3>${t("Pagerėjo")}</h3><ul class="insight">${li(r.up,"up")}</ul></div>`;
   if(r.down.length)h+=`<div><h3>${t("Pablogėjo")}</h3><ul class="insight">${li(r.down,"down")}</ul></div>`;
   if(!r.up.length&&!r.down.length)h+=`<p class="small ink2">${r.pser.length||r.ss.length?t("Lyginant su ankstesne savaite didelių pokyčių nėra (arba per mažai metimų palyginimui)."):""}</p>`;
-  if(r.iss.length){const i=r.iss[0];h+=`<p class="small"><b>${t("Dažniausia klaida:")}</b> ${esc(t(TIP[i.k][0]))}. <span class="ink2">${t("Užuomina:")} „${esc(t(TIP[i.k][1]))}“</span></p>`;}
+  if(r.iss.length){const i=r.iss[0];h+=`<div class="tipbox"><p class="small"><b>${t("Dažniausia klaida:")}</b> ${esc(t(TIP[i.k][0]))}.</p><p class="small"><b>${t("Pastebėjimas:")}</b> ${esc(t(TIP_DEEP[i.k]))}</p></div>`;}
   if(r.focus.length)h+=`<h3>${t("Kitai savaitei")}</h3><div class="stack">${r.focus.map(x=>`<div class="erow"><span><b>${t("{a} rungtis, {d} m",{a:x.a,d:x.d})}</b> <span class="small muted">${t("vid. {v} t./met.",{v:fmt1(x.v)})} · ${t("3 × 10 metimų")}</span></span><button class="btn sm" data-act="g-drill" data-v="${p.id}" data-a="${x.a}" data-d="${x.d}">${t("Pradėti")}</button></div>`).join("")}</div>`;
   h+=`<button class="btn ghost sm" data-act="wr-coach" data-v="${p.id}" style="align-self:flex-start">${t("Aptarti su Karo")}</button>`;
   return h+`</div>`;
@@ -1433,6 +1435,15 @@ function playerShots(pid,days){
   const cut=days?periodCut(String(days)):null;
   return flatShots(S.sessions.filter(s=>s.playerId===pid&&(!cut||s.date>=cut)),{a:0,d:0});
 }
+const TIP_DEEP={
+  short:"Dažniausios priežastys – per žemas ar per trumpas mojis, per anksti paleistas rutulys arba nuovargis. Stebėkite, kuriame aukštyje paleidžiate rutulį: paleiskite maždaug akių lygyje ir užbaikite mojį ranka, ištiesta į taikinį. Palyginkite pirmus ir paskutinius serijos metimus – jei pabaigoje trumpėja, priežastis gali būti nuovargis.",
+  long:"Dažniausiai kalta per didelė jėga arba vėlyvas paleidimas, kai ranka jau aukštai. Stebėkite, ar mojis visada vienodo greičio, ir ar nepridedate jėgos paskutinę akimirką. Tikslumą duoda ramus, pastovus mojis, o ne stipresnis metimas. Žiūrėkite į taikinį iki pat rutulio nusileidimo.",
+  left:"Dešiniarankiui klaidos į kairę dažniausiai reiškia, kad ranka kerta kūną arba pečiai pasisuka paleidžiant. Patikrinkite, ar pėdos ir pečiai nukreipti tiesiai į taikinį, ir ar ranka juda kaip švytuoklė arti kūno. Stebėkite riešą – paleidžiant jis neturi suktis. Paprašykite partnerio pastovėti už jūsų ir pažiūrėti rankos liniją.",
+  right:"Dešiniarankiui klaidos į dešinę dažnai reiškia, kad ranka nutolsta nuo kūno arba alkūnė išsikiša į šoną. Patikrinkite stovėseną – pėdos ir pečiai turi būti nukreipti į taikinį. Stebėkite, ar ranka po paleidimo lieka nukreipta į taikinį, o ne nukrypsta į šoną. Nufilmuokite iš nugaros – rankos linija geriausiai matosi įraše.",
+  ob:"Pirma pataikote į kliūtį, kai trajektorija per žema arba rutulys krenta per anksti. Didinkite metimo aukštį, o ne jėgą – rutulys turi nusileisti ant taikinio ar už kliūties. Stebėkite, kur nukrenta rutulys, ir pasirinkite aiškų tašką už kliūties, kur norite, kad jis kristų.",
+  side:"Pataikymas į šoną dažnai reiškia, kad paleidžiant pajuda galva arba žvilgsnis nukrypsta. Žiūrėkite į rutulio centrą (net į mažą tašką ant jo) iki pat nusileidimo ir nekelkite galvos per anksti. Atkreipkite dėmesį ir į riešą – jo sukimasis paleidžiant suka rutulio liniją.",
+  close:"Rutulys krenta arti taikinio – technika beveik gera, trūksta tikslumo. Nekeiskite technikos: dirbkite su pastoviu ritualu, ramiu kvėpavimu ir aiškiu taikymo tašku. Stebėkite, ar visi metimai atliekami tuo pačiu tempu."
+};
 const TIP={
   short:["Krenta per trumpai","Aukštesnis mojis, žiūriu už taikinio"],
   long:["Praskrenda per toli","Žemesnė, tiesesnė trajektorija"],
@@ -1868,6 +1879,7 @@ function insightsHtml(ss,f,shots){
     const ob=M.c.OB||0;if(ob>=2)items.push(t("Pirma pataikyta į kliūtį: <b>{n}</b> kartus(-ų) ({p} % nepataikymų).",{n:ob,p:pct(ob,M.miss.length)}));
   }
   const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(t("{p} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.",{p:pct(side,ts.length)}));}
+  {const di=dominantIssue(shots);if(di&&di.length&&TIP_DEEP[di[0].k])items.push(`<b>${t("Ką stebėti:")}</b> ${esc(t(TIP_DEEP[di[0].k]))}`);}
   if(!items.length)return"";
   const askP=f.player||(dataPlayers()[0]||{}).id||"";
   return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul>${isDemo()||S.ed!=="pro"?"":`<div><button class="btn sm ghost" data-act="ask-coach" data-v="${esc(askP)}">${t("Klausti trenerio")}</button></div>`}</div>`;
@@ -2087,7 +2099,9 @@ function curPalette(){return document.documentElement.getAttribute("data-palette
 function setPalette(v){lsSet("tdp-palette",v);if(v==="steel")document.documentElement.removeAttribute("data-palette");else document.documentElement.setAttribute("data-palette",v);render();}
 function themeCard(){
   const cur=curPalette();
-  return `<div class="card"><h2>${t("Spalvos")}</h2><div class="pals">${PALETTES.map(([k,l,c])=>`<button class="pal" data-act="pal" data-v="${k}" aria-pressed="${cur===k}"><span class="sw" aria-hidden="true">${c.map(x=>`<i style="background:${x}"></i>`).join("")}</span>${t(l)}</button>`).join("")}</div><p class="small muted">${t("Tamsi versija įsijungia pagal telefono nustatymus.")}</p></div>`;
+  return `<div class="card"><h2>${t("Spalvos")}</h2><div class="pals">${PALETTES.map(([k,l,c])=>`<button class="pal" data-act="pal" data-v="${k}" aria-pressed="${cur===k}"><span class="sw" aria-hidden="true">${c.map(x=>`<i style="background:${x}"></i>`).join("")}</span>${t(l)}</button>`).join("")}</div>
+   <div class="field"><span class="label">${t("Šviesi ar tamsi")}</span><div class="chips">${[["auto",t("Pagal telefoną")],["light",t("Šviesi")],["dark",t("Tamsi")]].map(([v,l])=>chip("theme",v,l,lsGet("tdp-theme","auto")===v)).join("")}</div></div>
+   <div class="field"><span class="label">${t("Teksto dydis")}</span><div class="chips">${[["1",t("Įprastas")],["1.12",t("Didesnis")],["1.25",t("Didžiausias")]].map(([v,l])=>chip("fz",v,l,String(lsGet("tdp-fz",1))===v)).join("")}</div></div></div>`;
 }
 function langCard(){
   return `<div class="card"><h2>${t("Kalba")}</h2><div class="chips">${LANGS.map(([k,l])=>chip("lang",k,l,LANG===k)).join("")}</div></div>`;
@@ -2208,6 +2222,8 @@ document.addEventListener("click",e=>{
     case"co-p":keepCoachDraft();S.coachP=v;S.coachErr="";renderCoach();break;
     case"ask-coach":S.coachOpen=true;S.coachMenu=false;if(v)S.coachP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");renderCoach();break;
     case"pal":setPalette(v);break;
+    case"theme":lsSet("tdp-theme",v);if(v==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",v);render();break;
+    case"fz":lsSet("tdp-fz",+v);document.documentElement.style.setProperty("--fz",v);render();break;
     case"bdg-all":S.badgesAll=!S.badgesAll;render();break;
     case"wr-off":S.wrOff=+v;render();break;
     case"wr-open":S.wrOff=+v;S.view="stats";lsSet("tdp-view","stats");if(b.dataset.p){S.f.player=b.dataset.p;lsSet("tdp-f",S.f);}lsSet("tdp-wr-seen",weekRange(+v)[0]);render();window.scrollTo(0,0);break;
