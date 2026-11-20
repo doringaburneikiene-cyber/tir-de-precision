@@ -2,6 +2,14 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Nustatymai": "Settings",
+  "Atgal": "Back",
+  "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas bus ištrinta visam laikui. Jei norite tik paslėpti – rinkitės „Į archyvą“.": "Delete player <b>{name}</b> and all their trainings ({n})? Everything will be deleted permanently. If you only want to hide them, choose \"Archive\".",
+  "Taip, ištrinti viską": "Yes, delete everything",
+  "Archyvas ar ištrynimas?": "Archive or delete?",
+  "<b>Į archyvą</b> – žaidėjas paslepiamas, bet visos jo treniruotės ir statistika lieka. Bet kada galite jį grąžinti.": "<b>Archive</b> – the player is hidden, but all their trainings and statistics are kept. You can restore them at any time.",
+  "<b>Ištrinti</b> – žaidėjas ir visos jo treniruotės, įrašai bei pokalbiai su treneriu ištrinami visam laikui. Atkurti galima tik iš atsarginės kopijos.": "<b>Delete</b> – the player and all their trainings, notes and coach chats are deleted permanently. They can only be recovered from a backup.",
+  "Kalba, spalvos, teksto dydis ir atsarginės kopijos – nustatymuose (krumpliaratis viršuje).": "Language, colours, text size and backups are in Settings (gear icon at the top).",
   "Šviesi ar tamsi": "Light or dark",
   "Pagal telefoną": "Like the phone",
   "Šviesi": "Light",
@@ -722,6 +730,14 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Nustatymai": "Réglages",
+  "Atgal": "Retour",
+  "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas bus ištrinta visam laikui. Jei norite tik paslėpti – rinkitės „Į archyvą“.": "Supprimer le joueur <b>{name}</b> et tous ses entraînements ({n}) ? Tout sera supprimé définitivement. Pour seulement le masquer, choisissez « Archiver ».",
+  "Taip, ištrinti viską": "Oui, tout supprimer",
+  "Archyvas ar ištrynimas?": "Archiver ou supprimer ?",
+  "<b>Į archyvą</b> – žaidėjas paslepiamas, bet visos jo treniruotės ir statistika lieka. Bet kada galite jį grąžinti.": "<b>Archiver</b> – le joueur est masqué, mais tous ses entraînements et statistiques sont conservés. Vous pouvez le restaurer à tout moment.",
+  "<b>Ištrinti</b> – žaidėjas ir visos jo treniruotės, įrašai bei pokalbiai su treneriu ištrinami visam laikui. Atkurti galima tik iš atsarginės kopijos.": "<b>Supprimer</b> – le joueur et tous ses entraînements, notes et échanges avec le coach sont supprimés définitivement. Récupération possible uniquement depuis une sauvegarde.",
+  "Kalba, spalvos, teksto dydis ir atsarginės kopijos – nustatymuose (krumpliaratis viršuje).": "Langue, couleurs, taille du texte et sauvegardes : dans les Réglages (roue dentée en haut).",
   "Šviesi ar tamsi": "Clair ou sombre",
   "Pagal telefoną": "Comme le téléphone",
   "Šviesi": "Clair",

@@ -107,6 +107,11 @@ textarea{min-height:64px;resize:vertical}
 .nav button[aria-current="page"]{color:var(--ink)}
 .nav button[aria-current="page"] svg{color:var(--accent-strong)}
 
+.gear{border:0;background:var(--surface-2);color:var(--ink-2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line);flex:none}
+.gear svg{width:19px;height:19px}
+.gear[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.plrow{flex-wrap:wrap;gap:8px}
+.btn.danger{color:var(--bad)}
 .edb{display:inline-flex;align-items:center;gap:2px;border:0;border-radius:999px;padding:4px 8px 4px 11px;font-size:12px;font-weight:700;letter-spacing:.04em;min-height:28px;background:var(--surface-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
 .edb.pro{background:var(--accent);color:#0B2B2A;box-shadow:none}
 .edb svg{width:16px;height:16px}
@@ -609,6 +614,16 @@ async function savePlayer(p){
   try{setStatus("saving");await DB.collection("players").doc(p.id).set(body);setStatus("ok");}
   catch(e){setStatus("err");if(e&&e.code==="invalid_argument"){S.ro=true;render();}}
 }
+async function deletePlayer(pid){
+  if(groupSessions().some(x=>x.playerId===pid)){toast(t("Pirmiausia baikite dabartinę treniruotę"));return;}
+  const ids=S.sessions.filter(s=>s.playerId===pid).map(s=>s.id);
+  for(const id of ids)await deleteSession(id);
+  S.players=S.players.filter(p=>p.id!==pid);
+  ["tdp-chat-","tdp-badges-"].forEach(k=>{try{localStorage.removeItem(k+pid);}catch(e){}});
+  if(S.f.player===pid){S.f.player="";lsSet("tdp-f",S.f);}
+  if(S.nf.pids)S.nf.pids=S.nf.pids.filter(x=>x!==pid);
+  if(S.store!=="db")saveLocalAll();else{try{await DB.collection("players").doc(pid).delete();}catch(e){setStatus("err");}}
+}
 async function deleteSession(id){
   S.sessions=S.sessions.filter(s=>s.id!==id);saveQ.delete(id);
   if(S.activeId===id)setActive(null);
@@ -827,6 +842,7 @@ function backupStatusText(){
   return t("Paskutinė atsarginė kopija: <b>{when}</b> ({ago})",{when,ago:b.days===0?t("šiandien"):t("prieš {d} d.",{d:b.days})})+(b.changed?t(" – po jos yra naujų treniruočių."):t(" – visos treniruotės išsaugotos kopijoje."));
 }
 function edBadge(){return S.ed?`<button class="edb ${S.ed}" data-act="ed-change" aria-label="${t("Keisti versiją")}">${S.ed==="pro"?"Pro":t("Nemokama")}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:"";}
+function gearBtn(on){return `<button class="gear" data-act="settings" aria-pressed="${!!on}" aria-label="${t("Nustatymai")}"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`;}
 function langSw(){return `<div class="lsw" role="group" aria-label="${t("Kalba")}">${LANGS.map(([k,l])=>`<button data-act="lang" data-v="${k}" aria-pressed="${LANG===k}" aria-label="${l}">${k.toUpperCase()}</button>`).join("")}</div>`;}
 function render(){
   const app=$("#app");
@@ -834,17 +850,18 @@ function render(){
   if(S.ed!=="pro"){
     let h="";
     if(!S.ed){h+=`<header class="top"><div class="brand"><span class="label">${t("Petankės tikslaus šaudymo programėlė")}</span><h1>Tir de précision</h1></div><div class="top-r">${langSw()}</div></header>`+viewEdition();}
-    else{h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${t("Varžybos")}</h1></div><div class="top-r">${langSw()}${edBadge()}</div></header>`+viewFree();}
+    else{h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${S.freeSet?t("Nustatymai"):t("Varžybos")}</h1></div><div class="top-r"><div class="row" style="gap:6px">${langSw()}${gearBtn(S.freeSet)}</div>${edBadge()}</div></header>`+(S.freeSet?`<button class="btn ghost sm" data-act="settings" style="align-self:flex-start">← ${t("Atgal")}</button>`+viewSettings():viewFree());}
     app.innerHTML=h;$("#nav").innerHTML="";tickTimer();renderCoach();return;
   }
   let h="";
-  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),note:t("Knygelė"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div><div class="top-r">${langSw()}<div class="row" style="gap:6px">${edBadge()}${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</div></div></header>`;
-  if(S.store!=="pending"&&S.view!=="players"&&S.view!=="note"&&!(S.view==="rec"&&active()))h+=backupBanner();
+  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),note:t("Knygelė"),players:t("Žaidėjai"),settings:t("Nustatymai")}[S.view]}</h1></div><div class="top-r"><div class="row" style="gap:6px">${langSw()}${gearBtn(S.view==="settings")}</div><div class="row" style="gap:6px">${edBadge()}${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</div></div></header>`;
+  if(S.store!=="pending"&&S.view!=="players"&&S.view!=="settings"&&S.view!=="note"&&!(S.view==="rec"&&active()))h+=backupBanner();
   if(S.store==="pending"){h+=`<div class="card"><p class="muted">${t("Kraunami duomenys…")}</p></div>`;}
   else if(S.view==="rec")h+=viewRec();
   else if(S.view==="stats")h+=viewStats();
   else if(S.view==="hist")h+=viewHist();
   else if(S.view==="note")h+=viewNote();
+  else if(S.view==="settings")h+=viewSettings();
   else h+=viewPlayers();
   app.innerHTML=h;
   renderNav();
@@ -2112,12 +2129,17 @@ function viewPlayers(){
   if(!pl.length)h+=`<p class="muted">${t("Žaidėjų dar nėra.")}</p>`;
   h+=pl.map(p=>{const n=S.sessions.filter(s=>s.playerId===p.id).length;
     if(S.renaming===p.id)return `<div class="row"><input type="text" id="rn-${p.id}" value="${esc(p.name)}" style="flex:1;min-width:0"><button class="btn sm" data-act="pl-rename-save" data-v="${p.id}">${t("Išsaugoti")}</button></div>`;
-    return `<div class="row between"><div><b>${esc(p.name)}</b>${p.archived?` <span class="tag">${t("archyve")}</span>`:""}<br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?t("Grąžinti"):t("Į archyvą")}</button></div></div>`;}).join("");
+    return `<div class="row between plrow"><div><b>${esc(p.name)}</b>${p.archived?` <span class="tag">${t("archyve")}</span>`:""}<br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?t("Grąžinti"):t("Į archyvą")}</button><button class="btn sm ghost danger" data-act="pl-del" data-v="${p.id}">${t("Ištrinti")}</button></div></div>${S.confirmPl===p.id?`<div class="confirm"><span>${t("Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas bus ištrinta visam laikui. Jei norite tik paslėpti – rinkitės „Į archyvą“.",{name:esc(p.name),n})}</span><div class="row"><button class="btn warn sm" data-act="pl-del-yes" data-v="${p.id}">${t("Taip, ištrinti viską")}</button><button class="btn ghost sm" data-act="pl-del-no">${t("Ne")}</button></div></div>`:""}`;}).join("");
   const act=activePlayers().length;
   h+=`<p class="small muted">${t("Aktyvių žaidėjų: {a} iš {n}. Archyve esantys neskaičiuojami.",{a:act,n:PRO_MAX})}</p>`;
   h+=plFull()?limitNote()+`</div>`:`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
-  h+=langCard();
-  h+=themeCard();
+  h+=`<div class="card"><h3>${t("Archyvas ar ištrynimas?")}</h3><p class="small ink2">${t("<b>Į archyvą</b> – žaidėjas paslepiamas, bet visos jo treniruotės ir statistika lieka. Bet kada galite jį grąžinti.")}</p><p class="small ink2">${t("<b>Ištrinti</b> – žaidėjas ir visos jo treniruotės, įrašai bei pokalbiai su treneriu ištrinami visam laikui. Atkurti galima tik iš atsarginės kopijos.")}</p></div>`;
+  h+=`<p class="small muted">${t("Kalba, spalvos, teksto dydis ir atsarginės kopijos – nustatymuose (krumpliaratis viršuje).")}</p>`;
+  return h;
+}
+function viewSettings(){
+  let h=langCard()+themeCard();
+  if(isFree())return h;
   h+=`<div class="card"><h2>${t("Duomenys")}</h2>
    <p class="small ink2">${S.store==="db"?t("Duomenys saugomi šios programėlės bendroje duomenų bazėje – juos mato ir gali pildyti visi, kuriems pasidalinta programėle (su „Contributor“ ar aukštesne teise)."):t("Duomenys saugomi tik šiame telefone. Kartą per savaitę ar po svarbios treniruotės pasidarykite atsarginę kopiją (JSON) ir išsisaugokite ją, pvz., el. pašte ar debesyje. Tą patį failą galite įkelti kitame telefone.")}</p>
    ${S.store==="local"?`<p class="small">${backupStatusText()}</p>`:""}
@@ -2289,6 +2311,10 @@ document.addEventListener("click",e=>{
     case"pl-add":addPlayer(b.dataset.src);break;
     case"pl-rename":S.renaming=v;render();setTimeout(()=>{const i=$("#rn-"+v);i&&i.focus();},0);break;
     case"pl-rename-save":{const p=S.players.find(x=>x.id===v);const i=$("#rn-"+v);if(p&&i&&i.value.trim()){p.name=i.value.trim();savePlayer(p);}S.renaming=null;render();break;}
+    case"pl-del":S.confirmPl=v;render();break;
+    case"pl-del-no":S.confirmPl=null;render();break;
+    case"pl-del-yes":{const nm=playerName(v);S.confirmPl=null;deletePlayer(v).then(()=>{toast(t("Ištrinta: {n}",{n:nm}));render();});break;}
+    case"settings":if(isFree()){S.freeSet=!S.freeSet;}else{if(S.view==="settings"){S.view=S.prevView||"rec";}else{S.prevView=S.view;S.view="settings";}lsSet("tdp-view",S.view);}render();window.scrollTo(0,0);break;
     case"pl-archive":{const p=S.players.find(x=>x.id===v);if(p){if(p.archived&&plFull()){toast(t("Pasiektas {n} žaidėjų limitas",{n:PRO_MAX}));break;}p.archived=!p.archived;savePlayer(p);render();}break;}
     case"exp-json":doExport("json");break;
     case"backup-later":lsSet("tdp-backup-snooze",Date.now()+SNOOZE_DAYS*864e5);render();break;
