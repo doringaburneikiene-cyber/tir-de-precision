@@ -833,7 +833,8 @@ function viewRec(){
   if(!S.group.ids.includes(s.id)){S.group.ids.push(s.id);saveGroup();}
   return viewActive(s);
 }
-function newPlayerRow(id,btn){return `<div class="row"><input type="text" id="${id}" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm ghost" data-act="pl-add" data-src="${id}">${btn||t("Pridėti")}</button></div>`;}
+function limitNote(){return `<div class="banner lim"><span>${limitMsg()}</span></div>`;}
+function newPlayerRow(id,btn){if(plFull())return `<p class="small muted">${t("Žaidėjų: {a} iš {n} (Pro limitas).",{a:activePlayers().length,n:PRO_MAX})}</p>`;return `<div class="row"><input type="text" id="${id}" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn sm ghost" data-act="pl-add" data-src="${id}">${btn||t("Pridėti")}</button></div>`;}
 function viewNew(){
   const pl=activePlayers();
   if(!pl.length){
@@ -1116,7 +1117,7 @@ function endSession(){
 
 /* ----- Edition picker and free version ----- */
 const ED_FREE=["Vienas žaidėjas","Varžybų serija 5×4: taškai pagal FIPJP taisykles","Klaidų kryptys ir pataikymo būdas","Statistika varžybų pabaigoje","Rezultatai neišsaugomi – kitos varžybos prasideda iš naujo"];
-const ED_PRO=["Keli žaidėjai ir keitimasis po metimo ar rungties","Treniruotės, pratimai ir varžybos","Visa istorija ir progreso grafikai","Pastebėjimai: silpniausios vietos ir klaidų dėsningumai","Varžybų užrašų knygelė ir pasiruošimas","Virtualus treneris Karo","Rekordai, savaitės tikslas ir atsarginės kopijos"];
+const ED_PRO=["Iki 4 žaidėjų, keitimasis po metimo ar rungties","Treniruotės, pratimai ir varžybos","Visa istorija ir progreso grafikai","Pastebėjimai: silpniausios vietos ir klaidų dėsningumai","Varžybų užrašų knygelė ir pasiruošimas","Virtualus treneris Karo","Rekordai, savaitės tikslas ir atsarginės kopijos"];
 function edCard(k,title,price,items,cta){
   return `<section class="card edc ${k}"><div class="row between"><h2>${title}</h2><span class="edp">${price}</span></div>
    <ul class="edl">${items.map(i=>`<li>${t(i)}</li>`).join("")}</ul>
@@ -1126,7 +1127,7 @@ function viewEdition(){
   return `<p class="ink2 ed-lead">${t("Pasirinkite versiją. Ją bet kada galėsite pakeisti paspaudę ženkliuką viršuje.")}</p>
    ${edCard("free",t("Nemokama"),"0 €",ED_FREE,t("Pradėti nemokamai"))}
    ${edCard("pro","Pro",`<s>2,99 €</s> ${t("testuojant – 0 €")}`,ED_PRO,t("Naudoti Pro"))}
-   <p class="small muted">${t("Kol programėlė testuojama, abi versijos nemokamos.")}</p>`;
+   <p class="small muted">${t("Daugiau nei 4 žaidėjams – Trenerio / Klubo planas (ruošiamas).")} ${t("Kol programėlė testuojama, abi versijos nemokamos.")}</p>`;
 }
 function freeReset(){S.fs=null;lsSet("tdp-free-cur",null);S.pending=null;S.editing=false;S.ff={a:0,d:0};S.freeConfirm=false;render();window.scrollTo(0,0);}
 function freeStart(){
@@ -1801,7 +1802,9 @@ function viewPlayers(){
   h+=pl.map(p=>{const n=S.sessions.filter(s=>s.playerId===p.id).length;
     if(S.renaming===p.id)return `<div class="row"><input type="text" id="rn-${p.id}" value="${esc(p.name)}" style="flex:1;min-width:0"><button class="btn sm" data-act="pl-rename-save" data-v="${p.id}">${t("Išsaugoti")}</button></div>`;
     return `<div class="row between"><div><b>${esc(p.name)}</b>${p.archived?` <span class="tag">${t("archyve")}</span>`:""}<br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost" data-act="pl-archive" data-v="${p.id}">${p.archived?t("Grąžinti"):t("Į archyvą")}</button></div></div>`;}).join("");
-  h+=`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
+  const act=activePlayers().length;
+  h+=`<p class="small muted">${t("Aktyvių žaidėjų: {a} iš {n}. Archyve esantys neskaičiuojami.",{a:act,n:PRO_MAX})}</p>`;
+  h+=plFull()?limitNote()+`</div>`:`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
   h+=langCard();
   h+=themeCard();
   h+=`<div class="card"><h2>${t("Duomenys")}</h2>
@@ -1820,8 +1823,12 @@ function viewPlayers(){
   </dl></div>`;
   return h;
 }
+const PRO_MAX=4;
+const plFull=()=>activePlayers().length>=PRO_MAX;
+const limitMsg=()=>t("Pro versijoje – iki {n} žaidėjų. Daugiau žaidėjų bus galima turėti brangesniame Trenerio / Klubo plane. Kol kas galite perkelti nenaudojamą žaidėją į archyvą.",{n:PRO_MAX});
 async function addPlayer(src){
   const inp=$("#"+src);const name=(inp&&inp.value||"").trim();if(!name){inp&&inp.focus();return;}
+  if(plFull()){S.limitHit=true;toast(t("Pasiektas {n} žaidėjų limitas",{n:PRO_MAX}));render();return;}
   const p={id:uid("p"),name,createdAt:Date.now(),archived:false};
   S.players.push(p);inp.value="";
   if(src==="sw-newpl"){addToGroup(p.id);}else{S.nf.pids=(S.nf.pids||[]).concat(p.id);keepForm();render();}
@@ -1958,7 +1965,7 @@ document.addEventListener("click",e=>{
     case"pl-add":addPlayer(b.dataset.src);break;
     case"pl-rename":S.renaming=v;render();setTimeout(()=>{const i=$("#rn-"+v);i&&i.focus();},0);break;
     case"pl-rename-save":{const p=S.players.find(x=>x.id===v);const i=$("#rn-"+v);if(p&&i&&i.value.trim()){p.name=i.value.trim();savePlayer(p);}S.renaming=null;render();break;}
-    case"pl-archive":{const p=S.players.find(x=>x.id===v);if(p){p.archived=!p.archived;savePlayer(p);render();}break;}
+    case"pl-archive":{const p=S.players.find(x=>x.id===v);if(p){if(p.archived&&plFull()){toast(t("Pasiektas {n} žaidėjų limitas",{n:PRO_MAX}));break;}p.archived=!p.archived;savePlayer(p);render();}break;}
     case"exp-json":doExport("json");break;
     case"backup-later":lsSet("tdp-backup-snooze",Date.now()+SNOOZE_DAYS*864e5);render();break;
     case"exp-csv":doExport("csv");break;

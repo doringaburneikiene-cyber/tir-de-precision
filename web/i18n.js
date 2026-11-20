@@ -2,6 +2,12 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Žaidėjų: {a} iš {n} (Pro limitas).": "Players: {a} of {n} (Pro limit).",
+  "Daugiau nei 4 žaidėjams – Trenerio / Klubo planas (ruošiamas).": "For more than 4 players – the Coach / Club plan (coming).",
+  "Aktyvių žaidėjų: {a} iš {n}. Archyve esantys neskaičiuojami.": "Active players: {a} of {n}. Archived players don't count.",
+  "Pro versijoje – iki {n} žaidėjų. Daugiau žaidėjų bus galima turėti brangesniame Trenerio / Klubo plane. Kol kas galite perkelti nenaudojamą žaidėją į archyvą.": "Pro allows up to {n} players. More players will be available in the higher-priced Coach / Club plan. For now you can move an unused player to the archive.",
+  "Pasiektas {n} žaidėjų limitas": "Limit of {n} players reached",
+  "Iki 4 žaidėjų, keitimasis po metimo ar rungties": "Up to 4 players, switching after each throw or workshop",
   "t./met.": "pts/throw",
   "pataikė {p} %": "{p} % hits",
   "Pilnos serijos rodomos taškais iš 100. Pratimai ir nebaigtos serijos – vidutiniais taškais už metimą (iš 5, „t./met.“) ir pataikymo procentu.": "Full series are shown as points out of 100. Drills and unfinished series show average points per throw (out of 5, \"pts/throw\") and hit percentage.",
@@ -545,6 +551,12 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Žaidėjų: {a} iš {n} (Pro limitas).": "Joueurs : {a} sur {n} (limite Pro).",
+  "Daugiau nei 4 žaidėjams – Trenerio / Klubo planas (ruošiamas).": "Plus de 4 joueurs – formule Entraîneur / Club (à venir).",
+  "Aktyvių žaidėjų: {a} iš {n}. Archyve esantys neskaičiuojami.": "Joueurs actifs : {a} sur {n}. Les joueurs archivés ne comptent pas.",
+  "Pro versijoje – iki {n} žaidėjų. Daugiau žaidėjų bus galima turėti brangesniame Trenerio / Klubo plane. Kol kas galite perkelti nenaudojamą žaidėją į archyvą.": "La version Pro permet jusqu'à {n} joueurs. Davantage de joueurs seront possibles avec la formule Entraîneur / Club, plus chère. En attendant, vous pouvez archiver un joueur inutilisé.",
+  "Pasiektas {n} žaidėjų limitas": "Limite de {n} joueurs atteinte",
+  "Iki 4 žaidėjų, keitimasis po metimo ar rungties": "Jusqu'à 4 joueurs, alternance après chaque tir ou atelier",
   "t./met.": "pts/tir",
   "pataikė {p} %": "{p} % touchés",
   "Pilnos serijos rodomos taškais iš 100. Pratimai ir nebaigtos serijos – vidutiniais taškais už metimą (iš 5, „t./met.“) ir pataikymo procentu.": "Les séries complètes sont affichées en points sur 100. Les exercices et séries incomplètes affichent les points moyens par tir (sur 5, « pts/tir ») et le pourcentage de touchés.",
