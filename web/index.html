@@ -332,6 +332,12 @@ ul.insight{padding:0;margin:0}
 .tag.comp{background:var(--accent-soft);color:var(--accent-strong)}
 .confirm{background:var(--surface-2);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .empty{padding:26px 10px;text-align:center;color:var(--muted)}
+.rgrid{display:flex;flex-direction:column;gap:10px}
+.rcell{display:flex;gap:12px;align-items:center;padding-top:10px;border-top:1px solid var(--line)}
+.rcell p{margin:2px 0 0}
+.rpic{flex:none;width:96px;height:96px}
+.rpts{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:8px;font-family:var(--f-cond);font-weight:700;font-size:18px;padding:0 6px}
+.rpts.p5{background:var(--o5);color:var(--o5-t)}.rpts.p3{background:var(--o3);color:var(--o3-t)}.rpts.p1{background:var(--o1);color:var(--o1-t)}.rpts.p0{background:var(--o0);color:var(--o0-t)}
 .rules dt{font-weight:700;margin-top:8px}
 .rules dd{margin:2px 0 0 0;color:var(--ink-2);font-size:14px}
 @media (prefers-reduced-motion:no-preference){.cell,.out,.chip{transition:background-color .12s,box-shadow .12s}}
@@ -846,6 +852,7 @@ function gearBtn(on){return `<button class="gear" data-act="settings" aria-press
 function langSw(){return `<div class="lsw" role="group" aria-label="${t("Kalba")}">${LANGS.map(([k,l])=>`<button data-act="lang" data-v="${k}" aria-pressed="${LANG===k}" aria-label="${l}">${k.toUpperCase()}</button>`).join("")}</div>`;}
 function render(){
   const app=$("#app");
+  if(S.rules){document.body.classList.add("no-nav");app.innerHTML=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${t("Taisyklės")}</h1></div><div class="top-r">${langSw()}</div></header>`+viewRules();$("#nav").innerHTML="";const cr=$("#coach-root");if(cr)cr.innerHTML="";return;}
   document.body.classList.toggle("no-nav",S.ed!=="pro");
   if(S.ed!=="pro"){
     let h="";
@@ -920,7 +927,7 @@ function viewNew(){
    <div class="field"><label class="label" for="nf-note">${t("Pastaba (nebūtina)")}</label><textarea id="nf-note" placeholder="${t("pvz. nauji rutuliai, po darbo, pavargęs")}">${esc(nf.note)}</textarea></div>
    <button class="btn block" data-act="start" ${nf.pids.length?"":"disabled"}>${nf.pids.length>1?t("Pradėti ({n} žaidėjai)",{n:nf.pids.length}):t("Pradėti")}</button>
   </div>
-  ${openSessionsHtml()}`;
+  ${openSessionsHtml()}${rulesBtn("block")}`;
 }
 function nfTimed(){return S.nf.timed==null?S.nf.kind==="comp":!!S.nf.timed;}
 function rotChips(mode,blk){
@@ -1200,6 +1207,58 @@ function endSession(){
   render();window.scrollTo(0,0);
 }
 
+/* ----- Rules page ----- */
+function rulesBtn(cls){return `<button class="btn ghost ${cls||""}" data-act="rules">${t("Taisyklės ir taškų skaičiavimas")}</button>`;}
+function scoreSvg(a,k){
+  const W=96,c=`<circle cx="50" cy="50" r="46" fill="none" stroke="var(--line-2)" stroke-width="2.5"/>`;
+  const B=(x,y,f,st)=>`<circle cx="${x}" cy="${y}" r="9" fill="${f}" stroke="${st||"none"}" stroke-width="2.5"/>`;
+  const T=(x,y)=>B(x,y,"var(--surface)","var(--ink)"),O=(x,y)=>B(x,y,"var(--ink-2)"),S=(x,y)=>B(x,y,"var(--accent)","var(--accent-strong)");
+  const G=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r||9}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  const J=(x,y,t)=>`<circle cx="${x}" cy="${y}" r="4.5" fill="${t?"var(--accent)":"var(--ink-2)"}" stroke="${t?"var(--ink)":"none"}" stroke-width="1.5"/>`;
+  const A=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="1.6" marker-end="url(#ah)"/>`;
+  const X=(x,y)=>`<path d="M${x-6} ${y-6}l12 12M${x+6} ${y-6}l-12 12" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>`;
+  const ty=a===4?48:50;let b="";
+  const obst=()=>a===2?J(50,69):a===3?O(29,50)+O(71,50):a===4?O(50,72):"";
+  if(a===5){
+    if(k==="out")b=G(50,76,4.5)+A(50,70,50,8)+J(50,-2,true);
+    else if(k==="moved")b=G(50,76,4.5)+A(52,72,62,56)+J(64,52,true);
+    else b=J(50,76,true)+`<path d="M30 112 Q 20 70 18 40" fill="none" stroke="var(--accent-strong)" stroke-width="1.6" stroke-dasharray="4 3"/>`+S(18,32);
+  }else if(k==="carreau")b=obst()+G(50,ty)+A(50,ty-12,50,6)+T(50,-4)+S(50,ty);
+  else if(k==="reussi")b=obst()+G(50,ty)+A(50,ty-12,44,6)+T(40,-4)+S(66,-2);
+  else if(k==="touche")b=obst()+G(50,ty)+A(52,ty-8,58,34)+T(60,30)+S(42,ty+4);
+  else if(k==="obst"&&a===3)b=O(71,50)+G(29,50)+O(20,60)+G(50,50)+T(50,-4)+S(38,46);
+  else if(k==="obst")b=(a===2?G(50,69,4.5)+J(56,80):G(50,72)+O(58,84))+G(50,ty)+T(50,-4)+S(50,a===2?64:66);
+  else if(k==="obstout")b=O(71,50)+G(29,50)+O(-4,50)+G(50,50)+T(50,-4)+S(40,46);
+  else b=obst()+T(50,ty)+`<path d="M60 112 Q 84 60 96 14" fill="none" stroke="var(--accent-strong)" stroke-width="1.6" stroke-dasharray="4 3"/>`+S(99,4);
+  return `<svg viewBox="-14 -14 128 128" width="${W}" height="${W}" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>${c}${b}</svg>`;
+}
+function fieldSvg(){
+  const W=340,H=150;let g="";
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="12" fill="var(--surface-2)"/>`;
+  g+=`<circle cx="40" cy="80" r="22" fill="none" stroke="var(--ink)" stroke-width="2.5"/><text x="40" y="122" text-anchor="middle" font-size="11" fill="var(--ink-2)">${t("metimo ratas")}</text>`;
+  g+=`<circle cx="292" cy="80" r="30" fill="none" stroke="var(--ink)" stroke-width="2.5"/><circle cx="292" cy="80" r="7" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/><text x="292" y="130" text-anchor="middle" font-size="11" fill="var(--ink-2)">${t("apskritimas Ø 1 m")}</text>`;
+  g+=`<line x1="62" y1="80" x2="262" y2="80" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  g+=`<line x1="62" y1="40" x2="62" y2="66" stroke="var(--accent-strong)" stroke-width="1.5"/><line x1="262" y1="40" x2="262" y2="66" stroke="var(--accent-strong)" stroke-width="1.5"/><line x1="64" y1="46" x2="260" y2="46" stroke="var(--accent-strong)" stroke-width="1.5" marker-start="url(#fa)" marker-end="url(#fa)"/>`;
+  g+=`<text x="162" y="38" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent-strong)">6 · 7 · 8 · 9 m</text>`;
+  g+=`<text x="162" y="104" text-anchor="middle" font-size="10.5" fill="var(--muted)">${t("nuo rato priekio iki apskritimo krašto")}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="gchart" role="img" aria-label="${t("Aikštelės schema")}"><defs><marker id="fa" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--accent-strong)"/></marker></defs>${g}</svg>`;
+}
+function viewRules(){
+  let h=`<button class="btn ghost sm" data-act="rules" style="align-self:flex-start">← ${t("Atgal")}</button>`;
+  h+=`<div class="card"><h2>${t("Kas yra šaudymas tikslumu")}</h2>
+   <p class="ink2">${t("Varžybose šaunama į 5 skirtingas rungtis, kiekvieną – iš 4 atstumų. Viena serija – 20 metimų, daugiausia 100 taškų.")}</p>
+   ${fieldSvg()}
+   <ul class="insight"><li>${t("Serijai skiriama <b>15 minučių</b>.")}</li><li>${t("Kojos turi likti metimo rate, kol rutulys nukrenta.")}</li><li>${t("Rutuliui nukritus ant apskritimo linijos ar už jos – <b>0 taškų</b>, net jei paskui jis pataiko į taikinį.")}</li><li>${t("Esant lygiam rezultatui laimi tas, kuris turi daugiau 5 taškų metimų, po to – daugiau 3 taškų.")}</li></ul>
+   <div class="legend"><span>${scoreLeg("T")}${t("taikinys")}</span><span>${scoreLeg("O")}${t("kliūtis")}</span><span>${scoreLeg("S")}${t("jūsų rutulys")}</span><span>${scoreLeg("G")}${t("buvusi vieta")}</span></div></div>`;
+  AT.forEach(a=>{
+    h+=`<div class="card"><div class="shot-title"><div class="diag">${diagram(a.n,84)}</div><div class="stack" style="gap:2px"><span class="label">${t("Rungtis")} ${a.n}</span><h2>${esc(a.name)}</h2><p class="small ink2">${esc(a.desc)}</p></div></div>
+     <div class="rgrid">${a.outs.map(o=>`<div class="rcell"><div class="rpic">${scoreSvg(a.n,o.k)}</div><div><span class="rpts p${o.p}">${o.p}</span> <b>${esc(o.l)}</b><p class="small ink2">${esc(o.s)}</p></div></div>`).join("")}</div>
+     ${a.n===2||a.n===4?`<p class="small ink2">${t("Jei pirma pataikote į kliūtį – 0 taškų.")}</p>`:""}</div>`;});
+  h+=`<p class="small muted">${t("Pagal FIPJP šaudymo tikslumu taisykles (2025). Ginčytinais atvejais sprendžia teisėjas.")}</p>`;
+  return h;
+}
+function scoreLeg(k){const m={T:'<circle cx="8" cy="8" r="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>',O:'<circle cx="8" cy="8" r="6" fill="var(--ink-2)"/>',S:'<circle cx="8" cy="8" r="6" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="2"/>',G:'<circle cx="8" cy="8" r="6" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/>'};return `<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align:-2px;margin-right:5px" aria-hidden="true">${m[k]}</svg>`;}
+
 /* ----- Edition picker and free version ----- */
 const ED_FREE=["Vienas žaidėjas","Varžybų serija 5×4: taškai pagal FIPJP taisykles","Klaidų kryptys ir pataikymo būdas","Statistika varžybų pabaigoje","Rezultatai neišsaugomi – kitos varžybos prasideda iš naujo"];
 const ED_PRO=["Iki 4 žaidėjų, keitimasis po metimo ar rungties","Treniruotės, pratimai ir varžybos","Visa istorija ir progreso grafikai","Pastebėjimai: silpniausios vietos ir klaidų dėsningumai","Varžybų užrašų knygelė ir pasiruošimas","Virtualus treneris Karo","Rekordai, savaitės tikslas ir atsarginės kopijos"];
@@ -1212,6 +1271,7 @@ function viewEdition(){
   return `<p class="ink2 ed-lead">${t("Pasirinkite versiją. Ją bet kada galėsite pakeisti paspaudę ženkliuką viršuje.")}</p>
    ${edCard("free",t("Nemokama"),"0 €",ED_FREE,t("Pradėti nemokamai"))}
    ${edCard("pro","Pro",`<s>2,99 €</s> ${t("testuojant – 0 €")}`,ED_PRO,t("Naudoti Pro"))}
+   ${rulesBtn("block")}
    <p class="small muted">${t("Daugiau nei 4 žaidėjams – Trenerio / Klubo planas (ruošiamas).")} ${t("Kol programėlė testuojama, abi versijos nemokamos.")}</p>`;
 }
 function freeReset(){S.fs=null;lsSet("tdp-free-cur",null);S.pending=null;S.editing=false;S.ff={a:0,d:0};S.freeConfirm=false;render();window.scrollTo(0,0);}
@@ -1224,7 +1284,7 @@ function viewFree(){
   if(!s)return `<div class="card"><h2>${t("Naujos varžybos")}</h2>
      <p class="ink2">${t("Žymėkite kiekvieną metimą: taškus, o nepataikius – kur nuėjo rutulys. Varžybų pabaigoje pamatysite savo statistiką.")}</p>
      <div class="banner"><span>${t("Nemokamoje versijoje rezultatai neišsaugomi: pradėjus naujas varžybas ankstesnės ištrinamos.")}</span></div>
-     <button class="btn block" data-act="free-start">${t("Pradėti varžybas")}</button></div>
+     <button class="btn block" data-act="free-start">${t("Pradėti varžybas")}</button>${rulesBtn("block")}</div>
    <div class="card"><h3>${t("Pro versijoje taip pat:")}</h3><ul class="edl">${ED_PRO.map(i=>`<li>${t(i)}</li>`).join("")}</ul>
      <button class="btn ghost block" data-act="ed-pick" data-v="pro">${t("Išbandyti Pro")}</button></div>`;
   if(!s.done)return viewActive(s);
@@ -2145,14 +2205,7 @@ function viewSettings(){
    <div class="row"><button class="btn sm ghost" data-act="exp-json">${t("Atsarginė kopija (JSON)")}</button><button class="btn sm ghost" data-act="exp-csv">${t("Visi metimai (CSV)")}</button><button class="btn sm ghost" data-act="imp">${t("Įkelti iš kopijos")}</button></div>
    ${S.msg?`<p class="small">${esc(S.msg)}</p>`:""}
   </div>`;
-  h+=`<div class="card"><h2>${t("Taškų skaičiavimas")}</h2><dl class="rules">
-   <dt>${t("1–4 rungtys (taikinys – rutulys)")}</dt><dd>${t("<b>5</b> – karo: taikinys visiškai išėjo iš apskritimo, jūsų rutulys liko jame. <b>3</b> – taikinys išėjo, bet ir jūsų rutulys išėjo. <b>1</b> – palietėte taikinį, bet jis liko apskritime. <b>0</b> – nepataikėte, pirma palietėte kliūtį arba rutulys nukrito ant apskritimo linijos ar už jos (net ir paskui pataikius į taikinį).")}</dd>
-   <dt>${t("2 ir 4 rungtys (kliūtis priekyje)")}</dt><dd>${t("<b>1</b> – jei pirma pataikėte į taikinį, o kliūtį jūsų rutulys palietė grįždamas. Taškas skiriamas tik tada, kai rutulys nukrito už priekinės kliūties, kitaip – 0.")}</dd>
-   <dt>${t("3 rungtis (kliūtys šonuose)")}</dt><dd>${t("<b>1</b> – jei po taikinio palietėte kliūtį ir ji liko apskritime. <b>0</b> – jei iš apskritimo išėjo ir taikinys, ir kliūtis.")}</dd>
-   <dt>${t("5 rungtis (taikinukas)")}</dt><dd>${t("<b>5</b> – taikinukas išėjo iš apskritimo. <b>3</b> – pajudėjo, bet liko. <b>0</b> – nepajudėjo.")}</dd>
-   <dt>${t("Serija")}</dt><dd>${t("5 rungtys × 4 atstumai (6, 7, 8, 9 m) = 20 metimų, daugiausia 100 taškų. Esant lygiam rezultatui laimi tas, kuris turi daugiau 5 taškų metimų, po to – daugiau 3 taškų.")}</dd>
-   <dt>${t("Išdėstymai")}</dt><dd>${AT.map(a=>`${a.n}. ${esc(a.desc)}`).join("<br>")}</dd>
-  </dl></div>`;
+  h+=`<div class="card"><h2>${t("Taisyklės")}</h2><p class="small ink2">${t("Kaip išdėstomos rungtys ir kaip skaičiuojami taškai – su paveikslėliais.")}</p><button class="btn ghost" data-act="rules">${t("Taisyklės ir taškų skaičiavimas")}</button></div>`;
   return h;
 }
 const PRO_MAX=4;
@@ -2313,6 +2366,7 @@ document.addEventListener("click",e=>{
     case"pl-del":S.confirmPl=v;render();break;
     case"pl-del-no":S.confirmPl=null;render();break;
     case"pl-del-yes":{const nm=playerName(v);S.confirmPl=null;deletePlayer(v).then(()=>{toast(t("Ištrinta: {n}",{n:nm}));render();});break;}
+    case"rules":S.rules=!S.rules;render();window.scrollTo(0,0);break;
     case"settings":if(isFree()){S.freeSet=!S.freeSet;}else{if(S.view==="settings"){S.view=S.prevView||"rec";}else{S.prevView=S.view;S.view="settings";}lsSet("tdp-view",S.view);}render();window.scrollTo(0,0);break;
     case"exp-json":doExport("json");break;
     case"backup-later":lsSet("tdp-backup-snooze",Date.now()+SNOOZE_DAYS*864e5);render();break;
