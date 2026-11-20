@@ -1226,6 +1226,16 @@ function vocative(n){n=String(n||"").trim();if(LANG!=="lt"||!n)return n;
   if(/us$/.test(n))return n.slice(0,-2)+"au";if(/ys$/.test(n))return n.slice(0,-1);if(/is$/.test(n))return n.slice(0,-1);return n;}
 // Istoriniai rekordai (FIPJP pasaulio čempionatai ir CEP Europos čempionatai). Šaltiniai: cep-petanque.com, fr.wikipedia.org, petanqueacademy.fr
 const MILESTONES=[
+ {v:26,g:"f",k:"res",who:"Sara Ferrera",ev:"2026 m. Europos čempionato ketvirtfinalis"},
+ {v:30,g:"f",k:"res",who:"Nelly Peyré, FRA",ev:"2026 m. Viduržemio jūros žaidynių finalas"},
+ {v:30,g:"m",k:"res",who:"Manuel Luque, ESP",ev:"2026 m. Viduržemio jūros žaidynių finalas"},
+ {v:31,g:"f",k:"res",who:"Nelly Peyré, FRA",ev:"2026 m. Europos čempionato pusfinalis (bronza)"},
+ {v:32,g:"f",k:"res",who:"Alba Valiente, ESP",ev:"2026 m. Viduržemio jūros žaidynių čempionė"},
+ {v:33,g:"f",k:"res",who:"Nelly Peyré, FRA",ev:"2026 m. Europos čempionato ketvirtfinalis"},
+ {v:39,g:"m",k:"res",who:"Mickaël Bonetto, FRA",ev:"2025 m. Europos čempionas (finalas)"},
+ {v:44,g:"m",k:"res",who:"Diego Rizzi, ITA",ev:"2026 m. Viduržemio jūros žaidynių čempionas"},
+ {v:48,g:"f",k:"res",who:"Ranu Homniam, NOR",ev:"2026 m. Europos čempionato pusfinalis"},
+ {v:55,g:"m",k:"res",who:"Mickaël Bonetto, FRA",ev:"2025 m. Europos čempionato atranka, geriausias rezultatas"},
  {v:33,g:"f",k:"ecr1",who:"Cynthia Quennehen, FRA"},
  {v:41,g:"f",k:"ecr",who:"Angélique Papon, FRA",y:2007},
  {v:42,g:"f",k:"ecr",who:"Angélique Papon, FRA",y:2010},
@@ -1242,23 +1252,25 @@ const MILESTONES=[
  {v:66,g:"m",k:"wrold",who:"Charles Weibel, BEL"},
  {v:67,g:"m",k:"wrnow",who:"Christophe Sévilla, FRA; Diego Rizzi, ITA",y:"2011, 2017"}
 ];
+MILESTONES.sort((a,b)=>a.v-b.v||(a.k==="res"?-1:0)-(b.k==="res"?-1:0));
 function msLabel(m){
-  const gw=m.g==="m"?t("vyrų"):t("moterų");
+  const gw=m.g==="m"?t("vyrų"):t("moterų");if(m.k==="res")return `${esc(m.who)} – ${t(m.ev)}`;
   const kw={wr1:t("pirmasis {g} pasaulio rekordas",{g:gw}),wr:t("{g} pasaulio rekordas",{g:gw}),wrnow:t("dabartinis {g} pasaulio rekordas",{g:gw}),wrold:t("buvęs {g} pasaulio rekordas",{g:gw}),
     ecr1:t("pirmasis {g} Europos čempionatų rekordas",{g:gw}),ecr:t("{g} Europos čempionatų rekordas",{g:gw}),ecrnow:t("dabartinis {g} Europos čempionatų rekordas",{g:gw})}[m.k];
+  if(m.k==="res")return `${esc(m.who)} – ${t(m.ev)}`;
   return `${kw} (${esc(m.who)}${m.y?", "+m.y:""})`;
 }
 function msPick(sum,g){
   const below=MILESTONES.filter(m=>m.v<=sum),above=MILESTONES.filter(m=>m.v>sum);
   const top=below.length?below.filter(m=>m.v===below[below.length-1].v):[];const hit=top.find(m=>m.g===g)||top[0]||null;
-  const nv=above.length?above[0].v:null;const nx=nv==null?null:(above.filter(m=>m.v===nv).find(m=>m.g===g)||above[0]);
+  const nx=(g&&above.find(m=>m.g===g))||above[0]||null;
   return{hit,next:nx};
 }
 function recordNote(pid,sum){
-  const p=S.players.find(x=>x.id===pid);if(!p||isFree()||sum<28)return"";
+  const p=S.players.find(x=>x.id===pid);if(!p||isFree()||sum<22)return"";
   const nm=esc(vocative(p.name));const {hit,next}=msPick(sum,p.g);let h="";
-  if(hit)h+=`<div class="banner rec"><span>${t("<b>{name}, {sum} t.!</b> Pasiekėte istorinį lygį: {label} buvo {v} t.",{name:nm,sum,label:msLabel(hit),v:hit.v})}${next?" "+t("Kitas laiptelis: {label} – {v} t., liko {gap} t.",{label:msLabel(next),v:next.v,gap:next.v-sum}):""}</span></div>`;
-  else if(next)h+=`<p class="small ink2">${t("{name}, iki pirmojo istorinio laiptelio liko {gap} t.: {label} – {v} t.",{name:nm,label:msLabel(next),v:next.v,gap:next.v-sum})}</p>`;
+  if(hit)h+=`<div class="banner rec"><span>${t("<b>{name}, {sum} t.!</b> Pasiekėte lygį: {label} – {v} t.",{name:nm,sum,label:msLabel(hit),v:hit.v})}${next?" "+t("Kitas laiptelis: {label} – {v} t., liko {gap} t.",{label:msLabel(next),v:next.v,gap:next.v-sum}):""}</span></div>`;
+  else if(next)h+=`<p class="small ink2">${t("{name}, iki pirmojo laiptelio liko {gap} t.: {label} – {v} t.",{name:nm,label:msLabel(next),v:next.v,gap:next.v-sum})}</p>`;
   return h;
 }
 function msCelebrate(pid,sum,prevBest){
@@ -1266,11 +1278,11 @@ function msCelebrate(pid,sum,prevBest){
   const crossed=MILESTONES.filter(m=>m.v<=sum&&m.v>prevBest);if(!crossed.length)return;
   const top=crossed.filter(m=>m.v===crossed[crossed.length-1].v);const m=top.find(x=>x.g===p.g)||top[0];
   if(celDone("ms:"+pid+":"+m.v))return;
-  celebrate("trophy",t("Istorinis rezultatas!"),t("{name}, <b>{sum}</b> taškų! Pasiekėte istorinį lygį: {label} buvo {v} t.",{name:esc(vocative(p.name)),sum,label:msLabel(m),v:m.v}));
+  celebrate("trophy",t("Čempionų lygis!"),t("{name}, <b>{sum}</b> taškų! Pasiekėte lygį: {label} – {v} t.",{name:esc(vocative(p.name)),sum,label:msLabel(m),v:m.v}));
 }
 function msListHtml(best,g){
   const list=MILESTONES.filter(m=>!g||m.g===g);
-  return `<details class="ms"><summary>${t("Rekordų laiptai")} <span class="small muted">(${list.filter(m=>best>=m.v).length}/${list.length})</span></summary><div class="ms-l">${list.map(m=>`<div class="ms-r ${best>=m.v?"ok":""}"><span class="ms-v">${m.v}</span><span>${msLabel(m)}</span><span>${best>=m.v?"✓":""}</span></div>`).join("")}</div><p class="small muted">${t("Oficialūs FIPJP pasaulio ir CEP Europos čempionatų rekordai bei jų istorija.")}</p></details>`;
+  return `<details class="ms"><summary>${t("Rekordų laiptai")} <span class="small muted">(${list.filter(m=>best>=m.v).length}/${list.length})</span></summary><div class="ms-l">${list.map(m=>`<div class="ms-r ${best>=m.v?"ok":""}"><span class="ms-v">${m.v}</span><span>${msLabel(m)}</span><span>${best>=m.v?"✓":""}</span></div>`).join("")}</div><p class="small muted">${t("Oficialūs FIPJP pasaulio ir CEP Europos čempionatų rekordai, jų istorija ir 2025–2026 m. čempionatų rezultatai.")}</p></details>`;
 }
 
 /* ----- Rules page ----- */
