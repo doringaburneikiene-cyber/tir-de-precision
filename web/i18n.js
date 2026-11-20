@@ -2,6 +2,9 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "t./met.": "pts/throw",
+  "pataikė {p} %": "{p} % hits",
+  "Pilnos serijos rodomos taškais iš 100. Pratimai ir nebaigtos serijos – vidutiniais taškais už metimą (iš 5, „t./met.“) ir pataikymo procentu.": "Full series are shown as points out of 100. Drills and unfinished series show average points per throw (out of 5, \"pts/throw\") and hit percentage.",
   "Rasta treniruočių be metimų: <b>{n}</b>.": "Trainings with no throws found: <b>{n}</b>.",
   "Taip, ištrinti {n}": "Yes, delete {n}",
   "Ištrinti jas": "Delete them",
@@ -542,6 +545,9 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "t./met.": "pts/tir",
+  "pataikė {p} %": "{p} % touchés",
+  "Pilnos serijos rodomos taškais iš 100. Pratimai ir nebaigtos serijos – vidutiniais taškais už metimą (iš 5, „t./met.“) ir pataikymo procentu.": "Les séries complètes sont affichées en points sur 100. Les exercices et séries incomplètes affichent les points moyens par tir (sur 5, « pts/tir ») et le pourcentage de touchés.",
   "Rasta treniruočių be metimų: <b>{n}</b>.": "Entraînements sans aucun tir : <b>{n}</b>.",
   "Taip, ištrinti {n}": "Oui, supprimer {n}",
   "Ištrinti jas": "Les supprimer",
