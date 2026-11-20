@@ -200,6 +200,8 @@ body.no-nav .nav{display:none}
 .bdg-pr{display:block;width:70px;height:5px;border-radius:9px;background:var(--line);margin:2px auto 3px;overflow:hidden}
 .bdg-pr i{display:block;height:100%;background:var(--accent)}
 .wr h3{margin-top:2px}
+.tbl.ct td:nth-child(n+2),.tbl.ct th:nth-child(n+2){text-align:right}
+.tbl.ct tr.hl td{background:var(--accent-soft)}
 .gchart{width:100%;height:auto;display:block}
 .goal h3{margin-top:4px}
 .gl{font-size:14px}
@@ -1802,6 +1804,7 @@ function viewStats(){
    <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>${t("Diena")}</span><span><i class="ln" style="background:var(--o5)"></i>${t("Slenkantis vidurkis")}</span></div>
    <div id="ch-trend" class="small ink2"></div></div>`;
   h+=trendCards(ss,f);
+  if(!f.a&&!f.d){h+=compTrainHtml(f);h+=consistencyHtml(f);}
   h+=heatHtml(ss,f);
   h+=insightsHtml(ss,f,shots);
   h+=distHtml(ss,f);
@@ -1971,6 +1974,49 @@ function trendCards(ss,f){
   const note=`<p class="small ink2">${t("Taškai – dienos rezultatas (/100), linija – tendencija. ▲ rodo, kiek tendencijos linija pakilo nuo pirmos iki paskutinės dienos. Paspauskite grafiką – visa statistika persiskaičiuos tik jam.")}</p>`;
   return `<div class="card"><h2>${t("Progresas pagal rungtis")}</h2>${f.d?`<p class="small muted">${t("Tik {d} m",{d:f.d})}</p>`:""}${note}<div class="mc-grid">${aCards}</div></div>
    <div class="card"><h2>${t("Progresas pagal atstumus")}</h2>${f.a?`<p class="small muted">${t("Tik {a} rungtis",{a:f.a})}</p>`:""}<div class="mc-grid">${dCards}</div></div>`;
+}
+
+function quant(a,q){if(!a.length)return null;const b=a.slice().sort((x,y)=>x-y);const i=(b.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return b[lo]+(b[hi]-b[lo])*(i-lo);}
+function sdev(a){if(a.length<2)return 0;const m=avg(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1));}
+function compTrainHtml(f){
+  const ss=filteredSessions(Object.assign({},f,{kind:"all"})).filter(s=>s.mode==="full");
+  const tr=ss.filter(s=>s.kind!=="comp"),cp=ss.filter(s=>s.kind==="comp");
+  const ser=l=>l.flatMap(s=>seriesTotals(s).filter(x=>x.n===20).map(x=>x.sum));
+  const tS=ser(tr),cS=ser(cp);
+  let h=`<div class="card"><h2>${t("Varžybos ir treniruotės")}</h2>`;
+  if(!cS.length)return h+`<p class="small ink2">${t("Pasirinktame laikotarpyje pilnų varžybų serijų nėra. Pažymėkite varžybas tipu „Varžybos“ – čia matysite, kiek rezultatas varžybose skiriasi nuo treniruočių.")}</p></div>`;
+  if(!tS.length)return h+`<p class="small ink2">${t("Palyginimui reikia ir pilnų treniruočių serijų.")}</p></div>`;
+  const ta=avg(tS),ca=avg(cS),gap=ca-ta;
+  h+=`<div class="kpis in"><div class="kpi"><span class="label">${t("Treniruotės")}</span><span class="v num">${fmt1(ta)}</span><span class="delta flat">${t("{n} serijos",{n:tS.length})}</span></div>
+   <div class="kpi"><span class="label">${t("Varžybos")}</span><span class="v num">${fmt1(ca)}</span><span class="delta flat">${t("{n} serijos",{n:cS.length})}</span></div></div>
+   <p class="small"><span class="delta ${gap>=-1?"up":"down"}">${gap>0?"+":""}${fmt1(gap)}</span> ${gap<=-1?t("Varžybose surenkate vidutiniškai <b>{v}</b> taško mažiau nei treniruotėse – tiek „kainuoja“ jaudulys ir sąlygos.",{v:fmt1(-gap)}):t("Varžybose rezultatas nekrenta – puikiai valdote jaudulį.")}</p>`;
+  const sh=(l,pred)=>flatShots(l,{a:0,d:0}).filter(pred);
+  const row=(lab,pred)=>{const a=sh(tr,pred),b=sh(cp,pred);if(a.length<4||b.length<4)return null;const va=avg(a.map(x=>x.p))*20,vb=avg(b.map(x=>x.p))*20;return{lab,va,vb,d:vb-va};};
+  const rows=[...AT.map(a=>row(`<b>${a.n}</b> ${esc(a.name)}`,x=>x.a===a.n)),...DIST.map(d=>row(`<b>${d} m</b>`,x=>x.d===d))].filter(Boolean);
+  if(rows.length){const worst=rows.reduce((m,r)=>r.d<m.d?r:m,rows[0]);
+    h+=`<div class="scroll-x"><table class="tbl ct"><thead><tr><th></th><th>${t("Trenir.")}</th><th>${t("Varžyb.")}</th><th>${t("Skirtumas")}</th></tr></thead><tbody>${rows.map(r=>`<tr${r===worst&&r.d<=-3?' class="hl"':""}><td>${r.lab}</td><td>${fmt0(r.va)}</td><td>${fmt0(r.vb)}</td><td><span class="delta ${r.d>=2?"up":r.d<=-2?"down":"flat"}">${r.d>0?"+":""}${fmt0(r.d)}</span></td></tr>`).join("")}</tbody></table></div>
+     <p class="small muted">${t("Rezultatas 100 balų skalėje (vid. taškai × 20), skaičiuojama tik iš pilnų serijų.")}${worst.d<=-3?" "+t("Labiausiai varžybose krenta: {x}.",{x:worst.lab.replace(/<[^>]+>/g,"")}):""}</p>`;}
+  return h+`</div>`;
+}
+function consistencyHtml(f){
+  const ss=filteredSessions(f).filter(s=>s.mode==="full");
+  const list=[];ss.forEach(s=>seriesTotals(s).forEach(x=>{if(x.n===20)list.push({v:x.sum,c:s.kind==="comp",d:s.date});}));
+  let h=`<div class="card"><h2>${t("Pastovumas")}</h2>`;
+  if(list.length<4)return h+`<p class="small ink2">${t("Pastovumui įvertinti reikia bent 4 pilnų serijų pasirinktame laikotarpyje.")}</p></div>`;
+  const v=list.map(x=>x.v);const q1=quant(v,.25),q3=quant(v,.75),med=quant(v,.5),sd=sdev(v);
+  const W=320,H=64,ml=10,mr=10,X=x=>ml+x/100*(W-ml-mr);
+  let g=`<rect x="${X(q1)}" y="14" width="${Math.max(2,X(q3)-X(q1))}" height="24" rx="6" fill="var(--accent-soft)"/><line x1="${X(med)}" x2="${X(med)}" y1="10" y2="42" stroke="var(--accent-strong)" stroke-width="2.5"/>`;
+  [0,25,50,75,100].forEach(x=>{g+=`<line x1="${X(x)}" x2="${X(x)}" y1="46" y2="50" stroke="var(--line)"/><text x="${X(x)}" y="61" text-anchor="middle" font-size="9" fill="var(--muted)">${x}</text>`;});
+  list.forEach((x,i)=>{g+=`<circle cx="${X(x.v).toFixed(1)}" cy="${26+((i%3)-1)*6}" r="3.6" fill="${x.c?"var(--o5)":"var(--o1)"}" stroke="var(--surface)" stroke-width="1"/>`;});
+  h+=`<p class="small ink2">${t("Kiekvienas taškas – viena pilna serija. Spalvota juosta – kur patenka pusė jūsų serijų, linija – mediana.")}</p>
+   <svg viewBox="0 0 ${W} ${H}" class="gchart" role="img" aria-label="${t("Serijų pasiskirstymas")}">${g}</svg>
+   <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>${t("Treniruotė")}</span><span><i class="cr" style="background:var(--o5)"></i>${t("Varžybos")}</span></div>
+   <div class="kpis in"><div class="kpi"><span class="label">${t("Blogiausia / geriausia")}</span><span class="v num">${Math.min(...v)}<small> / ${Math.max(...v)}</small></span><span class="delta flat">${t("{n} serijos",{n:v.length})}</span></div>
+   <div class="kpi"><span class="label">${t("Dažniausiai")}</span><span class="v num">${fmt0(q1)}<small>–${fmt0(q3)}</small></span><span class="delta flat">${t("svyravimas ±{v}",{v:fmt1(sd)})}</span></div></div>`;
+  if(list.length>=8){const ch=list.slice().sort((a,b)=>a.d<b.d?-1:1);const half=Math.floor(ch.length/2);const s1=sdev(ch.slice(0,half).map(x=>x.v)),s2=sdev(ch.slice(-half).map(x=>x.v));const dd=s2-s1;
+    h+=`<p class="small"><span class="delta ${dd<=-1?"up":dd>=1?"down":"flat"}">${dd<=-1?"▲":dd>=1?"▼":"■"}</span> ${dd<=-1?t("Rezultatai tampa pastovesni: svyravimas sumažėjo nuo ±{a} iki ±{b}.",{a:fmt1(s1),b:fmt1(s2)}):dd>=1?t("Rezultatai tapo mažiau pastovūs: svyravimas padidėjo nuo ±{a} iki ±{b}.",{a:fmt1(s1),b:fmt1(s2)}):t("Pastovumas beveik nesikeičia (±{b}).",{b:fmt1(s2)})}</p>`;}
+  h+=`<p class="small muted">${t("Čempionate dažnai lemia ne geriausia, o blogiausia serija – stenkitės, kad apatinė riba kiltų.")}</p>`;
+  return h+`</div>`;
 }
 function drawCharts(){
   const el=$("#ch-prog");if(!el)return;
