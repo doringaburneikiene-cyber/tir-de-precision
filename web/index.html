@@ -282,6 +282,11 @@ ul.insight{padding:0;margin:0}
 
 /* history */
 .hist-item{display:flex;flex-direction:column;gap:10px}
+.hh{display:flex;align-items:center;gap:6px}
+.hh .hist-head{flex:1;min-width:0}
+.hdel{border:0;background:none;color:var(--muted);width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;margin-right:-6px}
+.hdel svg{width:20px;height:20px}
+.hdel:hover,.hdel:focus-visible{color:var(--bad);background:var(--surface-2)}
 .hist-head{border:0;background:none;padding:0;text-align:left;display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%}
 .hist-head .sc{font-family:var(--f-cond);font-weight:700;font-size:28px;font-variant-numeric:tabular-nums;line-height:1}
 .hist-head .sc small{font-size:13px;color:var(--muted)}
@@ -1743,6 +1748,8 @@ function viewHist(){
   if(isDemo())h+=`<div class="banner"><span>${t("Rodomi <b>pavyzdiniai duomenys</b>.")}</span></div>`;
   if(pls.length>1)h+=`<div class="chips">${chip("f-player","",t("Visi"),!fp)}${pls.filter(p=>!p.archived).map(p=>chip("f-player",p.id,p.name,fp===p.id)).join("")}</div>`;
   if(!ss.length)return h+`<div class="card"><p class="empty">${t("Treniruočių dar nėra.")}</p></div>`;
+  const emp=isDemo()?[]:ss.filter(s=>!s.shots.length&&!(S.activeId===s.id));
+  if(emp.length)h+=`<div class="banner backup"><span>${t("Rasta treniruočių be metimų: <b>{n}</b>.",{n:emp.length})}</span>${S.confirmDel==="__empty"?`<div class="row"><button class="btn warn sm" data-act="h-del-empty-yes">${t("Taip, ištrinti {n}",{n:emp.length})}</button><button class="btn ghost sm" data-act="h-del-no">${t("Ne")}</button></div>`:`<div><button class="btn sm" data-act="h-del-empty">${t("Ištrinti jas")}</button></div>`}</div>`;
   h+=ss.slice(0,150).map(s=>{
     const open=S.openHist===s.id;const tots=seriesTotals(s);const full=tots.filter(t=>t.n===20);
     const sc=s.mode==="full"&&full.length?(full.length===1?full[0].sum:fmt1(avg(full.map(t=>t.sum)))):fmt1(sessScore(s));
@@ -1757,7 +1764,7 @@ function viewHist(){
         if(S.confirmDel!==s.id)body+=`<div class="row"><button class="btn sm" data-act="h-resume" data-v="${s.id}">${s.done?t("Redaguoti / tęsti"):t("Tęsti")}</button><button class="btn sm ghost" data-act="h-del" data-v="${s.id}">${t("Ištrinti")}</button></div>`;
       }
     }
-    return `<div class="card hist-item"><button class="hist-head" data-act="h-open" data-v="${s.id}" aria-expanded="${open}"><div class="stack" style="gap:3px"><span><b>${dateLt(s.date)}</b> · ${esc(playerName(s.playerId))}</span><span class="row" style="gap:6px"><span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span><span class="small muted">${s.mode==="full"?t("{n} serija(-os)",{n:tots.length}):t("Pratimas")} · ${t("{n} met.",{n:s.shots.length})}${s.done?"":" · "+t("nebaigta")}</span></span></div><span class="sc">${sc}<small>${s.mode==="full"&&full.length?" /100":" /100*"}</small></span></button>${body}</div>`;
+    return `<div class="card hist-item"><div class="hh"><button class="hist-head" data-act="h-open" data-v="${s.id}" aria-expanded="${open}"><div class="stack" style="gap:3px"><span><b>${dateLt(s.date)}</b> · ${esc(playerName(s.playerId))}</span><span class="row" style="gap:6px"><span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span><span class="small muted">${s.mode==="full"?t("{n} serija(-os)",{n:tots.length}):t("Pratimas")} · ${t("{n} met.",{n:s.shots.length})}${s.done?"":" · "+t("nebaigta")}</span></span></div><span class="sc">${sc}<small>${s.mode==="full"&&full.length?" /100":" /100*"}</small></span></button>${isDemo()?"":`<button class="hdel" data-act="h-del" data-v="${s.id}" aria-label="${t("Ištrinti")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}</div>${body}</div>`;
   }).join("");
   h+=`<p class="small muted">${t("* Pratimų ir nepilnų serijų rezultatas perskaičiuotas į 100 balų skalę (vid. taškai × 20).")}</p>`;
   return h;
@@ -1929,7 +1936,9 @@ document.addEventListener("click",e=>{
     case"h-resume":{const s=S.sessions.find(x=>x.id===v);if(!s)break;s.done=false;if(!S.group.ids.includes(v)){S.group.ids.push(v);saveGroup();}setActive(v);S.view="rec";lsSet("tdp-view","rec");
       if(s.mode==="full"){const k=curSeries(s);S.cur=nextEmpty(s,k,null)||{a:1,d:6};}else{const l=s.shots[s.shots.length-1];S.cur=l?{a:l.a,d:l.d}:{a:1,d:6};}
       S.editing=false;render();window.scrollTo(0,0);break;}
-    case"h-del":S.confirmDel=v;render();break;
+    case"h-del":S.confirmDel=v;S.openHist=v;render();break;
+    case"h-del-empty":S.confirmDel="__empty";render();break;
+    case"h-del-empty-yes":{const fp=S.f.player;const ids=S.sessions.filter(s=>!s.shots.length&&s.id!==S.activeId&&(!fp||s.playerId===fp)).map(s=>s.id);S.confirmDel=null;Promise.all(ids.map(id=>deleteSession(id))).then(()=>{toast(t("Ištrinta: {n}",{n:ids.length}));render();});break;}
     case"h-kind":{const [id,k]=v.split("|");const x=S.sessions.find(y=>y.id===id);if(x&&x.kind!==k){x.kind=k;persistSession(x);toast(k==="comp"?t("Pažymėta kaip varžybos"):t("Pažymėta kaip treniruotė"));}render();break;}
     case"h-del-no":S.confirmDel=null;render();break;
     case"h-del-yes":S.confirmDel=null;S.openHist=null;deleteSession(v).then(render);render();break;

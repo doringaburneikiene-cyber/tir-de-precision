@@ -2,6 +2,10 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Rasta treniruočių be metimų: <b>{n}</b>.": "Trainings with no throws found: <b>{n}</b>.",
+  "Taip, ištrinti {n}": "Yes, delete {n}",
+  "Ištrinti jas": "Delete them",
+  "Ištrinta: {n}": "Deleted: {n}",
   "Įrašų dar nėra. Įrašą galite pridėti prie bet kurios treniruotės žemiau.": "No entries yet. You can add one to any training below.",
   "Rodyti tik paskutinius 5": "Show only the last 5",
   "Rodyti visus įrašus ({n})": "Show all entries ({n})",
@@ -538,6 +542,10 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Rasta treniruočių be metimų: <b>{n}</b>.": "Entraînements sans aucun tir : <b>{n}</b>.",
+  "Taip, ištrinti {n}": "Oui, supprimer {n}",
+  "Ištrinti jas": "Les supprimer",
+  "Ištrinta: {n}": "Supprimé : {n}",
   "Įrašų dar nėra. Įrašą galite pridėti prie bet kurios treniruotės žemiau.": "Pas encore de notes. Vous pouvez en ajouter à n'importe quel entraînement ci-dessous.",
   "Rodyti tik paskutinius 5": "Afficher seulement les 5 dernières",
   "Rodyti visus įrašus ({n})": "Afficher toutes les notes ({n})",
