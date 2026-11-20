@@ -188,6 +188,9 @@ body.no-nav .nav{display:none}
 .cd.over{background:#FDE3E1;box-shadow:inset 0 0 0 1px var(--bad)}.cd.over .cd-t,.cd.over .cd-pace{color:var(--bad)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cd.warn{background:#3A2F12}:root:not([data-theme="light"]) .cd.over{background:#3A1C1A}}
 :root[data-theme="dark"] .cd.warn{background:#3A2F12}:root[data-theme="dark"] .cd.over{background:#3A1C1A}
+.gchart{width:100%;height:auto;display:block}
+.goal h3{margin-top:4px}
+.gl{font-size:14px}
 .blk{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:14px}
 .erows{display:flex;flex-direction:column}
 .erow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
@@ -860,7 +863,8 @@ function viewNew(){
   if(nf.mode==="drill"&&S.group.rot==="task"){S.group.rot="shot";saveGroup();}
   if((nf.mode!=="drill"||!nf.blk)&&S.group.rot==="block"){S.group.rot="shot";saveGroup();}
   const multi=nf.pids.length>1;
-  return `${weekCardHtml(nf.pids.length?nf.pids:pl.slice(0,4).map(p=>p.id))}<div class="card">
+  const gl=pl.filter(p=>p.goal&&nf.pids.includes(p.id)).map(p=>{const c=goalCalc(p);if(!c||c.st==="past")return"";return `<div class="gl"><b>${esc(p.name)}</b> · ${esc(c.g.name)}: ${t("liko {n} sav.",{n:Math.max(0,Math.ceil(c.weeks))})} · ${c.now==null?"":fmt0(c.now)+" → "}${c.g.target}</div>`;}).join("");
+  return `${weekCardHtml(nf.pids.length?nf.pids:pl.slice(0,4).map(p=>p.id))}${gl?`<div class="banner"><span class="stack" style="gap:2px">${gl}</span></div>`:""}<div class="card">
    <h2>${t("Nauja treniruotė")}</h2>
    <div class="field"><span class="label">${t("Kas meta? Galima pasirinkti kelis")}</span>
      <div class="chips">${pl.map(p=>{const i=nf.pids.indexOf(p.id);return chip("nf-player",p.id,(i>=0&&multi?(i+1)+". ":"")+p.name,i>=0);}).join("")}</div>
@@ -1068,7 +1072,7 @@ function startSession(){
   const made=nf.pids.map(pid=>newSessionFor(pid,base));
   made.forEach(x=>{S.sessions.push(x);persistSession(x);});
   S.group.ids=made.map(x=>x.id);S.group.blk=nf.mode==="drill"?(nf.blk||0):0;S.group.blkStart=Date.now();saveGroup();S.curs={};
-  setActive(made[0].id);S.cur={a:1,d:6};S.editing=false;nf.note="";
+  setActive(made[0].id);S.cur=nf.preCur||{a:1,d:6};nf.preCur=null;S.editing=false;nf.note="";
   if(nf.kind==="comp"){const pp=S.players.find(x=>x.id===nf.pids[0]);if(pp&&planHas(pp)){S.view="note";S.noteTab="pre";S.noteP=pp.id;S.preFromStart=true;S.planEdit=null;}}
   render();window.scrollTo(0,0);
 }
@@ -1209,6 +1213,98 @@ function freeResult(s){
    ${S.freeConfirm?`<p class="small"><b>${t("Pradėti naujas varžybas? Šių varžybų statistika bus ištrinta.")}</b></p><div class="row"><button class="btn warn" data-act="free-new-yes" style="flex:1">${t("Taip, naujos varžybos")}</button><button class="btn ghost" data-act="free-new-no" style="flex:1">${t("Ne")}</button></div>`
    :`<div class="row"><button class="btn" data-act="free-new" style="flex:1">${t("Naujos varžybos")}</button><button class="btn ghost" data-act="ed-pick" data-v="pro" style="flex:1">${t("Išbandyti Pro")}</button></div>`}</div>`;
   return h;
+}
+
+/* ----- Goal (Tikslas) ----- */
+const WK=6048e5;
+function levelNow(pid,since){
+  const from=since||ymd(new Date(Date.now()-60*864e5));
+  let ss=S.sessions.filter(s=>s.playerId===pid&&s.date>=from&&s.mode==="full"&&s.shots.length);
+  let pts=dayPts(ss,()=>true);
+  if(!pts.length)return null;
+  const fit=trendFit(pts);const W=pts.reduce((a,p)=>a+p.n,0);const mean=pts.reduce((a,p)=>a+p.v*p.n,0)/W;
+  const span=fit?(fit.t1-fit.t0):0;
+  return{now:fit?fit.end:mean,slope:fit&&span>=14*864e5?(fit.end-fit.start)/(span/WK):null,pts,days:pts.length,fit};
+}
+function goalCalc(p){
+  const g=p.goal;if(!g||!g.date)return null;
+  const today0=Date.parse(today()+"T12:00:00"),gd=Date.parse(g.date+"T12:00:00");
+  const weeks=(gd-today0)/WK;const lv=levelNow(p.id);
+  const now=lv?lv.now:null;const need=now!=null&&weeks>0?(g.target-now)/weeks:null;
+  const spanW=lv&&lv.fit?(lv.fit.t1-lv.fit.t0)/WK:0;
+  const proj=lv&&lv.slope!=null&&weeks>0&&weeks<=Math.max(4,spanW*1.5)?Math.max(0,Math.min(100,now+lv.slope*weeks)):null;
+  let st="nodata";
+  if(weeks<=0)st="past";else if(now==null)st="nodata";else if(now>=g.target)st="reached";else if(lv.slope==null)st="early";
+  else if(lv.slope>=need)st="ok";else if(lv.slope>=need*0.5&&lv.slope>0)st="close";else st="behind";
+  return{g,weeks,lv,now,need,proj,st};
+}
+function weekFocus(pid){
+  const since=ymd(new Date(Date.now()-30*864e5));
+  const sh=flatShots(S.sessions.filter(s=>s.playerId===pid&&s.date>=since),{a:0,d:0});
+  const cells=[];AT.forEach(a=>DIST.forEach(d=>{const x=sh.filter(y=>y.a===a.n&&y.d===d);if(x.length>=3)cells.push({a:a.n,d,v:avg(x.map(y=>y.p)),n:x.length});}));
+  cells.sort((x,y)=>x.v-y.v);return{cells:cells.slice(0,2),n:sh.length};
+}
+function goalChart(p,c){
+  const g=c.g;const t0=Date.parse((g.set||today())+"T12:00:00"),t1=Date.parse(g.date+"T12:00:00");
+  const s60=ymd(new Date(Date.now()-60*864e5));const pts=(levelNow(p.id,g.set&&g.set<s60?g.set:s60)||{pts:[]}).pts;
+  const a0=Math.min(t0,pts.length?pts[0].t:t0);const dom=[a0,Math.max(t1,a0+864e5)];
+  const W=320,H=150,ml=26,mr=10,mt=10,mb=20,iw=W-ml-mr,ih=H-mt-mb;
+  const X=tt=>ml+(tt-dom[0])/(dom[1]-dom[0])*iw,Y=v=>mt+ih-(Math.max(0,Math.min(100,v))/100)*ih;
+  let s2="";[0,25,50,75,100].forEach(v=>{s2+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="0.7"/><text x="${ml-4}" y="${Y(v)+3}" text-anchor="end" font-size="8" fill="var(--muted)">${v}</text>`;});
+  const lab=tt=>{const d=new Date(tt);return pad2(d.getDate())+"."+pad2(d.getMonth()+1);};
+  const tn=Date.parse(today()+"T12:00:00");
+  s2+=`<text x="${ml}" y="${H-5}" font-size="8" fill="var(--muted)">${lab(dom[0])}</text><text x="${W-mr}" y="${H-5}" text-anchor="end" font-size="8" fill="var(--muted)">${lab(t1)} · ${esc(g.name||"")}</text>`;
+  if(tn>dom[0]&&tn<dom[1])s2+=`<line x1="${X(tn)}" x2="${X(tn)}" y1="${mt}" y2="${mt+ih}" stroke="var(--muted)" stroke-dasharray="2 3" stroke-width="0.8"/><text x="${X(tn)}" y="${mt+7}" text-anchor="middle" font-size="8" fill="var(--muted)">${t("šiandien")}</text>`;
+  s2+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(g.target)}" y2="${Y(g.target)}" stroke="var(--accent-strong)" stroke-width="1" stroke-dasharray="4 3"/><text x="${ml+3}" y="${Y(g.target)-3}" font-size="8" font-weight="700" fill="var(--accent-strong)">${t("tikslas {v}",{v:g.target})}</text>`;
+  if(g.base!=null)s2+=`<line x1="${X(t0)}" y1="${Y(g.base)}" x2="${X(t1)}" y2="${Y(g.target)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="5 4" opacity=".8"/>`;
+  pts.forEach(q=>{s2+=`<circle cx="${X(q.t).toFixed(1)}" cy="${Y(q.v).toFixed(1)}" r="2.6" fill="var(--o1)"/>`;});
+  if(c.lv&&c.lv.fit&&c.proj!=null){const f=c.lv.fit;s2+=`<line x1="${X(f.t1)}" y1="${Y(f.end)}" x2="${X(t1)}" y2="${Y(c.proj)}" stroke="var(--o5)" stroke-width="1.6" stroke-dasharray="2 3"/>`;}
+  if(c.now!=null)s2+=`<circle cx="${X(Math.min(tn,dom[1]))}" cy="${Y(c.now)}" r="4.2" fill="var(--o5)" stroke="var(--surface)" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="gchart" role="img" aria-label="${t("Kelias iki tikslo")}">${s2}</svg>
+   <div class="legend"><span><i class="ln" style="background:var(--accent)"></i>${t("Planuotas kelias")}</span><span><i class="cr" style="background:var(--o1)"></i>${t("Dienos rezultatas")}</span><span><i class="cr" style="background:var(--o5)"></i>${t("Dabar")}</span>${c.proj!=null?`<span><i class="ln" style="background:var(--o5)"></i>${t("Prognozė")}</span>`:""}</div>`;
+}
+function goalForm(p){const g=p.goal||{};
+  return `<div class="stack"><div class="field"><label class="label" for="g-name">${t("Varžybos")}</label><input type="text" id="g-name" value="${esc(g.name||t("Europos čempionatas"))}" maxlength="40"></div>
+   <div class="row" style="gap:10px"><div class="field" style="flex:1"><label class="label" for="g-date">${t("Data")}</label><input type="date" id="g-date" value="${esc(g.date||"")}" min="${today()}"></div>
+   <div class="field" style="width:110px"><label class="label" for="g-target">${t("Tikslas /100")}</label><input type="number" id="g-target" inputmode="numeric" min="1" max="100" value="${g.target||""}"></div></div>
+   <div class="row"><button class="btn" data-act="g-save" data-v="${p.id}" style="flex:1">${t("Išsaugoti tikslą")}</button>${p.goal?`<button class="btn ghost" data-act="g-cancel">${t("Atšaukti")}</button>`:""}</div>
+   ${p.goal?`<button class="btn sm ghost" data-act="g-del" data-v="${p.id}" style="align-self:flex-start">${t("Ištrinti tikslą")}</button>`:""}</div>`;
+}
+function goalCard(p){
+  if(!p)return"";
+  if(S.goalEdit===p.id||!p.goal){
+    if(!p.goal&&S.goalEdit!==p.id)return `<div class="card goal"><div class="row between"><h2>${t("Tikslas")}</h2></div><p class="small ink2">${t("Įrašykite varžybų datą ir kokio rezultato siekiate. Programėlė parodys, kiek savaičių liko, ar tobulėjate pakankamai greitai ir ką treniruoti šią savaitę.")}</p><button class="btn" data-act="g-edit" data-v="${p.id}">${t("Nustatyti tikslą")}</button></div>`;
+    return `<div class="card goal"><h2>${t("Tikslas")}</h2>${goalForm(p)}</div>`;
+  }
+  const c=goalCalc(p);const g=c.g;
+  const wk=Math.max(0,Math.ceil(c.weeks));
+  const msg={past:t("Varžybos jau praėjo. Nustatykite naują tikslą."),nodata:t("Dar nėra pilnų serijų per pastarąsias 60 dienų – sužaiskite bent kelias, kad galėčiau įvertinti."),
+    reached:t("Tikslas jau pasiektas – laikas jį pakelti!"),early:t("Kol kas per mažai dienų tendencijai – reikia bent 2 savaičių pilnų serijų."),
+    ok:t("Einate pagal planą: tobulėjate greičiau, nei reikia.")+(c.proj!=null?" "+t("Tokiu tempu varžyboms būsite apie <b>{p}</b>.",{p:fmt0(c.proj)}):""),
+    close:t("Tobulėjate, bet per lėtai – reikia maždaug dvigubai greičiau.")+(c.proj!=null?" "+t("Tokiu tempu varžyboms būsite apie <b>{p}</b>.",{p:fmt0(c.proj)}):""),
+    behind:(c.lv&&c.lv.slope<0?t("Pastarųjų savaičių rezultatai krenta."):t("Rezultatai beveik nekyla."))+" "+t("Kad pasiektumėte tikslą, reikia daugiau ar tikslingesnių treniruočių.")}[c.st];
+  const cls={ok:"up",reached:"up",close:"flat",behind:"down"}[c.st]||"flat";
+  const wd=weekDays(p.id);const wf=weekFocus(p.id);
+  let h=`<div class="card goal"><div class="row between"><h2>${esc(g.name||t("Tikslas"))}</h2><button class="btn sm ghost" data-act="g-edit" data-v="${p.id}">${t("Keisti")}</button></div>
+   <div class="kpis in">
+    <div class="kpi"><span class="label">${t("Liko")}</span><span class="v num">${c.st==="past"?"—":wk}<small> ${t("sav.")}</small></span><span class="delta flat">${dateLt(g.date)}</span></div>
+    <div class="kpi"><span class="label">${t("Dabar → tikslas")}</span><span class="v num">${c.now==null?"—":fmt0(c.now)}<small> → ${g.target}</small></span><span class="delta flat">${c.need!=null&&c.need>0?t("reikia +{v} per savaitę",{v:fmt1(c.need)}):"&nbsp;"}</span></div>
+   </div>
+   <p class="small"><span class="delta ${cls}">${cls==="up"?"▲":cls==="down"?"▼":"■"}</span> ${msg}${c.lv&&c.lv.slope!=null?` <span class="muted">${t("(dabartinis tempas {v} per savaitę)",{v:(c.lv.slope>0?"+":"")+fmt1(c.lv.slope)})}</span>`:""}</p>
+   ${c.st!=="past"?goalChart(p,c):""}
+   <h3>${t("Ši savaitė")}</h3>
+   <p class="small">${t("Treniruočių dienų: <b>{n}</b> iš {g}.",{n:wd.n,g:WEEK_GOAL})}</p>`;
+  if(wf.cells.length){h+=`<p class="small ink2">${t("Daugiausia taškų prarandate čia – skirkite joms bent pusę šios savaitės pratimų:")}</p><div class="stack">${wf.cells.map(x=>`<div class="erow"><span><b>${t("{a} rungtis, {d} m",{a:x.a,d:x.d})}</b> <span class="small muted">${t("vid. {v} t./met.",{v:fmt1(x.v)})}</span></span><button class="btn sm" data-act="g-drill" data-v="${p.id}" data-a="${x.a}" data-d="${x.d}">${t("Pradėti pratimą")}</button></div>`).join("")}</div>`;}
+  else h+=`<p class="small muted">${t("Kai per 30 dienų sukaupsite daugiau metimų, čia pasiūlysiu, ką treniruoti.")}</p>`;
+  return h+`</div>`;
+}
+function saveGoal(pid){
+  const p=S.players.find(x=>x.id===pid);if(!p)return;
+  const name=($("#g-name")||{}).value||"",date=($("#g-date")||{}).value||"",target=Math.round(+(($("#g-target")||{}).value||0));
+  if(!date||!(target>0&&target<=100)){toast(t("Įveskite datą ir tikslą nuo 1 iki 100"));return;}
+  const lv=levelNow(pid);const keep=p.goal&&p.goal.date===date&&p.goal.target===target;
+  p.goal={name:name.trim()||t("Varžybos"),date,target,set:keep&&p.goal.set?p.goal.set:today(),base:keep&&p.goal.base!=null?p.goal.base:(lv?Math.round(lv.now*10)/10:null)};
+  S.goalEdit=null;savePlayer(p);render();
 }
 
 /* ----- Notebook (Knygelė) ----- */
@@ -1431,6 +1527,7 @@ function pctS(a,b){return b?Math.round(a/b*100)+"%":"–";}
 function buildCoachContext(p){
   const L=[];const ss=S.sessions.filter(s=>s.playerId===p.id&&s.shots&&s.shots.length);
   const sh=playerShots(p.id,90);const all=flatShots(ss,{a:0,d:0});
+  {const gc=goalCalc(p);if(gc&&gc.st!=="past")L.push(`Goal: ${gc.g.name} on ${gc.g.date} (${Math.ceil(gc.weeks)} weeks left), target ${gc.g.target}/100; current level ${gc.now==null?"unknown":fmt1(gc.now)}/100 (full series, last 60 days)${gc.lv&&gc.lv.slope!=null?`, trend ${fmt1(gc.lv.slope)} per week, projection ${fmt0(gc.proj)}`:""}.`);}
   L.push(`Player: ${p.name}. Sessions total: ${ss.length}, throws total: ${all.length}. Last 90 days: ${new Set(sh.map(x=>x.sid)).size} sessions, ${sh.length} throws.`);
   if(sh.length){
     const m=metrics(sh);L.push(`Last 90 days: average ${fmt1(m.score)}/100, hit rate ${m.hit}%, carreau rate in workshops 1-4 ${m.car==null?"–":m.car+"%"}.`);
@@ -1572,6 +1669,7 @@ function viewStats(){
    <div class="field"><span class="label">${t("Rungtis")}</span><div class="chips">${chip("f-a",0,t("Visos"),!f.a)}${AT.map(a=>chip("f-a",a.n,String(a.n),f.a===a.n,` aria-label="${esc(a.name)}"`)).join("")}</div></div>
    <div class="field"><span class="label">${t("Atstumas")}</span><div class="chips">${chip("f-d",0,t("Visi"),!f.d)}${DIST.map(d=>chip("f-d",d,d+" m",f.d===d)).join("")}</div></div>
   </div>`;
+  if(!isDemo()&&f.player)h+=goalCard(S.players.find(x=>x.id===f.player));
   const ss=filteredSessions(f);const shots=flatShots(ss,f);
   if(!shots.length){return h+`<div class="card"><p class="empty">${t("Pagal pasirinktus filtrus metimų nėra. Pabandykite ilgesnį laikotarpį arba kitą žaidėją.")}</p></div>`;}
   const m=metrics(shots);
@@ -1953,6 +2051,11 @@ document.addEventListener("click",e=>{
     case"co-p":keepCoachDraft();S.coachP=v;S.coachErr="";renderCoach();break;
     case"ask-coach":S.coachOpen=true;S.coachMenu=false;if(v)S.coachP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");renderCoach();break;
     case"pal":setPalette(v);break;
+    case"g-edit":S.goalEdit=v;render();break;
+    case"g-cancel":S.goalEdit=null;render();break;
+    case"g-save":saveGoal(v);break;
+    case"g-del":{const p=S.players.find(x=>x.id===v);if(p){delete p.goal;S.goalEdit=null;savePlayer(p);render();}break;}
+    case"g-drill":{if(active()){toast(t("Pirmiausia baikite dabartinę treniruotę"));S.view="rec";lsSet("tdp-view","rec");render();break;}S.nf.pids=[v];S.nf.mode="drill";S.nf.kind="train";S.nf.preCur={a:+b.dataset.a,d:+b.dataset.d};S.view="rec";lsSet("tdp-view","rec");render();window.scrollTo(0,0);toast(t("Pratimas paruoštas – {a} rungtis, {d} m. Paspauskite „Pradėti“.",{a:b.dataset.a,d:b.dataset.d}));break;}
     case"ed-pick":S.ed=v;lsSet("tdp-edition",v);S.pending=null;S.editing=false;S.coachOpen=false;
       if(v==="pro"&&S.activeId){const a=S.sessions.find(x=>x.id===S.activeId);if(a&&a.mode==="full"){S.cur=nextEmpty(a,curSeries(a),null)||{a:1,d:6};}}
       if(v==="free"&&S.fs&&!S.fs.done){S.cur=nextEmpty(S.fs,curSeries(S.fs),null)||{a:1,d:6};}
