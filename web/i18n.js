@@ -2,6 +2,16 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "{n} treniruočių dienos": "{n} training days",
+  "Kiekvienas taškas – viena diena, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Atstumai tarp taškų atitinka tikras datas. Linija – 5 dienų slenkantis vidurkis.": "Each dot is one day, on a 100-point scale (average points per throw × 20). Spacing between dots follows the real dates. The line is a 5-day moving average.",
+  "Diena": "Day",
+  "per mažai dienų": "too few days",
+  "vid. {v} · {n} met.": "avg {v} · {n} throws",
+  "Taškai – dienos rezultatas (/100), linija – tendencija. ▲ rodo, kiek tendencijos linija pakilo nuo pirmos iki paskutinės dienos. Paspauskite grafiką – visa statistika persiskaičiuos tik jam.": "Dots are daily results (/100), the line is the trend. ▲ shows how much the trend line rose from the first to the last day. Tap a chart to recalculate all statistics for it only.",
+  "Progresas pagal rungtis": "Progress by workshop",
+  "Tik {d} m": "Only {d} m",
+  "Progresas pagal atstumus": "Progress by distance",
+  "Tik {a} rungtis": "Only workshop {a}",
   "Pažymėta kaip varžybos": "Marked as competition",
   "Pažymėta kaip treniruotė": "Marked as training",
   "Metimų kiekvienu atstumu": "Throws at each distance",
@@ -523,6 +533,16 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "{n} treniruočių dienos": "{n} jours d'entraînement",
+  "Kiekvienas taškas – viena diena, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Atstumai tarp taškų atitinka tikras datas. Linija – 5 dienų slenkantis vidurkis.": "Chaque point correspond à un jour, sur une échelle de 100 (points moyens par tir × 20). L'espacement suit les vraies dates. La ligne est une moyenne mobile sur 5 jours.",
+  "Diena": "Jour",
+  "per mažai dienų": "trop peu de jours",
+  "vid. {v} · {n} met.": "moy. {v} · {n} tirs",
+  "Taškai – dienos rezultatas (/100), linija – tendencija. ▲ rodo, kiek tendencijos linija pakilo nuo pirmos iki paskutinės dienos. Paspauskite grafiką – visa statistika persiskaičiuos tik jam.": "Les points sont les résultats du jour (/100), la ligne est la tendance. ▲ indique de combien la tendance a progressé du premier au dernier jour. Touchez un graphique pour recalculer toutes les statistiques pour lui seul.",
+  "Progresas pagal rungtis": "Progression par atelier",
+  "Tik {d} m": "Seulement {d} m",
+  "Progresas pagal atstumus": "Progression par distance",
+  "Tik {a} rungtis": "Seulement l'atelier {a}",
   "Pažymėta kaip varžybos": "Marqué comme compétition",
   "Pažymėta kaip treniruotė": "Marqué comme entraînement",
   "Metimų kiekvienu atstumu": "Tirs à chaque distance",

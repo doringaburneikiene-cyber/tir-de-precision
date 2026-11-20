@@ -232,6 +232,15 @@ body.no-nav .nav{display:none}
 .filters{display:flex;flex-direction:column;gap:10px}
 .filters .chip{min-height:36px;padding:6px 12px;font-size:13px}
 .chart{position:relative;width:100%}
+.range{margin:-4px 2px -6px}
+.mc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.mc{border:0;text-align:left;background:var(--surface-2);border-radius:12px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);min-width:0}
+.mc.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.mc svg{width:100%;height:auto;display:block}
+.mc-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:13px;line-height:1.2}
+.mc-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-h .delta{font-size:12px;white-space:nowrap}
+.mc-f{font-size:11px;color:var(--muted)}
 .chart svg{display:block;width:100%;overflow:visible}
 .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);border-radius:8px;padding:6px 9px;font-size:12px;line-height:1.3;white-space:nowrap;transform:translate(-50%,-100%);z-index:3}
 .tip b{font-size:14px}
@@ -1498,6 +1507,8 @@ function viewStats(){
   const series=ss.filter(s=>s.mode==="full").flatMap(s=>seriesTotals(s).filter(t=>t.n===20).map(t=>t.sum));
   const dl=(cur,prev,unit)=>{if(prev==null||cur==null)return`<span class="delta flat">${t("ankstesniam laikotarpiui duomenų nėra")}</span>`;const d=cur-prev;const c=Math.abs(d)<0.5?"flat":d>0?"up":"down";return `<span class="delta ${c}">${c==="up"?"▲":c==="down"?"▼":"■"} ${d>0?"+":""}${fmt1(d)}${unit} ${t("nuo ankstesnio")}</span>`;};
   const scopeTxt=(f.a?t("rungtis {n}",{n:f.a}):t("visos rungtys"))+(f.d?`, ${f.d} m`:"");
+  const dates=ss.filter(s=>s.shots.length).map(s=>s.date).sort();const nDays=new Set(dates).size;
+  h+=`<p class="small muted range">${dates.length?(dates[0]===dates[dates.length-1]?dateLt(dates[0]):dateLt(dates[0])+" – "+dateLt(dates[dates.length-1])):""} · ${t("{n} treniruočių dienos",{n:nDays})}</p>`;
   h+=`<div class="kpis">
    <div class="kpi"><span class="label">${t("Vidurkis /100")}</span><span class="v num">${fmt1(m.score)}</span>${dl(m.score,prevM&&prevM.score,"")}</div>
    <div class="kpi"><span class="label">${t("Pataikymas")}</span><span class="v num">${m.hit}<small> %</small></span>${dl(m.hit,prevM&&prevM.hit,t(" p.p."))}</div>
@@ -1505,10 +1516,11 @@ function viewStats(){
    <div class="kpi"><span class="label">${!f.a&&!f.d&&series.length?t("Geriausia serija"):t("Metimų")}</span><span class="v num">${!f.a&&!f.d&&series.length?Math.max(...series):m.n}</span><span class="delta flat">${!f.a&&!f.d&&series.length?t("{s} pilnos serijos, {n} metimai",{s:series.length,n:m.n}):t("{n} treniruotės",{n:ss.length})}</span></div>
   </div>`;
   h+=`<div class="card"><div class="row between"><h2>${t("Progresas")}</h2><span class="small muted">${esc(scopeTxt)}</span></div>
-   <p class="small ink2">${t("Kiekvienas taškas – viena treniruotė, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Linija – 5 treniruočių slenkantis vidurkis.")}</p>
+   <p class="small ink2">${t("Kiekvienas taškas – viena diena, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Atstumai tarp taškų atitinka tikras datas. Linija – 5 dienų slenkantis vidurkis.")}</p>
    <div class="chart" id="ch-prog"></div>
-   <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>${t("Treniruotė")}</span><span><i class="ln" style="background:var(--o5)"></i>${t("Slenkantis vidurkis")}</span></div>
+   <div class="legend"><span><i class="cr" style="background:var(--o1)"></i>${t("Diena")}</span><span><i class="ln" style="background:var(--o5)"></i>${t("Slenkantis vidurkis")}</span></div>
    <div id="ch-trend" class="small ink2"></div></div>`;
+  h+=trendCards(ss,f);
   h+=heatHtml(ss,f);
   h+=insightsHtml(ss,f,shots);
   h+=distHtml(ss,f);
@@ -1640,19 +1652,58 @@ function compareHtml(f){
   </tbody></table></div></div>`;
 }
 /* line chart */
+function dayPts(ss,pred){
+  const m=new Map();ss.forEach(s=>s.shots.forEach(x=>{if(!pred(x))return;let o=m.get(s.date);if(!o){o={date:s.date,sum:0,n:0,ss:new Set()};m.set(s.date,o);}o.sum+=x.p;o.n++;o.ss.add(s.id);}));
+  return [...m.values()].sort((a,b)=>a.date<b.date?-1:1).map(o=>({date:o.date,v:o.sum/o.n*20,n:o.n,k:o.ss.size,t:Date.parse(o.date+"T12:00:00")}));
+}
+function trendFit(pts,dom){
+  if(pts.length<3)return null;const W=pts.reduce((a,p)=>a+p.n,0);
+  const mt=pts.reduce((a,p)=>a+p.n*p.t,0)/W,mv=pts.reduce((a,p)=>a+p.n*p.v,0)/W;
+  let c=0,v=0;pts.forEach(p=>{c+=p.n*(p.t-mt)*(p.v-mv);v+=p.n*(p.t-mt)*(p.t-mt);});
+  const sl=v?c/v:0;const at=t=>Math.max(0,Math.min(100,mv+sl*(t-mt)));
+  const t0=pts[0].t,t1=pts[pts.length-1].t;return{at,start:at(t0),end:at(t1),d:at(t1)-at(t0),t0,t1};
+}
+function trendBadge(fit){
+  if(!fit)return `<span class="delta flat">${t("per mažai dienų")}</span>`;
+  const d=fit.d;const c=Math.abs(d)<2?"flat":d>0?"up":"down";
+  return `<span class="delta ${c}">${c==="up"?"▲":c==="down"?"▼":"■"} ${d>0?"+":""}${fmt1(d)}</span>`;
+}
+function miniChart(pts,dom){
+  const W=170,H=82,ml=20,mr=6,mt=6,mb=16,iw=W-ml-mr,ih=H-mt-mb;
+  const X=tt=>ml+(dom[1]>dom[0]?(tt-dom[0])/(dom[1]-dom[0])*iw:iw/2),Y=v=>mt+ih-(v/100)*ih;
+  let g="";[0,50,100].forEach(v=>{g+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="0.7"/><text x="${ml-4}" y="${Y(v)+3}" text-anchor="end" font-size="8" fill="var(--muted)">${v}</text>`;});
+  const d0=new Date(dom[0]),d1=new Date(dom[1]);const lab=d=>pad2(d.getDate())+"."+pad2(d.getMonth()+1);
+  g+=`<text x="${ml}" y="${H-3}" font-size="8" fill="var(--muted)">${lab(d0)}</text><text x="${W-mr}" y="${H-3}" text-anchor="end" font-size="8" fill="var(--muted)">${lab(d1)}</text>`;
+  const fit=trendFit(pts);
+  if(fit)g+=`<line x1="${X(fit.t0)}" y1="${Y(fit.start)}" x2="${X(fit.t1)}" y2="${Y(fit.end)}" stroke="var(--o5)" stroke-width="2.2" stroke-linecap="round"/>`;
+  pts.forEach(p=>{g+=`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${p.n>=10?2.8:2.1}" fill="var(--o1)" opacity="${p.n>=4?1:.55}"/>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${g}</svg>`;
+}
+function trendCards(ss,f){
+  const all=dayPts(ss,()=>true);if(all.length<2)return"";
+  const dom=[all[0].t,all[all.length-1].t];
+  const box=(act,val,sel,title,pts)=>{const fit=trendFit(pts);const n=pts.reduce((a,p)=>a+p.n,0);
+    return `<button class="mc ${sel?"sel":""}" data-act="${act}" data-v="${val}" aria-pressed="${sel}"><span class="mc-h"><span class="mc-t">${title}</span>${trendBadge(fit)}</span>${miniChart(pts,dom)}<span class="mc-f">${n?t("vid. {v} · {n} met.",{v:fmt1(pts.reduce((a,p)=>a+p.v*p.n,0)/n),n}):t("nėra metimų")}</span></button>`;};
+  const aCards=AT.map(a=>box("f-a",f.a===a.n?0:a.n,f.a===a.n,`<b>${a.n}</b> ${esc(a.name)}`,dayPts(ss,x=>x.a===a.n&&(!f.d||x.d===f.d)))).join("");
+  const dCards=DIST.map(d=>box("f-d",f.d===d?0:d,f.d===d,`<b>${d} m</b>`,dayPts(ss,x=>x.d===d&&(!f.a||x.a===f.a)))).join("");
+  const note=`<p class="small ink2">${t("Taškai – dienos rezultatas (/100), linija – tendencija. ▲ rodo, kiek tendencijos linija pakilo nuo pirmos iki paskutinės dienos. Paspauskite grafiką – visa statistika persiskaičiuos tik jam.")}</p>`;
+  return `<div class="card"><h2>${t("Progresas pagal rungtis")}</h2>${f.d?`<p class="small muted">${t("Tik {d} m",{d:f.d})}</p>`:""}${note}<div class="mc-grid">${aCards}</div></div>
+   <div class="card"><h2>${t("Progresas pagal atstumus")}</h2>${f.a?`<p class="small muted">${t("Tik {a} rungtis",{a:f.a})}</p>`:""}<div class="mc-grid">${dCards}</div></div>`;
+}
 function drawCharts(){
   const el=$("#ch-prog");if(!el)return;
   const f=S.f;const ss=filteredSessions(f);
-  const pts=[];ss.forEach(s=>{const sh=s.shots.filter(x=>(!f.a||x.a===f.a)&&(!f.d||x.d===f.d));if(sh.length)pts.push({s,v:avg(sh.map(x=>x.p))*20,n:sh.length});});
+  const pts=dayPts(ss,x=>(!f.a||x.a===f.a)&&(!f.d||x.d===f.d));
   pts.forEach((p,i)=>{const w=pts.slice(Math.max(0,i-4),i+1);let tw=0,tv=0;w.forEach(x=>{tw+=x.n;tv+=x.v*x.n;});p.ma=tv/tw;});
   const W=Math.max(280,el.clientWidth),H=220,ml=34,mr=10,mt=12,mb=28;
   const iw=W-ml-mr,ih=H-mt-mb;
-  const X=i=>ml+(pts.length<2?iw/2:i/(pts.length-1)*iw),Y=v=>mt+ih-(v/100)*ih;
+  const T0=pts.length?pts[0].t:0,T1=pts.length?pts[pts.length-1].t:0;
+  const XT=tt=>ml+(T1>T0?(tt-T0)/(T1-T0)*iw:iw/2);const X=i=>XT(pts[i].t),Y=v=>mt+ih-(v/100)*ih;
   let g="";
   [0,25,50,75,100].forEach(t=>{g+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-width="${t===0?1.2:0.8}"/><text x="${ml-6}" y="${Y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${t}</text>`;});
-  const nT=Math.min(pts.length,W<420?4:6);
-  const tickIdx=pts.length<2?[0]:[...new Set(Array.from({length:nT},(_,i)=>Math.round(i*(pts.length-1)/(nT-1||1))))];
-  tickIdx.forEach(i=>{if(!pts[i])return;g+=`<text x="${X(i)}" y="${H-8}" text-anchor="${i===0&&pts.length>1?"start":i===pts.length-1&&pts.length>1?"end":"middle"}" font-size="11" fill="var(--muted)">${dateLt(pts[i].s.date).slice(0,5)}</text>`;});
+  const nT=T1>T0?(W<420?4:6):1;
+  for(let i=0;i<nT;i++){const tt=nT>1?T0+(T1-T0)*i/(nT-1):T0;const d=new Date(tt);const x=XT(tt);
+    g+=`<line x1="${x}" x2="${x}" y1="${mt+ih}" y2="${mt+ih+4}" stroke="var(--line)"/><text x="${x}" y="${H-8}" text-anchor="${nT>1&&i===0?"start":nT>1&&i===nT-1?"end":"middle"}" font-size="11" fill="var(--muted)">${pad2(d.getDate())}.${pad2(d.getMonth()+1)}</text>`;}
   pts.forEach((p,i)=>{g+=`<circle cx="${X(i)}" cy="${Y(p.v)}" r="4.5" fill="var(--o1)" stroke="var(--surface)" stroke-width="2"/>`;});
   if(pts.length>1)g+=`<polyline points="${pts.map((p,i)=>X(i).toFixed(1)+","+Y(p.ma).toFixed(1)).join(" ")}" fill="none" stroke="var(--o5)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
   const last=pts[pts.length-1];if(last&&pts.length>1){g+=`<circle cx="${X(pts.length-1)}" cy="${Y(last.ma)}" r="5" fill="var(--o5)" stroke="var(--surface)" stroke-width="2"/><text x="${X(pts.length-1)-8}" y="${Y(last.ma)-10}" text-anchor="end" font-size="12" font-weight="700" fill="var(--ink)">${fmt1(last.ma)}</text>`;}
@@ -1661,7 +1712,7 @@ function drawCharts(){
   const hit=el.querySelector("#hit"),tip=el.querySelector("#tip"),xh=el.querySelector("#xh");
   const show=e=>{const r=el.getBoundingClientRect();const x=e.clientX-r.left;let bi=0,bd=1e9;pts.forEach((p,i)=>{const d=Math.abs(X(i)-x);if(d<bd){bd=d;bi=i;}});const p=pts[bi];if(!p)return;
     xh.setAttribute("x1",X(bi));xh.setAttribute("x2",X(bi));xh.setAttribute("visibility","visible");
-    tip.hidden=false;tip.innerHTML=`${dateLt(p.s.date)} · ${esc(playerName(p.s.playerId))}<br><b>${fmt1(p.v)}</b> / 100 · ${t("{n} met.",{n:p.n})}<br>${t("Vidurkis:")} ${fmt1(p.ma)}`;
+    tip.hidden=false;tip.innerHTML=`${dateLt(p.date)}<br><b>${fmt1(p.v)}</b> / 100 · ${t("{n} met.",{n:p.n})}<br>${t("Vidurkis:")} ${fmt1(p.ma)}`;
     const tx=Math.min(Math.max(X(bi),80),W-80);tip.style.left=tx+"px";tip.style.top=(Math.min(Y(p.v),Y(p.ma))-8)+"px";};
   hit.addEventListener("pointermove",show);hit.addEventListener("pointerdown",show);
   hit.addEventListener("pointerleave",()=>{tip.hidden=true;xh.setAttribute("visibility","hidden");});
