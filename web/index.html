@@ -1690,7 +1690,8 @@ function viewHist(){
       else{const combos={};s.shots.forEach(x=>{const k=x.a+"|"+x.d;(combos[k]=combos[k]||[]).push(x.p);});body+=`<table class="tbl"><thead><tr><th>${t("Pratimas")}</th><th>${t("Metimai")}</th><th>${t("Vid.")}</th><th>${t("Pataik.")}</th></tr></thead><tbody>${Object.entries(combos).map(([k,v])=>{const[a,d]=k.split("|");return `<tr><td>${t("{a} rungtis, {d} m",{a,d})}</td><td>${v.length}</td><td>${fmt1(avg(v))}</td><td>${pct(v.filter(x=>x>0).length,v.length)} %</td></tr>`;}).join("")}</tbody></table>`;}
       if(!isDemo()){
         if(S.confirmDel===s.id)body+=`<div class="confirm"><span>${t("Ištrinti šią treniruotę ({n} metimai)? To atšaukti negalima.",{n:s.shots.length})}</span><div class="row"><button class="btn warn sm" data-act="h-del-yes" data-v="${s.id}">${t("Taip, ištrinti")}</button><button class="btn ghost sm" data-act="h-del-no">${t("Ne")}</button></div></div>`;
-        else body+=`<div class="row"><button class="btn sm" data-act="h-resume" data-v="${s.id}">${s.done?t("Redaguoti / tęsti"):t("Tęsti")}</button><button class="btn sm ghost" data-act="h-del" data-v="${s.id}">${t("Ištrinti")}</button></div>`;
+        body+=`<div class="row" style="gap:8px"><span class="label">${t("Tipas")}</span><div class="chips">${chip("h-kind",s.id+"|train",t("Treniruotė"),s.kind!=="comp")}${chip("h-kind",s.id+"|comp",t("Varžybos"),s.kind==="comp")}</div></div>`;
+        if(S.confirmDel!==s.id)body+=`<div class="row"><button class="btn sm" data-act="h-resume" data-v="${s.id}">${s.done?t("Redaguoti / tęsti"):t("Tęsti")}</button><button class="btn sm ghost" data-act="h-del" data-v="${s.id}">${t("Ištrinti")}</button></div>`;
       }
     }
     return `<div class="card hist-item"><button class="hist-head" data-act="h-open" data-v="${s.id}" aria-expanded="${open}"><div class="stack" style="gap:3px"><span><b>${dateLt(s.date)}</b> · ${esc(playerName(s.playerId))}</span><span class="row" style="gap:6px"><span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span><span class="small muted">${s.mode==="full"?t("{n} serija(-os)",{n:tots.length}):t("Pratimas")} · ${t("{n} met.",{n:s.shots.length})}${s.done?"":" · "+t("nebaigta")}</span></span></div><span class="sc">${sc}<small>${s.mode==="full"&&full.length?" /100":" /100*"}</small></span></button>${body}</div>`;
@@ -1864,6 +1865,7 @@ document.addEventListener("click",e=>{
       if(s.mode==="full"){const k=curSeries(s);S.cur=nextEmpty(s,k,null)||{a:1,d:6};}else{const l=s.shots[s.shots.length-1];S.cur=l?{a:l.a,d:l.d}:{a:1,d:6};}
       S.editing=false;render();window.scrollTo(0,0);break;}
     case"h-del":S.confirmDel=v;render();break;
+    case"h-kind":{const [id,k]=v.split("|");const x=S.sessions.find(y=>y.id===id);if(x&&x.kind!==k){x.kind=k;persistSession(x);toast(k==="comp"?t("Pažymėta kaip varžybos"):t("Pažymėta kaip treniruotė"));}render();break;}
     case"h-del-no":S.confirmDel=null;render();break;
     case"h-del-yes":S.confirmDel=null;S.openHist=null;deleteSession(v).then(render);render();break;
     case"pl-add":addPlayer(b.dataset.src);break;

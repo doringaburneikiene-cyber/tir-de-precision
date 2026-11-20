@@ -2,6 +2,8 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Pažymėta kaip varžybos": "Marked as competition",
+  "Pažymėta kaip treniruotė": "Marked as training",
   "Metimų kiekvienu atstumu": "Throws at each distance",
   "Kiekvienas meta po {n} kartų iš to paties atstumo, tada atstumas pasikeičia: 6 → 7 → 8 → 9 m.": "Each player throws {n} times from the same distance, then the distance changes: 6 → 7 → 8 → 9 m.",
   "Po {n} metimų atstumas pasikeis automatiškai: 6 → 7 → 8 → 9 m.": "After {n} throws the distance changes automatically: 6 → 7 → 8 → 9 m.",
@@ -521,6 +523,8 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Pažymėta kaip varžybos": "Marqué comme compétition",
+  "Pažymėta kaip treniruotė": "Marqué comme entraînement",
   "Metimų kiekvienu atstumu": "Tirs à chaque distance",
   "Kiekvienas meta po {n} kartų iš to paties atstumo, tada atstumas pasikeičia: 6 → 7 → 8 → 9 m.": "Chaque joueur tire {n} fois à la même distance, puis la distance change : 6 → 7 → 8 → 9 m.",
   "Po {n} metimų atstumas pasikeis automatiškai: 6 → 7 → 8 → 9 m.": "Après {n} tirs, la distance change automatiquement : 6 → 7 → 8 → 9 m.",
