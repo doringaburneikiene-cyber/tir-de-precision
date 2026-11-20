@@ -2,6 +2,14 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "{p} t. · {n} serijos": "{p} pts · {n} series",
+  "Treniruotės rezultatai": "Training results",
+  "Šiandien laimėjo {name}!": "Today's winner: {name}!",
+  "Rezultatas – vidutiniai taškai už metimą × 20 (iš 100), kad būtų galima palyginti ir nevienodą metimų skaičių.": "Score = average points per throw × 20 (out of 100), so different numbers of throws can be compared.",
+  "Toliau": "Continue",
+  "Po visos linijos (6–9 m)": "After a full line (6–9 m)",
+  "Linija baigta. Dabar meta: {name}": "Line finished. Now throwing: {name}",
+  "Visi baigė liniją – vėl nuo 6 m. Galite pakeisti rungtį.": "Everyone finished the line – back to 6 m. You can change the workshop.",
   "2026 m. Europos čempionato ketvirtfinalis": "2026 European Championship quarter-final",
   "2026 m. Viduržemio jūros žaidynių finalas": "2026 Mediterranean Games final",
   "2026 m. Europos čempionato pusfinalis (bronza)": "2026 European Championship semi-final (bronze)",
@@ -791,6 +799,14 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "{p} t. · {n} serijos": "{p} pts · {n} séries",
+  "Treniruotės rezultatai": "Résultats de l'entraînement",
+  "Šiandien laimėjo {name}!": "Vainqueur du jour : {name} !",
+  "Rezultatas – vidutiniai taškai už metimą × 20 (iš 100), kad būtų galima palyginti ir nevienodą metimų skaičių.": "Score = points moyens par tir × 20 (sur 100), pour comparer même avec un nombre de tirs différent.",
+  "Toliau": "Continuer",
+  "Po visos linijos (6–9 m)": "Après une ligne complète (6–9 m)",
+  "Linija baigta. Dabar meta: {name}": "Ligne terminée. Au tour de : {name}",
+  "Visi baigė liniją – vėl nuo 6 m. Galite pakeisti rungtį.": "Tout le monde a fini la ligne – retour à 6 m. Vous pouvez changer d'atelier.",
   "2026 m. Europos čempionato ketvirtfinalis": "quart de finale du Championnat d'Europe 2026",
   "2026 m. Viduržemio jūros žaidynių finalas": "finale des Jeux méditerranéens 2026",
   "2026 m. Europos čempionato pusfinalis (bronza)": "demi-finale du Championnat d'Europe 2026 (bronze)",

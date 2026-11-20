@@ -249,6 +249,19 @@ body.no-nav .nav{display:none}
 .cel-card{position:relative;background:var(--surface);color:var(--ink);border-radius:20px;padding:24px 20px 18px;max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .cel-card h2{font-size:30px}
 .cel-card p{color:var(--ink-2);font-size:15px}
+.pd-card{max-width:400px}
+.pd{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin:6px 0 2px}
+.pd-col{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.pd-name{font-weight:700;font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd-sc{font-family:var(--f-cond);font-weight:700;font-size:24px;line-height:1}
+.pd-sub{font-size:11px;color:var(--muted)}
+.pd-bar{width:100%;border-radius:10px 10px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-family:var(--f-cond);font-weight:700;font-size:28px;color:#fff;margin-top:4px;animation:pdUp .7s cubic-bezier(.2,.8,.2,1) both}
+.pd-1 .pd-bar{height:120px;background:#D9A520;animation-delay:.5s}
+.pd-2 .pd-bar{height:88px;background:#9AA5B1;animation-delay:.25s}
+.pd-3 .pd-bar{height:64px;background:#B87333;animation-delay:0s}
+@keyframes pdUp{from{transform:scaleY(0);transform-origin:bottom;opacity:0}to{transform:scaleY(1);transform-origin:bottom;opacity:1}}
+@media (prefers-reduced-motion:reduce){.pd-bar{animation:none}}
+.pd-rest{display:flex;flex-direction:column;gap:2px;font-size:14px;text-align:left}
 .cel-badge{width:76px;height:76px;margin:0 auto 4px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center}
 .cel-badge svg{width:42px;height:42px}
 @media (prefers-reduced-motion:no-preference){.cel-card{animation:celpop .4s cubic-bezier(.2,1.4,.4,1)}}
@@ -775,11 +788,24 @@ const CEL_ICON={
  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>'
 };
 const CEL=[];let celOpen=false;
+function podiumHtml(L){
+  const col=(r,i)=>r?`<div class="pd-col pd-${i}"><span class="pd-name">${esc(r.name)}</span><span class="pd-sc num">${fmt1(r.sc)}</span><span class="pd-sub">${r.full?t("{p} t. · {n} serijos",{p:r.pts,n:r.full}):t("{n} met.",{n:r.n})}</span><div class="pd-bar"><span>${i}</span></div></div>`:`<div class="pd-col pd-${i} pd-empty"></div>`;
+  return `<canvas class="cel-cv" aria-hidden="true"></canvas><div class="cel-card pd-card"><span class="label">${t("Treniruotės rezultatai")}</span><h2>${t("Šiandien laimėjo {name}!",{name:esc(L[0].name)})}</h2>
+   <div class="pd">${col(L[1],2)}${col(L[0],1)}${col(L[2],3)}</div>
+   ${L.length>3?`<div class="pd-rest">${L.slice(3).map((r,i)=>`<div><b>${i+4}.</b> ${esc(r.name)} <span class="muted">${fmt1(r.sc)}</span></div>`).join("")}</div>`:""}
+   <p class="small ink2">${t("Rezultatas – vidutiniai taškai už metimą × 20 (iš 100), kad būtų galima palyginti ir nevienodą metimų skaičių.")}</p>
+   <button class="btn block" type="button">${t("Toliau")}</button></div>`;
+}
+function podiumList(g){
+  return g.filter(s=>s.shots.length).map(s=>{const sh=s.shots;const pts=sh.reduce((a,b)=>a+b.p,0);const full=s.mode==="full"?seriesTotals(s).filter(x=>x.n===20).length:0;
+    return{name:playerName(s.playerId),sc:avg(sh.map(x=>x.p))*20,pts,n:sh.length,full,c5:sh.filter(x=>x.p===5).length,c3:sh.filter(x=>x.p===3).length};})
+   .sort((a,b)=>b.sc-a.sc||b.c5-a.c5||b.c3-a.c3);
+}
 function celebrate(icon,title,text){CEL.push({icon,title,text});if(!celOpen)nextCel();}
 function nextCel(){
   const c=CEL.shift();if(!c){celOpen=false;return;}celOpen=true;
   const ov=document.createElement("div");ov.className="cel";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
-  ov.innerHTML=`<canvas class="cel-cv" aria-hidden="true"></canvas><div class="cel-card"><div class="cel-badge">${CEL_ICON[c.icon]||CEL_ICON.star}</div><h2>${esc(c.title)}</h2><p>${c.text}</p><button class="btn block" type="button">${t("Ačiū!")}</button></div>`;
+  ov.innerHTML=c.podium?podiumHtml(c.podium):`<canvas class="cel-cv" aria-hidden="true"></canvas><div class="cel-card"><div class="cel-badge">${CEL_ICON[c.icon]||CEL_ICON.star}</div><h2>${esc(c.title)}</h2><p>${c.text}</p><button class="btn block" type="button">${t("Ačiū!")}</button></div>`;
   document.body.appendChild(ov);
   try{navigator.vibrate&&navigator.vibrate([70,50,70,50,180]);}catch(e){}
   let reduce=false;try{reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
@@ -916,7 +942,7 @@ function viewNew(){
   if(!nf.pids){const last=lsGet("tdp-lastps",[]);nf.pids=last.filter(id=>pl.some(p=>p.id===id));if(!nf.pids.length)nf.pids=[pl[0].id];}
   nf.pids=nf.pids.filter(id=>pl.some(p=>p.id===id));
   if(nf.mode==="drill"&&S.group.rot==="task"){S.group.rot="shot";saveGroup();}
-  if((nf.mode!=="drill"||!nf.blk)&&S.group.rot==="block"){S.group.rot="shot";saveGroup();}
+  if((nf.mode!=="drill"||!nf.blk)&&(S.group.rot==="block"||S.group.rot==="line")){S.group.rot="shot";saveGroup();}
   const multi=nf.pids.length>1;
   const gl=pl.filter(p=>p.goal&&nf.pids.includes(p.id)).map(p=>{const c=goalCalc(p);if(!c||c.st==="past")return"";return `<div class="gl"><b>${esc(p.name)}</b> · ${esc(c.g.name)}: ${t("liko {n} sav.",{n:Math.max(0,Math.ceil(c.weeks))})} · ${c.now==null?"":fmt0(c.now)+" → "}${c.g.target}</div>`;}).join("");
   const dw=new Date().getDay();const wOff=dw===0?0:dw===1?1:-1;let wrB="";
@@ -942,7 +968,7 @@ function viewNew(){
 }
 function nfTimed(){return S.nf.timed==null?S.nf.kind==="comp":!!S.nf.timed;}
 function rotChips(mode,blk){
-  const r=S.group.rot;const o=[["shot",t("Po kiekvieno metimo")]];if(mode!=="drill")o.push(["task",t("Po kiekvienos rungties")]);if(mode==="drill"&&blk)o.push(["block",t("Po {n} metimų",{n:blk})]);o.push(["manual",t("Rankiniu būdu")]);
+  const r=S.group.rot;const o=[["shot",t("Po kiekvieno metimo")]];if(mode!=="drill")o.push(["task",t("Po kiekvienos rungties")]);if(mode==="drill"&&blk){o.push(["block",t("Po {n} metimų",{n:blk})]);o.push(["line",t("Po visos linijos (6–9 m)")]);}o.push(["manual",t("Rankiniu būdu")]);
   return o.map(([v,l])=>chip("rot",v,l,r===v)).join("");
 }
 function openSessionsHtml(){
@@ -982,7 +1008,7 @@ function viewActive(s){
     h+=`<div class="field"><span class="label">${t("Rungtis")}${groupSessions().length>1?t(" (visiems)"):""}</span><div class="chips">${AT.map(a=>chip("dr-a",a.n,a.n+". "+a.name,S.cur.a===a.n)).join("")}</div></div>
         <div class="field"><span class="label">${t("Atstumas")}</span><div class="chips">${DIST.map(d=>chip("dr-d",d,d+" m",S.cur.d===d)).join("")}</div></div>
         <div class="meta"><span>${t("{name} šiame pratime",{name:esc(playerName(s.playerId))})}<br><b>${same.length}</b> ${t("metimai")}</span><span>${t("Vid. taškai")}<br><b>${fmt1(avg(same.map(x=>x.p)))}</b></span><span>${t("Pataikymas")}<br><b>${same.length?pct(same.filter(x=>x.p>0).length,same.length)+" %":"—"}</b></span></div>
-        ${S.group.blk?`<div class="blk"><span>${t("Šiuo atstumu: <b>{c}/{n}</b>",{c:Math.min(blkCount(s),S.group.blk),n:S.group.blk})}</span>${groupSessions().length>1?`<span class="small muted">${groupSessions().map(x=>esc(playerName(x.playerId))+" "+Math.min(blkCount(x),S.group.blk)).join(" · ")}</span>`:""}<span class="small muted">${DIST.indexOf(S.cur.d)<DIST.length-1?t("Toliau: {d} m",{d:DIST[DIST.indexOf(S.cur.d)+1]}):t("Paskutinis atstumas")}</span></div>`:""}
+        ${S.group.blk?`<div class="blk"><span>${t("Šiuo atstumu: <b>{c}/{n}</b>",{c:Math.min(blkCount(s),S.group.blk),n:S.group.blk})}</span>${groupSessions().length>1&&S.group.rot!=="line"?`<span class="small muted">${groupSessions().map(x=>esc(playerName(x.playerId))+" "+Math.min(blkCount(x),S.group.blk)).join(" · ")}</span>`:""}<span class="small muted">${DIST.indexOf(S.cur.d)<DIST.length-1?t("Toliau: {d} m",{d:DIST[DIST.indexOf(S.cur.d)+1]}):t("Paskutinis atstumas")}</span></div>`:""}
         ${same.length?`<div class="dots">${same.slice(-30).map(x=>`<span class="sdot p${x.p}">${x.p}</span>`).join("")}</div>`:""}`;
   }
   h+=`</div>`;
@@ -1129,7 +1155,7 @@ function startSession(){
   const base={date:nf.date||today(),kind:nf.kind,mode:nf.mode,note:nf.note.trim(),timed:nfTimed()};
   const made=nf.pids.map(pid=>newSessionFor(pid,base));
   made.forEach(x=>{S.sessions.push(x);persistSession(x);});
-  S.group.ids=made.map(x=>x.id);S.group.blk=nf.mode==="drill"?(nf.blk||0):0;S.group.blkStart=Date.now();saveGroup();S.curs={};
+  S.group.ids=made.map(x=>x.id);S.group.blk=nf.mode==="drill"?(nf.blk||0):0;S.group.blkStart=Date.now();S.group.lineDone=[];saveGroup();S.curs={};
   setActive(made[0].id);S.cur=nf.preCur||{a:1,d:6};nf.preCur=null;S.editing=false;nf.note="";
   if(nf.kind==="comp"){const pp=S.players.find(x=>x.id===nf.pids[0]);if(pp&&planHas(pp)){S.view="note";S.noteTab="pre";S.noteP=pp.id;S.preFromStart=true;S.planEdit=null;}}
   render();window.scrollTo(0,0);
@@ -1183,6 +1209,17 @@ function advance(){
 function blkCount(x){const t0=S.group.blkStart||0;return x.shots.filter(y=>y.a===S.cur.a&&y.d===S.cur.d&&(y.t||0)>=t0).length;}
 function blockStep(s){
   const N=S.group.blk;const g=groupSessions();if(!g.length)return;
+  if(S.group.rot==="line"&&g.length>1){
+    if(blkCount(s)<N)return;
+    const i=DIST.indexOf(S.cur.d);
+    if(i<DIST.length-1){S.cur.d=DIST[i+1];S.group.blkStart=Date.now();saveGroup();setTimeout(()=>toast(t("Dabar {d} m",{d:S.cur.d})),0);return;}
+    const done=S.group.lineDone=(S.group.lineDone||[]).concat(s.id);const gi=g.findIndex(x=>x.id===s.id);
+    let nx=null;for(let j=1;j<=g.length;j++){const x=g[(gi+j)%g.length];if(!done.includes(x.id)){nx=x;break;}}
+    S.cur.d=DIST[0];S.group.blkStart=Date.now();
+    if(nx){saveGroup();switchTo(nx.id,false);setTimeout(()=>toast(t("Linija baigta. Dabar meta: {name}",{name:playerName(nx.playerId)})),0);}
+    else{S.group.lineDone=[];saveGroup();switchTo(g[0].id,false);setTimeout(()=>toast(t("Visi baigė liniją – vėl nuo 6 m. Galite pakeisti rungtį.")),0);}
+    return;
+  }
   if(g.every(x=>blkCount(x)>=N)){
     const i=DIST.indexOf(S.cur.d);const nd=DIST[(i+1)%DIST.length];
     S.cur.d=nd;S.group.blkStart=Date.now();saveGroup();
@@ -1211,6 +1248,7 @@ function endSession(){
   let focus=null;
   g.forEach(s=>{if(!s.shots.length){deleteSession(s.id);}else{s.done=true;persistSession(s);if(!focus||s.id===S.activeId)focus=s;}});
   S.group.ids=[];saveGroup();S.curs={};S.adding=false;
+  {const L=podiumList(g);if(L.length>=2){CEL.push({podium:L});if(!celOpen)nextCel();}}
   [...new Set(g.filter(x=>x.shots.length).map(x=>x.playerId))].forEach(pid=>{checkWeek(pid);checkBadges(pid);});
   setActive(null);S.view=focus?"stats":"rec";lsSet("tdp-view",S.view);
   if(focus){S.f.player=g.filter(s=>s.shots.length).length>1?"":focus.playerId;lsSet("tdp-f",S.f);}
@@ -2404,7 +2442,7 @@ document.addEventListener("click",e=>{
     case"sw-join":addToGroup(v);break;
     case"resume-all":{const open=S.sessions.filter(x=>!x.done).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));if(!open.length)break;S.group.ids=open.map(x=>x.id);saveGroup();S.curs={};S.activeId=null;switchTo(open[0].id,false);S.view="rec";lsSet("tdp-view","rec");render();window.scrollTo(0,0);break;}
     case"nf-mode":S.nf.mode=v;keepForm();render();break;
-    case"nf-blk":{S.nf.blk=+v;lsSet("tdp-blk",+v);const multi=(S.nf.pids||[]).length>1;if(+v&&multi&&S.group.rot==="shot")S.group.rot="block";if(!+v&&S.group.rot==="block")S.group.rot="shot";saveGroup();keepForm();render();break;}
+    case"nf-blk":{S.nf.blk=+v;lsSet("tdp-blk",+v);const multi=(S.nf.pids||[]).length>1;if(+v&&multi&&S.group.rot==="shot")S.group.rot="block";if(!+v&&(S.group.rot==="block"||S.group.rot==="line"))S.group.rot="shot";saveGroup();keepForm();render();break;}
     case"nf-kind":S.nf.kind=v;S.nf.timed=null;keepForm();render();break;
     case"nf-timed":S.nf.timed=v==="1";keepForm();render();break;
     case"cd-start":{const x=S.sessions.find(y=>y.id===v);if(x){setCdStart(x,curSeries(x));persistSession(x);render();}break;}
