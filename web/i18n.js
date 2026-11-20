@@ -2,7 +2,12 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Tiesiai į rutulį": "Straight on the boule",
+  "Prieš rutulį": "In front of the boule",
   "Tiesiai į taikinuką": "Straight on the jack",
+  "Prieš taikinuką": "In front of the jack",
+  "Tiesiai į rutulį / taikinuką": "Straight on (au fer)",
+  "Prieš rutulį / taikinuką": "In front (devant)",
   "Kur nuėjo jūsų rutulys?": "Where did your boule go?",
   "Jūs": "You",
   "Keisti versiją": "Change version",
@@ -237,8 +242,6 @@ en: {
   "Trumpai ir dešinėn": "Short and right",
   "Pirma kliūtis": "Obstacle first",
   "Palietė, nepajudino": "Touched, not moved",
-  "Tiesiai į rutulį": "Straight on the boule",
-  "Su atšokimu": "With a bounce",
   "Kairė": "Left",
   "Centras": "Centre",
   "Dešinė": "Right",
@@ -485,7 +488,12 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
-  "Tiesiai į taikinuką": "Au fer sur le but",
+  "Tiesiai į rutulį": "Au fer",
+  "Prieš rutulį": "Devant la boule",
+  "Tiesiai į taikinuką": "Au fer",
+  "Prieš taikinuką": "Devant le but",
+  "Tiesiai į rutulį / taikinuką": "Au fer",
+  "Prieš rutulį / taikinuką": "Devant",
   "Kur nuėjo jūsų rutulys?": "Où est partie votre boule ?",
   "Jūs": "Vous",
   "Keisti versiją": "Changer de version",
@@ -717,8 +725,6 @@ fr: {
   "Trumpai ir dešinėn": "Court et à droite",
   "Pirma kliūtis": "Obstacle d'abord",
   "Palietė, nepajudino": "Touché, pas déplacé",
-  "Tiesiai į rutulį": "Au fer",
-  "Su atšokimu": "Devant (avec rebond)",
   "Kairė": "Gauche",
   "Centras": "Centre",
   "Dešinė": "Droite",

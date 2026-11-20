@@ -475,7 +475,7 @@ AT.forEach(a=>{a.name=t(a.name);a.desc=t(a.desc);});
 DIRS.forEach(d=>{d[1]=t(d[1]);});
 Object.keys(OUT_LABEL).forEach(k=>{OUT_LABEL[k]=t(OUT_LABEL[k]);});
 const DIR_LABEL=Object.fromEntries(DIRS);DIR_LABEL.OB=t("Pirma kliūtis");DIR_LABEL.NM=t("Palietė, nepajudino");
-const CONTACT={F:t("Tiesiai į rutulį"),B:t("Su atšokimu")};
+const CONTACT={F:t("Tiesiai į rutulį"),B:t("Prieš rutulį")};
 const SIDE={L:t("Kairė"),C:t("Centras"),R:t("Dešinė")};
 const KIND={train:t("Treniruotė"),comp:t("Varžybos")};
 const ORDER=[];AT.forEach(a=>DIST.forEach(d=>ORDER.push([a.n,d])));
@@ -913,7 +913,7 @@ function shotPanel(s){
        ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB",t("Pirma kliūtis"),shot.m==="OB",' data-f="m"')}</div>`:""}
       </div>`;
     }else{
-      h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,a.n===5&&c==="F"?t("Tiesiai į taikinuką"):l,shot.c===c,' data-f="c"')).join("")}</div>
+      h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,a.n===5?(c==="F"?t("Tiesiai į taikinuką"):t("Prieš taikinuką")):l,shot.c===c,' data-f="c"')).join("")}</div>
        ${a.n===5?"":`<span class="label">${t("Kurioje rutulio vietoje?")}</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
     }
     h+=`<button class="btn block" data-act="next">${t("Toliau →")}</button>`;
@@ -1316,7 +1316,7 @@ function buildCoachContext(p){
     if(mt){L.push(`Misses: ${mt}. Short ${pctS(M.short,mt)}, long ${pctS(M.long,mt)}, left ${pctS(M.left,mt)}, right ${pctS(M.right,mt)}, obstacle first ${pctS(M.c.OB||0,mt)}, close/other ${pctS(M.c.C||0,mt)}, no direction ${pctS(M.c["?"]||0,mt)}.`);
       L.push("Misses by distance: "+DIST.map(d=>{const x=M.miss.filter(y=>y.d===d);const s2=x.filter(y=>["S","SW","SE"].includes(y.m)).length,l2=x.filter(y=>["N","NW","NE"].includes(y.m)).length;return `${d}m ${x.length} (short ${s2}, long ${l2})`;}).join("; "));}
     const hit=sh.filter(x=>x.p>0);const hc=hit.filter(x=>x.c),hh=hit.filter(x=>x.h);
-    if(hc.length)L.push(`Hits: direct (au fer) ${pctS(hc.filter(x=>x.c==="F").length,hc.length)}, with bounce ${pctS(hc.filter(x=>x.c==="B").length,hc.length)}.`);
+    if(hc.length)L.push(`Hits: direct (au fer) ${pctS(hc.filter(x=>x.c==="F").length,hc.length)}, in front (devant) ${pctS(hc.filter(x=>x.c==="B").length,hc.length)}.`);
     if(hh.length){const car=k=>{const x=hh.filter(y=>y.h===k&&y.a<5);return x.length?pctS(x.filter(y=>y.o==="carreau").length,x.length):"–";};L.push(`Spot on boule: left ${pctS(hh.filter(x=>x.h==="L").length,hh.length)}, centre ${pctS(hh.filter(x=>x.h==="C").length,hh.length)}, right ${pctS(hh.filter(x=>x.h==="R").length,hh.length)}. Carreau rate when hitting centre ${car("C")}, left ${car("L")}, right ${car("R")}.`);}
     const half=Math.floor(sh.length/2);if(sh.length>=20)L.push(`Trend in last 90 days: first half ${fmt1(avg(sh.slice(0,half).map(x=>x.p))*20)}/100, second half ${fmt1(avg(sh.slice(half).map(x=>x.p))*20)}/100.`);
   }
@@ -1547,7 +1547,7 @@ function contactHtml(shots){
   const noC=hits.filter(x=>!x.c).length;
   return `<div class="card"><h2>${t("Pataikymo būdas")}</h2><p class="small ink2">${t("Kaip ir kur pataikėte. Stulpelis „Vid.“ – vidutiniai taškai tokiu būdu pataikius, „Karo“ – kiek iš tų pataikymų 1–4 rungtyse buvo karo.")}</p>
    <div class="scroll-x"><table class="tbl"><thead><tr><th>${t("Būdas")}</th><th>${t("Kartų")}</th><th>${t("Dalis")}</th><th>${t("Vid.")}</th><th>${t("Karo")}</th></tr></thead><tbody>
-   ${row(t("Tiesiai į rutulį"),hits.filter(x=>x.c==="F"))}${row(t("Su atšokimu"),hits.filter(x=>x.c==="B"))}
+   ${row(t("Tiesiai į rutulį / taikinuką"),hits.filter(x=>x.c==="F"))}${row(t("Prieš rutulį / taikinuką"),hits.filter(x=>x.c==="B"))}
    ${row(t("Į kairę pusę"),hits.filter(x=>x.h==="L"))}${row(t("Į centrą"),hits.filter(x=>x.h==="C"))}${row(t("Į dešinę pusę"),hits.filter(x=>x.h==="R"))}
    </tbody></table></div>${noC?`<p class="small muted">${t("{n} pataikymai be nurodyto būdo neįtraukti.",{n:noC})}</p>`:""}</div>`;
 }
