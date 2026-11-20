@@ -907,13 +907,13 @@ function shotPanel(s){
    <div class="outs">${a.outs.map(o=>`<button class="out o${o.p} ${o.wide?"wide":""}" data-act="out" data-v="${o.k}" aria-pressed="${shot&&shot.o===o.k?"true":"false"}"><span class="pts">${o.p}</span><span class="t"><b>${o.l}</b><span>${o.s}</span></span></button>`).join("")}</div>`;
   if(shot){
     if(shot.o==="miss"){
-      h+=`<div class="stack"><span class="label">${t("Kur nuėjo rutulys?")}</span>
+      h+=`<div class="stack"><span class="label">${a.n===5?t("Kur nuėjo jūsų rutulys?"):t("Kur nuėjo rutulys?")}</span>
        <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="det" data-f="m" data-v="C" aria-pressed="${shot.m==="C"}" aria-label="${t("Arti / kita")}">${diagram(a.n,44)}<span>${t("Arti / kita")}</span></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
        <p class="dir-note">${t("↑ metimo kryptis (jūs stovite apačioje)")}</p>
        ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB",t("Pirma kliūtis"),shot.m==="OB",' data-f="m"')}</div>`:""}
       </div>`;
     }else{
-      h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,l,shot.c===c,' data-f="c"')).join("")}</div>
+      h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,a.n===5&&c==="F"?t("Tiesiai į taikinuką"):l,shot.c===c,' data-f="c"')).join("")}</div>
        ${a.n===5?"":`<span class="label">${t("Kurioje rutulio vietoje?")}</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
     }
     h+=`<button class="btn block" data-act="next">${t("Toliau →")}</button>`;

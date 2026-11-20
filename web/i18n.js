@@ -2,6 +2,8 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Tiesiai į taikinuką": "Straight on the jack",
+  "Kur nuėjo jūsų rutulys?": "Where did your boule go?",
   "Jūs": "You",
   "Keisti versiją": "Change version",
   "Nemokama": "Free",
@@ -483,6 +485,8 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Tiesiai į taikinuką": "Au fer sur le but",
+  "Kur nuėjo jūsų rutulys?": "Où est partie votre boule ?",
   "Jūs": "Vous",
   "Keisti versiją": "Changer de version",
   "Nemokama": "Gratuite",
