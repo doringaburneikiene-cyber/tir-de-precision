@@ -1417,10 +1417,15 @@ async function coachSend(text){
     let d={};try{d=await r.json();}catch(e){}
     if(r.ok&&d.text){const c2=chatOf(p.id);c2.push({r:"a",c:d.text,t:Date.now()});saveChat(p.id,c2);S.coachNeedCode=false;lsSet("tdp-coach-left",typeof d.left==="number"?{m:new Date().toISOString().slice(0,7),n:d.left,l:d.limit}:null);}
     else if(d&&d.error==="limit"){lsSet("tdp-coach-left",{m:new Date().toISOString().slice(0,7),n:0,l:d.limit});throw{k:"limit"};}
-    else throw{k:(d&&d.error)||(r.status===404?"not_configured":"upstream")};
+    else throw{k:(d&&d.error)||(r.status===404?"not_configured":"upstream"),det:(d&&d.detail)||(d&&d.error?"":"HTTP "+r.status)};
   }catch(e){
     const k=e&&e.k||"offline";
-    errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą."),limit:t("Šio mėnesio klausimų limitas išnaudotas. Treneris vėl atsakys nuo kito mėnesio 1 d.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
+    errMsg={not_configured:t("Treneris dar neprijungtas. Programėlės savininkas turi įrašyti Claude API raktą Netlify nustatymuose."),code:t("Reikia prieigos kodo."),rate:t("Per daug klausimų per trumpą laiką. Pabandykite po kelių minučių."),offline:t("Nėra interneto ryšio. Treneriui reikia interneto."),upstream:t("Nepavyko gauti atsakymo. Pabandykite dar kartą."),limit:t("Šio mėnesio klausimų limitas išnaudotas. Treneris vėl atsakys nuo kito mėnesio 1 d."),
+      key:t("Claude API raktas netinka. Netlify nustatymuose patikrinkite ANTHROPIC_API_KEY – ar nukopijuotas visas, be tarpų – ir paleiskite naują diegimą."),
+      credit:t("Anthropic paskyroje baigėsi kreditas. Papildykite jį console.anthropic.com skiltyje „Billing“."),
+      model:t("Netinka Claude modelio pavadinimas. Netlify nustatymuose ištrinkite arba pataisykite COACH_MODEL."),
+      busy:t("Claude šiuo metu perkrautas. Pabandykite po minutės.")}[k]||t("Nepavyko gauti atsakymo. Pabandykite dar kartą.");
+    if(e&&e.det&&!["code","limit","offline","not_configured"].includes(k))errMsg+=`<br><small class="err-det">${esc(t("Klaidos informacija:"))} ${esc(e.det)}</small>`;
     if(k==="code")S.coachNeedCode=true;
     const c3=chatOf(p.id);if(c3.length&&c3[c3.length-1].r==="u"&&c3[c3.length-1].c===text){c3.pop();saveChat(p.id,c3);}
     S.coachDraft=text;const ce=$("#co-in");if(ce)ce.value=text;

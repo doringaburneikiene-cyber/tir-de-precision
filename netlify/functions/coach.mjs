@@ -2,7 +2,6 @@
 // API raktas laikomas Netlify aplinkos kintamajame ANTHROPIC_API_KEY ir niekada nepatenka į naršyklę.
 // Nebūtini kintamieji: COACH_CODE (prieigos kodas testuotojams; keli kodai – atskirti kableliais),
 // COACH_LIMIT (klausimų per mėnesį vienam kodui, numatytasis 100; 0 = be ribos), COACH_MODEL (numatytasis claude-sonnet-5).
-import { getStore } from "@netlify/blobs";
 import { createHash } from "node:crypto";
 
 const SYSTEM = `You are the virtual coach inside "Tir de précision", a training log app for pétanque precision shooting (tir de précision). You coach players who are preparing seriously for competitions, including European and World championships.
@@ -42,13 +41,18 @@ function limited(ip) {
 // Mėnesio skaitiklis vienam prieigos kodui (Netlify Blobs), kad testuojant nebūtų netikėtų išlaidų.
 const monthKey = (code) => new Date().toISOString().slice(0, 7) + "/" + (code ? createHash("sha256").update(code).digest("hex").slice(0, 16) : "open");
 async function usage(key) {
-  try { const store = getStore({ name: "coach-usage", consistency: "strong" }); const v = await store.get(key, { type: "json" }); return { store, n: (v && v.n) || 0 }; }
+  try { const { getStore } = await import("@netlify/blobs"); const store = getStore({ name: "coach-usage", consistency: "strong" }); const v = await store.get(key, { type: "json" }); return { store, n: (v && v.n) || 0 }; }
   catch (e) { console.error("usage store", e); return { store: null, n: 0 }; }
 }
 
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
 export default async (req, context) => {
+  try { return await handle(req, context); }
+  catch (e) { console.error("coach crash", e); return json(500, { error: "crash", detail: String((e && e.message) || e).slice(0, 200) }); }
+};
+
+async function handle(req, context) {
   if (req.method !== "POST") return json(405, { error: "method" });
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return json(503, { error: "not_configured" });
@@ -93,8 +97,16 @@ export default async (req, context) => {
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
-      const t = data && data.error && data.error.type;
-      return json(r.status === 429 || t === "rate_limit_error" ? 429 : 502, { error: t === "rate_limit_error" ? "rate" : "upstream", detail: t || r.status });
+      const t = (data && data.error && data.error.type) || "";
+      const msg = String((data && data.error && data.error.message) || "").slice(0, 200);
+      console.error("anthropic", r.status, t, msg);
+      let kind = "upstream";
+      if (t === "rate_limit_error") kind = "rate";
+      else if (t === "authentication_error" || t === "permission_error" || r.status === 401 || r.status === 403) kind = "key";
+      else if (/credit|balance|billing/i.test(msg)) kind = "credit";
+      else if (t === "not_found_error" || /model/i.test(msg)) kind = "model";
+      else if (t === "overloaded_error" || r.status === 529) kind = "busy";
+      return json(kind === "rate" ? 429 : 502, { error: kind, detail: (t || ("HTTP " + r.status)) + (msg ? ": " + msg : "") });
     }
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
     let left = null;
@@ -103,8 +115,8 @@ export default async (req, context) => {
     }
     return json(200, { text: text || "…", left, limit: limit || null });
   } catch (e) {
-    return json(502, { error: "upstream" });
+    return json(502, { error: "upstream", detail: "fetch: " + String((e && e.message) || e).slice(0, 150) });
   }
-};
+}
 
 export const config = { path: "/api/coach" };

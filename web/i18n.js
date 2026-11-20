@@ -2,6 +2,11 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Claude API raktas netinka. Netlify nustatymuose patikrinkite ANTHROPIC_API_KEY – ar nukopijuotas visas, be tarpų – ir paleiskite naują diegimą.": "The Claude API key is not valid. Check ANTHROPIC_API_KEY in the Netlify settings (copied in full, no spaces) and run a new deploy.",
+  "Anthropic paskyroje baigėsi kreditas. Papildykite jį console.anthropic.com skiltyje „Billing“.": "The Anthropic account is out of credit. Top it up at console.anthropic.com under Billing.",
+  "Netinka Claude modelio pavadinimas. Netlify nustatymuose ištrinkite arba pataisykite COACH_MODEL.": "The Claude model name is not valid. Remove or fix COACH_MODEL in the Netlify settings.",
+  "Claude šiuo metu perkrautas. Pabandykite po minutės.": "Claude is overloaded right now. Try again in a minute.",
+  "Klaidos informacija:": "Error details:",
   "Arti (iki 10 cm)": "Close (within 10 cm)",
   "Arti": "Close",
   "iki 10 cm": "≤ 10 cm",
@@ -506,6 +511,11 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Claude API raktas netinka. Netlify nustatymuose patikrinkite ANTHROPIC_API_KEY – ar nukopijuotas visas, be tarpų – ir paleiskite naują diegimą.": "La clé API Claude n'est pas valide. Vérifiez ANTHROPIC_API_KEY dans les réglages Netlify (copiée en entier, sans espaces) et relancez un déploiement.",
+  "Anthropic paskyroje baigėsi kreditas. Papildykite jį console.anthropic.com skiltyje „Billing“.": "Le compte Anthropic n'a plus de crédit. Rechargez-le sur console.anthropic.com, rubrique Billing.",
+  "Netinka Claude modelio pavadinimas. Netlify nustatymuose ištrinkite arba pataisykite COACH_MODEL.": "Le nom du modèle Claude n'est pas valide. Supprimez ou corrigez COACH_MODEL dans les réglages Netlify.",
+  "Claude šiuo metu perkrautas. Pabandykite po minutės.": "Claude est surchargé pour le moment. Réessayez dans une minute.",
+  "Klaidos informacija:": "Détails de l'erreur :",
   "Arti (iki 10 cm)": "Près (moins de 10 cm)",
   "Arti": "Près",
   "iki 10 cm": "≤ 10 cm",
