@@ -2,6 +2,10 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Žaidėjų: {a} iš {n}.": "Players: {a} of {n}.",
+  "Pro versijoje – iki {n} žaidėjų. Daugiau žaidėjų bus galima turėti brangesniame Trenerio / Klubo plane. Kol kas galite ištrinti nebenaudojamą žaidėją.": "Pro allows up to {n} players. More players will be available in the higher-priced Coach / Club plan. For now you can delete a player you no longer need.",
+  "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas – treniruotės, įrašai, pokalbiai su treneriu – bus ištrinta visam laikui. Jei duomenis norite išsaugoti, pirma pasidarykite atsarginę kopiją.": "Delete player <b>{name}</b> and all their trainings ({n})? Everything – trainings, notes, coach chats – will be deleted permanently. If you want to keep the data, make a backup first.",
+  "Pirma pasidaryti kopiją": "Make a backup first",
   "Nustatymai": "Settings",
   "Atgal": "Back",
   "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas bus ištrinta visam laikui. Jei norite tik paslėpti – rinkitės „Į archyvą“.": "Delete player <b>{name}</b> and all their trainings ({n})? Everything will be deleted permanently. If you only want to hide them, choose \"Archive\".",
@@ -730,6 +734,10 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Žaidėjų: {a} iš {n}.": "Joueurs : {a} sur {n}.",
+  "Pro versijoje – iki {n} žaidėjų. Daugiau žaidėjų bus galima turėti brangesniame Trenerio / Klubo plane. Kol kas galite ištrinti nebenaudojamą žaidėją.": "La version Pro permet jusqu'à {n} joueurs. Davantage de joueurs seront possibles avec la formule Entraîneur / Club, plus chère. En attendant, vous pouvez supprimer un joueur dont vous n'avez plus besoin.",
+  "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas – treniruotės, įrašai, pokalbiai su treneriu – bus ištrinta visam laikui. Jei duomenis norite išsaugoti, pirma pasidarykite atsarginę kopiją.": "Supprimer le joueur <b>{name}</b> et tous ses entraînements ({n}) ? Tout – entraînements, notes, échanges avec le coach – sera supprimé définitivement. Pour conserver les données, faites d'abord une sauvegarde.",
+  "Pirma pasidaryti kopiją": "Faire d'abord une sauvegarde",
   "Nustatymai": "Réglages",
   "Atgal": "Retour",
   "Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas bus ištrinta visam laikui. Jei norite tik paslėpti – rinkitės „Į archyvą“.": "Supprimer le joueur <b>{name}</b> et tous ses entraînements ({n}) ? Tout sera supprimé définitivement. Pour seulement le masquer, choisissez « Archiver ».",
