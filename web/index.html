@@ -107,6 +107,9 @@ textarea{min-height:64px;resize:vertical}
 .nav button[aria-current="page"]{color:var(--ink)}
 .nav button[aria-current="page"] svg{color:var(--accent-strong)}
 
+.gsel{display:inline-flex;gap:4px;vertical-align:middle;margin-left:4px}
+.gsel .chip{min-height:28px;padding:3px 10px;font-size:12px}
+.banner.rec{background:linear-gradient(90deg,var(--accent-soft),var(--surface-2))}
 .gear{border:0;background:var(--surface-2);color:var(--ink-2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line);flex:none}
 .gear svg{width:19px;height:19px}
 .gear[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
@@ -1044,6 +1047,7 @@ function seriesSummary(s,k){
   return `<div class="card"><span class="label">${t("Serija {n} baigta",{n:k+1})}</span>
    <div class="row between"><div class="bigscore num">${sum}<small> / 100</small></div><div class="meta"><span>${t("Trukmė")}<br><b>${Math.floor(dur/60)}:${pad2(Math.round(dur%60))}</b></span>${isFree()?"":`<span>${t("Asmeninis rekordas")}<br><b>${best==null?"—":best}</b></span>`}</div></div>
    ${st0?(dur<=CD_LEN?`<p class="small"><span class="delta up">✓</span> ${t("Tilpote į 15 minučių – liko {m}:{s}.",{m:Math.floor((CD_LEN-dur)/60),s:pad2(Math.floor((CD_LEN-dur)%60))})}</p>`:`<p class="small"><span class="delta down">!</span> ${t("15 minučių viršyta {m}:{s}. Varžybose likę metimai būtų neužskaityti.",{m:Math.floor((dur-CD_LEN)/60),s:pad2(Math.floor((dur-CD_LEN)%60))})}</p>`):""}
+   ${recordNote(s.playerId,sum)}
    ${best!=null&&sum>best?`<div class="banner"><span>${t("<b>Naujas asmeninis rekordas!</b> Ankstesnis buvo {b}.",{b:best})}</span></div>`:""}
    <table class="tbl"><thead><tr><th>${t("Rungtis")}</th><th>${t("Taškai")}</th><th>${t("iš")}</th></tr></thead><tbody>${AT.map((a,i)=>`<tr><td>${a.n}. ${esc(a.name)}</td><td><b>${byA[i]}</b></td><td class="muted">20</td></tr>`).join("")}</tbody></table>
    <p class="small ink2">${t("Pagal atstumą:")} ${DIST.map((d,i)=>`${d} m – <b>${byD[i]}</b>`).join(" · ")} ${t("(iš 25)")}</p>
@@ -1205,6 +1209,21 @@ function endSession(){
   const doneIds=g.filter(x=>x.shots.length).map(x=>x.id);
   if(doneIds.length&&!lsGet("tdp-reflect-off",false)){S.reflectBack="stats";openReflect(doneIds);}
   render();window.scrollTo(0,0);
+}
+
+/* ----- Records & encouragement ----- */
+const RECORD={m:67,f:61}; // FIPJP oficialūs rekordai (pasaulio ir Europos): vyrai 67, moterys 61
+function vocative(n){n=String(n||"").trim();if(LANG!=="lt"||!n)return n;
+  if(/ias$/.test(n))return n.slice(0,-2)+"ai";if(/as$/.test(n))return n.slice(0,-2)+"ai";if(/ius$/.test(n))return n.slice(0,-2)+"au";
+  if(/us$/.test(n))return n.slice(0,-2)+"au";if(/ys$/.test(n))return n.slice(0,-1);if(/is$/.test(n))return n.slice(0,-1);return n;}
+function recordNote(pid,sum){
+  const p=S.players.find(x=>x.id===pid);if(!p||!p.g||isFree())return"";const r=RECORD[p.g];if(!r)return"";
+  const nm=esc(vocative(p.name));const gap=r-sum;const who=p.g==="m"?t("vyrų"):t("moterų");
+  if(gap<=0)return `<div class="banner rec"><span>${t("<b>{name}, {sum} taškų – tiek pat ar daugiau nei {who} pasaulio ir Europos rekordas ({r})!</b> Varžybose tai būtų istorinis rezultatas.",{name:nm,sum,who,r})}</span></div>`;
+  if(gap<=5)return `<div class="banner rec"><span>${t("<b>{name}, iki {who} pasaulio ir Europos rekordo ({r}) trūksta tik {gap} t.!</b> Jūs jau visai šalia.",{name:nm,who,r,gap})}</span></div>`;
+  if(gap<=15)return `<div class="banner rec"><span>${t("{name}, puiki serija! Iki {who} pasaulio ir Europos rekordo ({r}) liko {gap} t.",{name:nm,who,r,gap})}</span></div>`;
+  if(gap<=25)return `<p class="small ink2">${t("{name}, iki {who} rekordo ({r}) – {gap} t. Kiekviena gera serija artina!",{name:nm,who,r,gap})}</p>`;
+  return"";
 }
 
 /* ----- Rules page ----- */
@@ -1369,6 +1388,7 @@ function badgesCard(p){
   const show=S.badgesAll?list:list.filter((x,i)=>x.ok||!list.slice(0,i).some(y=>!y.ok&&y.b.m===x.b.m));
   return `<div class="card"><div class="row between"><h2>${t("Pasiekimai")}</h2><span class="small muted">${t("{n} iš {m}",{n,m:list.length})}</span></div>
    <div class="kpis in"><div class="kpi"><span class="label">${t("Dabar iš eilės")}</span><span class="v num">${st.cur}<small> ${t("d.")}</small></span><span class="delta flat">${st.cur?t("nepraleiskite rytojaus!"):t("treniruokitės šiandien")}</span></div>
+   ${p.g&&RECORD[p.g]?`<div class="kpi"><span class="label">${t("Iki rekordo")}</span><span class="v num">${Math.max(0,RECORD[p.g]-st.best)}<small> ${t("t.")}</small></span><span class="delta flat">${t("geriausia {b} · rekordas {r}",{b:st.best,r:RECORD[p.g]})}</span></div>`:""}
    <div class="kpi"><span class="label">${t("Ilgiausia serija")}</span><span class="v num">${st.streak}<small> ${t("d.")}</small></span><span class="delta flat">${t("savaičių po 4: {n}",{n:st.wks})}</span></div></div>
    <div class="bdg-grid">${show.map(x=>`<div class="bdg ${x.ok?"ok":""}" title="${esc(t(x.b.d))}"><span class="bdg-ic">${CEL_ICON[x.b.ic]}</span><b>${esc(t(x.b.n))}</b><span>${x.ok?esc(t(x.b.d)):x.b.v>1?`<span class="bdg-pr"><i style="width:${Math.min(100,Math.round(x.val/x.b.v*100))}%"></i></span>${Math.min(x.val,x.b.v)}/${x.b.v}`:esc(t(x.b.d))}</span></div>`).join("")}</div>
    <button class="btn sm ghost" data-act="bdg-all" style="align-self:flex-start">${S.badgesAll?t("Rodyti mažiau"):t("Visi ženkliukai")}</button></div>`;
@@ -1728,6 +1748,7 @@ function buildCoachContext(p){
   const L=[];const ss=S.sessions.filter(s=>s.playerId===p.id&&s.shots&&s.shots.length);
   const sh=playerShots(p.id,90);const all=flatShots(ss,{a:0,d:0});
   {const gc=goalCalc(p);if(gc&&gc.st!=="past")L.push(`Goal: ${gc.g.name} on ${gc.g.date} (${Math.ceil(gc.weeks)} weeks left), target ${gc.g.target}/100; current level ${gc.now==null?"unknown":fmt1(gc.now)}/100 (full series, last 60 days)${gc.lv&&gc.lv.slope!=null?`, trend ${fmt1(gc.lv.slope)} per week, projection ${fmt0(gc.proj)}`:""}.`);}
+  if(p.g)L.push(`Gender category: ${p.g==="m"?"men":"women"} (official world/European record ${RECORD[p.g]}/100).`);
   L.push(`Player: ${p.name}. Sessions total: ${ss.length}, throws total: ${all.length}. Last 90 days: ${new Set(sh.map(x=>x.sid)).size} sessions, ${sh.length} throws.`);
   if(sh.length){
     const m=metrics(sh);L.push(`Last 90 days: average ${fmt1(m.score)}/100, hit rate ${m.hit}%, carreau rate in workshops 1-4 ${m.car==null?"–":m.car+"%"}.`);
@@ -2189,7 +2210,7 @@ function viewPlayers(){
   if(!pl.length)h+=`<p class="muted">${t("Žaidėjų dar nėra.")}</p>`;
   h+=pl.map(p=>{const n=S.sessions.filter(s=>s.playerId===p.id).length;
     if(S.renaming===p.id)return `<div class="row"><input type="text" id="rn-${p.id}" value="${esc(p.name)}" style="flex:1;min-width:0"><button class="btn sm" data-act="pl-rename-save" data-v="${p.id}">${t("Išsaugoti")}</button></div>`;
-    return `<div class="row between plrow"><div><b>${esc(p.name)}</b><br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost danger" data-act="pl-del" data-v="${p.id}">${t("Ištrinti")}</button></div></div>${S.confirmPl===p.id?`<div class="confirm"><span>${t("Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas – treniruotės, įrašai, pokalbiai su treneriu – bus ištrinta visam laikui. Jei duomenis norite išsaugoti, pirma pasidarykite atsarginę kopiją.",{name:esc(p.name),n})}</span><div class="row" style="flex-wrap:wrap"><button class="btn sm" data-act="exp-json">${t("Pirma pasidaryti kopiją")}</button><button class="btn warn sm" data-act="pl-del-yes" data-v="${p.id}">${t("Taip, ištrinti viską")}</button><button class="btn ghost sm" data-act="pl-del-no">${t("Ne")}</button></div></div>`:""}`;}).join("");
+    return `<div class="row between plrow"><div><b>${esc(p.name)}</b> <span class="gsel">${chip("pl-g",p.id+"|m",t("Vyras"),p.g==="m")}${chip("pl-g",p.id+"|f",t("Moteris"),p.g==="f")}</span><br><span class="small muted">${t("{n} treniruotės",{n})}</span></div><div class="row" style="gap:6px"><button class="btn sm ghost" data-act="pl-rename" data-v="${p.id}">${t("Pervadinti")}</button><button class="btn sm ghost danger" data-act="pl-del" data-v="${p.id}">${t("Ištrinti")}</button></div></div>${S.confirmPl===p.id?`<div class="confirm"><span>${t("Ištrinti žaidėją <b>{name}</b> ir visas jo treniruotes ({n})? Viskas – treniruotės, įrašai, pokalbiai su treneriu – bus ištrinta visam laikui. Jei duomenis norite išsaugoti, pirma pasidarykite atsarginę kopiją.",{name:esc(p.name),n})}</span><div class="row" style="flex-wrap:wrap"><button class="btn sm" data-act="exp-json">${t("Pirma pasidaryti kopiją")}</button><button class="btn warn sm" data-act="pl-del-yes" data-v="${p.id}">${t("Taip, ištrinti viską")}</button><button class="btn ghost sm" data-act="pl-del-no">${t("Ne")}</button></div></div>`:""}`;}).join("");
   const act=activePlayers().length;
   h+=`<p class="small muted">${t("Žaidėjų: {a} iš {n}.",{a:act,n:PRO_MAX})}</p>`;
   h+=plFull()?limitNote()+`</div>`:`<div class="row"><input type="text" id="pl-new" placeholder="${t("Naujo žaidėjo vardas")}" style="flex:1;min-width:0" autocomplete="off"><button class="btn" data-act="pl-add" data-src="pl-new">${t("Pridėti")}</button></div></div>`;
@@ -2363,6 +2384,7 @@ document.addEventListener("click",e=>{
     case"pl-add":addPlayer(b.dataset.src);break;
     case"pl-rename":S.renaming=v;render();setTimeout(()=>{const i=$("#rn-"+v);i&&i.focus();},0);break;
     case"pl-rename-save":{const p=S.players.find(x=>x.id===v);const i=$("#rn-"+v);if(p&&i&&i.value.trim()){p.name=i.value.trim();savePlayer(p);}S.renaming=null;render();break;}
+    case"pl-g":{const [id,g]=v.split("|");const p=S.players.find(x=>x.id===id);if(p){p.g=p.g===g?undefined:g;if(!p.g)delete p.g;savePlayer(p);render();}break;}
     case"pl-del":S.confirmPl=v;render();break;
     case"pl-del-no":S.confirmPl=null;render();break;
     case"pl-del-yes":{const nm=playerName(v);S.confirmPl=null;deletePlayer(v).then(()=>{toast(t("Ištrinta: {n}",{n:nm}));render();});break;}

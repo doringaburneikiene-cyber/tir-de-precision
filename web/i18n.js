@@ -2,6 +2,17 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "vyrų": "men's",
+  "moterų": "women's",
+  "<b>{name}, {sum} taškų – tiek pat ar daugiau nei {who} pasaulio ir Europos rekordas ({r})!</b> Varžybose tai būtų istorinis rezultatas.": "<b>{name}, {sum} points – equal to or above the {who} world and European record ({r})!</b> In competition this would be a historic result.",
+  "<b>{name}, iki {who} pasaulio ir Europos rekordo ({r}) trūksta tik {gap} t.!</b> Jūs jau visai šalia.": "<b>{name}, only {gap} points short of the {who} world and European record ({r})!</b> You are very close.",
+  "{name}, puiki serija! Iki {who} pasaulio ir Europos rekordo ({r}) liko {gap} t.": "{name}, great series! {gap} points to the {who} world and European record ({r}).",
+  "{name}, iki {who} rekordo ({r}) – {gap} t. Kiekviena gera serija artina!": "{name}, {gap} points to the {who} record ({r}). Every good series brings you closer!",
+  "Iki rekordo": "To the record",
+  "t.": "pts",
+  "geriausia {b} · rekordas {r}": "best {b} · record {r}",
+  "Vyras": "Man",
+  "Moteris": "Woman",
   "Taisyklės": "Rules",
   "Taisyklės ir taškų skaičiavimas": "Rules and scoring",
   "metimo ratas": "throwing circle",
@@ -753,6 +764,17 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "vyrų": "masculin",
+  "moterų": "féminin",
+  "<b>{name}, {sum} taškų – tiek pat ar daugiau nei {who} pasaulio ir Europos rekordas ({r})!</b> Varžybose tai būtų istorinis rezultatas.": "<b>{name}, {sum} points – autant ou plus que le record du monde et d'Europe {who} ({r}) !</b> En compétition, ce serait historique.",
+  "<b>{name}, iki {who} pasaulio ir Europos rekordo ({r}) trūksta tik {gap} t.!</b> Jūs jau visai šalia.": "<b>{name}, plus que {gap} points du record du monde et d'Europe {who} ({r}) !</b> Vous y êtes presque.",
+  "{name}, puiki serija! Iki {who} pasaulio ir Europos rekordo ({r}) liko {gap} t.": "{name}, superbe série ! Encore {gap} points jusqu'au record du monde et d'Europe {who} ({r}).",
+  "{name}, iki {who} rekordo ({r}) – {gap} t. Kiekviena gera serija artina!": "{name}, {gap} points du record {who} ({r}). Chaque bonne série vous en rapproche !",
+  "Iki rekordo": "Jusqu'au record",
+  "t.": "pts",
+  "geriausia {b} · rekordas {r}": "meilleure {b} · record {r}",
+  "Vyras": "Homme",
+  "Moteris": "Femme",
   "Taisyklės": "Règles",
   "Taisyklės ir taškų skaičiavimas": "Règles et comptage des points",
   "metimo ratas": "cercle de lancer",
