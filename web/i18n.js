@@ -2,6 +2,16 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Metimų kiekvienu atstumu": "Throws at each distance",
+  "Kiekvienas meta po {n} kartų iš to paties atstumo, tada atstumas pasikeičia: 6 → 7 → 8 → 9 m.": "Each player throws {n} times from the same distance, then the distance changes: 6 → 7 → 8 → 9 m.",
+  "Po {n} metimų atstumas pasikeis automatiškai: 6 → 7 → 8 → 9 m.": "After {n} throws the distance changes automatically: 6 → 7 → 8 → 9 m.",
+  "Atstumą keisite patys eigoje.": "You change the distance yourself as you go.",
+  "Po {n} metimų": "After {n} throws",
+  "Šiuo atstumu: <b>{c}/{n}</b>": "This distance: <b>{c}/{n}</b>",
+  "Toliau: {d} m": "Next: {d} m",
+  "Paskutinis atstumas": "Last distance",
+  "Visi atstumai baigti – vėl nuo {d} m": "All distances done – starting again from {d} m",
+  "Dabar {d} m": "Now {d} m",
   "Claude API raktas netinka. Netlify nustatymuose patikrinkite ANTHROPIC_API_KEY – ar nukopijuotas visas, be tarpų – ir paleiskite naują diegimą.": "The Claude API key is not valid. Check ANTHROPIC_API_KEY in the Netlify settings (copied in full, no spaces) and run a new deploy.",
   "Anthropic paskyroje baigėsi kreditas. Papildykite jį console.anthropic.com skiltyje „Billing“.": "The Anthropic account is out of credit. Top it up at console.anthropic.com under Billing.",
   "Netinka Claude modelio pavadinimas. Netlify nustatymuose ištrinkite arba pataisykite COACH_MODEL.": "The Claude model name is not valid. Remove or fix COACH_MODEL in the Netlify settings.",
@@ -511,6 +521,16 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Metimų kiekvienu atstumu": "Tirs à chaque distance",
+  "Kiekvienas meta po {n} kartų iš to paties atstumo, tada atstumas pasikeičia: 6 → 7 → 8 → 9 m.": "Chaque joueur tire {n} fois à la même distance, puis la distance change : 6 → 7 → 8 → 9 m.",
+  "Po {n} metimų atstumas pasikeis automatiškai: 6 → 7 → 8 → 9 m.": "Après {n} tirs, la distance change automatiquement : 6 → 7 → 8 → 9 m.",
+  "Atstumą keisite patys eigoje.": "Vous changez la distance vous-même en cours de route.",
+  "Po {n} metimų": "Après {n} tirs",
+  "Šiuo atstumu: <b>{c}/{n}</b>": "À cette distance : <b>{c}/{n}</b>",
+  "Toliau: {d} m": "Ensuite : {d} m",
+  "Paskutinis atstumas": "Dernière distance",
+  "Visi atstumai baigti – vėl nuo {d} m": "Toutes les distances terminées – on reprend à {d} m",
+  "Dabar {d} m": "Maintenant {d} m",
   "Claude API raktas netinka. Netlify nustatymuose patikrinkite ANTHROPIC_API_KEY – ar nukopijuotas visas, be tarpų – ir paleiskite naują diegimą.": "La clé API Claude n'est pas valide. Vérifiez ANTHROPIC_API_KEY dans les réglages Netlify (copiée en entier, sans espaces) et relancez un déploiement.",
   "Anthropic paskyroje baigėsi kreditas. Papildykite jį console.anthropic.com skiltyje „Billing“.": "Le compte Anthropic n'a plus de crédit. Rechargez-le sur console.anthropic.com, rubrique Billing.",
   "Netinka Claude modelio pavadinimas. Netlify nustatymuose ištrinkite arba pataisykite COACH_MODEL.": "Le nom du modèle Claude n'est pas valide. Supprimez ou corrigez COACH_MODEL dans les réglages Netlify.",

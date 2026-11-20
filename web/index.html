@@ -178,6 +178,7 @@ body.no-nav .nav{display:none}
 .pop{position:fixed;inset:0;z-index:55;display:flex;align-items:flex-end;justify-content:center;padding:12px 10px calc(12px + env(safe-area-inset-bottom,0px))}
 .pop-back{position:absolute;inset:0;background:rgba(10,16,22,.5)}
 .pop-card{position:relative;background:var(--surface);border-radius:18px;padding:16px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.blk{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:14px}
 .close-box{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .close-box p{margin:0}
 .dir-note{text-align:center;font-size:12px;color:var(--muted)}
@@ -511,7 +512,7 @@ const S={
   store:"pending", ro:false, players:[], sessions:[], status:"ok",
   view:lsGet("tdp-view","rec"), activeId:lsGet("tdp-active",null),
   cur:{a:1,d:6}, pending:null, editing:false,
-  nf:{pids:null,mode:"full",kind:"train",date:today(),note:""},
+  nf:{pids:null,mode:"full",kind:"train",date:today(),note:"",blk:lsGet("tdp-blk",10)},
   group:Object.assign({ids:[],rot:"shot"},lsGet("tdp-group",{})), curs:{}, adding:false, fix:false,
   f:Object.assign({player:"",period:"90",kind:"all",a:0,d:0},lsGet("tdp-f",{})),
   openHist:null, confirmDel:null, renaming:null, msg:"",
@@ -826,6 +827,7 @@ function viewNew(){
   if(!nf.pids){const last=lsGet("tdp-lastps",[]);nf.pids=last.filter(id=>pl.some(p=>p.id===id));if(!nf.pids.length)nf.pids=[pl[0].id];}
   nf.pids=nf.pids.filter(id=>pl.some(p=>p.id===id));
   if(nf.mode==="drill"&&S.group.rot==="task"){S.group.rot="shot";saveGroup();}
+  if((nf.mode!=="drill"||!nf.blk)&&S.group.rot==="block"){S.group.rot="shot";saveGroup();}
   const multi=nf.pids.length>1;
   return `${weekCardHtml(nf.pids.length?nf.pids:pl.slice(0,4).map(p=>p.id))}<div class="card">
    <h2>${t("Nauja treniruotė")}</h2>
@@ -833,9 +835,11 @@ function viewNew(){
      <div class="chips">${pl.map(p=>{const i=nf.pids.indexOf(p.id);return chip("nf-player",p.id,(i>=0&&multi?(i+1)+". ":"")+p.name,i>=0);}).join("")}</div>
      ${newPlayerRow("nf-newpl",t("+ Pridėti"))}
      ${multi?`<p class="small muted">${t("Skaičius rodo metimo eilę. Kiekvienam žaidėjui rezultatai saugomi atskirai.")}</p>`:""}</div>
-   ${multi?`<div class="field"><span class="label">${t("Kada keičiatės?")}</span><div class="chips">${rotChips(nf.mode)}</div></div>`:""}
    <div class="field"><span class="label">${t("Režimas")}</span><div class="chips">${chip("nf-mode","full",t("Pilna serija 5×4"),nf.mode==="full")}${chip("nf-mode","drill",t("Pratimas: viena rungtis"),nf.mode==="drill")}</div>
      <p class="small muted">${nf.mode==="full"?t("20 metimų kaip varžybose: kiekviena rungtis iš 6, 7, 8 ir 9 m. Serijų galima daryti kelias."):t("Kartojate vieną rungtį ir atstumą tiek kartų, kiek norite. Rungtį ir atstumą galima keisti eigoje.")}</p></div>
+   ${nf.mode==="drill"?`<div class="field"><span class="label">${t("Metimų kiekvienu atstumu")}</span><div class="chips">${[5,10,15,20].map(n=>chip("nf-blk",n,String(n),nf.blk===n)).join("")}${chip("nf-blk",0,t("Rankiniu būdu"),!nf.blk)}</div>
+     <p class="small muted">${nf.blk?(multi?t("Kiekvienas meta po {n} kartų iš to paties atstumo, tada atstumas pasikeičia: 6 → 7 → 8 → 9 m.",{n:nf.blk}):t("Po {n} metimų atstumas pasikeis automatiškai: 6 → 7 → 8 → 9 m.",{n:nf.blk})):t("Atstumą keisite patys eigoje.")}</p></div>`:""}
+   ${multi?`<div class="field"><span class="label">${t("Kada keičiatės?")}</span><div class="chips">${rotChips(nf.mode,nf.mode==="drill"?nf.blk:0)}</div></div>`:""}
    <div class="field"><span class="label">${t("Tipas")}</span><div class="chips">${chip("nf-kind","train",t("Treniruotė"),nf.kind==="train")}${chip("nf-kind","comp",t("Varžybos"),nf.kind==="comp")}</div></div>
    <div class="field"><label class="label" for="nf-date">${t("Data")}</label><input type="date" id="nf-date" value="${esc(nf.date)}"></div>
    <div class="field"><label class="label" for="nf-note">${t("Pastaba (nebūtina)")}</label><textarea id="nf-note" placeholder="${t("pvz. nauji rutuliai, po darbo, pavargęs")}">${esc(nf.note)}</textarea></div>
@@ -843,8 +847,8 @@ function viewNew(){
   </div>
   ${openSessionsHtml()}`;
 }
-function rotChips(mode){
-  const r=S.group.rot;const o=[["shot",t("Po kiekvieno metimo")]];if(mode!=="drill")o.push(["task",t("Po kiekvienos rungties")]);o.push(["manual",t("Rankiniu būdu")]);
+function rotChips(mode,blk){
+  const r=S.group.rot;const o=[["shot",t("Po kiekvieno metimo")]];if(mode!=="drill")o.push(["task",t("Po kiekvienos rungties")]);if(mode==="drill"&&blk)o.push(["block",t("Po {n} metimų",{n:blk})]);o.push(["manual",t("Rankiniu būdu")]);
   return o.map(([v,l])=>chip("rot",v,l,r===v)).join("");
 }
 function openSessionsHtml(){
@@ -864,7 +868,7 @@ function switcherHtml(s){
     h+=`<div class="stack"><span class="label">${t("Įtraukti į šią treniruotę")}</span>${others.length?`<div class="chips">${others.map(p=>chip("sw-join",p.id,p.name,false)).join("")}</div>`:""}${newPlayerRow("sw-newpl",t("Pridėti ir įtraukti"))}</div>`;
   }
   h+=`</div>`;
-  if(g.length>1)h+=`<div class="rotrow"><span class="label">${t("Keičiatės")}</span><div class="chips">${rotChips(s.mode)}</div></div>`;
+  if(g.length>1)h+=`<div class="rotrow"><span class="label">${t("Keičiatės")}</span><div class="chips">${rotChips(s.mode,s.mode==="drill"?S.group.blk:0)}</div></div>`;
   return h;
 }
 function viewActive(s){
@@ -883,6 +887,7 @@ function viewActive(s){
     h+=`<div class="field"><span class="label">${t("Rungtis")}${groupSessions().length>1?t(" (visiems)"):""}</span><div class="chips">${AT.map(a=>chip("dr-a",a.n,a.n+". "+a.name,S.cur.a===a.n)).join("")}</div></div>
         <div class="field"><span class="label">${t("Atstumas")}</span><div class="chips">${DIST.map(d=>chip("dr-d",d,d+" m",S.cur.d===d)).join("")}</div></div>
         <div class="meta"><span>${t("{name} šiame pratime",{name:esc(playerName(s.playerId))})}<br><b>${same.length}</b> ${t("metimai")}</span><span>${t("Vid. taškai")}<br><b>${fmt1(avg(same.map(x=>x.p)))}</b></span><span>${t("Pataikymas")}<br><b>${same.length?pct(same.filter(x=>x.p>0).length,same.length)+" %":"—"}</b></span></div>
+        ${S.group.blk?`<div class="blk"><span>${t("Šiuo atstumu: <b>{c}/{n}</b>",{c:Math.min(blkCount(s),S.group.blk),n:S.group.blk})}</span>${groupSessions().length>1?`<span class="small muted">${groupSessions().map(x=>esc(playerName(x.playerId))+" "+Math.min(blkCount(x),S.group.blk)).join(" · ")}</span>`:""}<span class="small muted">${DIST.indexOf(S.cur.d)<DIST.length-1?t("Toliau: {d} m",{d:DIST[DIST.indexOf(S.cur.d)+1]}):t("Paskutinis atstumas")}</span></div>`:""}
         ${same.length?`<div class="dots">${same.slice(-30).map(x=>`<span class="sdot p${x.p}">${x.p}</span>`).join("")}</div>`:""}`;
   }
   h+=`</div>`;
@@ -1000,7 +1005,7 @@ function startSession(){
   const base={date:nf.date||today(),kind:nf.kind,mode:nf.mode,note:nf.note.trim()};
   const made=nf.pids.map(pid=>newSessionFor(pid,base));
   made.forEach(x=>{S.sessions.push(x);persistSession(x);});
-  S.group.ids=made.map(x=>x.id);saveGroup();S.curs={};
+  S.group.ids=made.map(x=>x.id);S.group.blk=nf.mode==="drill"?(nf.blk||0):0;S.group.blkStart=Date.now();saveGroup();S.curs={};
   setActive(made[0].id);S.cur={a:1,d:6};S.editing=false;nf.note="";
   if(nf.kind==="comp"){const pp=S.players.find(x=>x.id===nf.pids[0]);if(pp&&planHas(pp)){S.view="note";S.noteTab="pre";S.noteP=pp.id;S.preFromStart=true;S.planEdit=null;}}
   render();window.scrollTo(0,0);
@@ -1043,11 +1048,28 @@ function advance(){
   const prevA=S.cur.a;const fix=S.fix;S.fix=false;
   if(s&&s.mode==="full"){const n=nextEmpty(s,curSeries(s),S.cur);if(n)S.cur=n;}
   if(s&&!fix&&s.mode==="full"&&!isFree())checkSeriesRecord(s,curSeries(s));
+  if(s&&!fix&&s.mode==="drill"&&S.group.blk){blockStep(s);render();return;}
   if(s&&!fix){
     const r=S.group.rot;const done=s.mode==="full"&&seriesShots(s,curSeries(s)).length>=20;
     if(r==="shot"||(r==="task"&&s.mode==="full"&&(S.cur.a!==prevA||done))||(r==="manual"&&done))rotate();
   }
   render();
+}
+function blkCount(x){const t0=S.group.blkStart||0;return x.shots.filter(y=>y.a===S.cur.a&&y.d===S.cur.d&&(y.t||0)>=t0).length;}
+function blockStep(s){
+  const N=S.group.blk;const g=groupSessions();if(!g.length)return;
+  if(g.every(x=>blkCount(x)>=N)){
+    const i=DIST.indexOf(S.cur.d);const nd=DIST[(i+1)%DIST.length];
+    S.cur.d=nd;S.group.blkStart=Date.now();saveGroup();
+    let msg=i===DIST.length-1?t("Visi atstumai baigti – vėl nuo {d} m",{d:nd}):t("Dabar {d} m",{d:nd});
+    if(g.length>1&&S.group.rot!=="manual"){switchTo(g[0].id,false);msg+=" · "+t("Dabar meta: {name}",{name:playerName(g[0].playerId)});}
+    setTimeout(()=>toast(msg),0);return;
+  }
+  if(g.length<2)return;
+  const r=S.group.rot;const i=g.findIndex(x=>x.id===S.activeId);
+  const nextOpen=()=>{for(let j=1;j<=g.length;j++){const x=g[(i+j)%g.length];if(blkCount(x)<N)return x;}return null;};
+  if(r==="block"&&blkCount(s)>=N){const x=nextOpen();if(x)switchTo(x.id,true);}
+  else if(r==="shot"){const x=nextOpen();if(x)switchTo(x.id,true);}
 }
 function undo(){
   const g=groupSessions();let best=null;
@@ -1812,6 +1834,7 @@ document.addEventListener("click",e=>{
     case"sw-join":addToGroup(v);break;
     case"resume-all":{const open=S.sessions.filter(x=>!x.done).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));if(!open.length)break;S.group.ids=open.map(x=>x.id);saveGroup();S.curs={};S.activeId=null;switchTo(open[0].id,false);S.view="rec";lsSet("tdp-view","rec");render();window.scrollTo(0,0);break;}
     case"nf-mode":S.nf.mode=v;keepForm();render();break;
+    case"nf-blk":{S.nf.blk=+v;lsSet("tdp-blk",+v);const multi=(S.nf.pids||[]).length>1;if(+v&&multi&&S.group.rot==="shot")S.group.rot="block";if(!+v&&S.group.rot==="block")S.group.rot="shot";saveGroup();keepForm();render();break;}
     case"nf-kind":S.nf.kind=v;keepForm();render();break;
     case"start":startSession();break;
     case"out":recordOutcome(v);break;
@@ -1822,8 +1845,8 @@ document.addEventListener("click",e=>{
     case"close-skip":closeSet(null);break;
     case"next":advance();break;
     case"cell":{S.closePop=false;const s=active();S.cur={a:+b.dataset.a,d:+b.dataset.d};S.pending=null;S.editing=s?findShot(s,curSeries(s),S.cur.a,S.cur.d)>=0:false;render();break;}
-    case"dr-a":S.cur.a=+v;S.pending=null;render();break;
-    case"dr-d":S.cur.d=+v;S.pending=null;render();break;
+    case"dr-a":S.cur.a=+v;S.pending=null;S.group.blkStart=Date.now();saveGroup();render();break;
+    case"dr-d":S.cur.d=+v;S.pending=null;S.group.blkStart=Date.now();saveGroup();render();break;
     case"undo":undo();break;
     case"end":endSession();break;
     case"series-new":{const g=groupSessions();const cur=active();const list=g.length?g:(cur?[cur]:[]);
