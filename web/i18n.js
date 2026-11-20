@@ -2,6 +2,11 @@
    {vardai} riestiniuose skliaustuose pakeičiami reikšmėmis. */
 window.TDP_I18N = {
 en: {
+  "Įrašų dar nėra. Įrašą galite pridėti prie bet kurios treniruotės žemiau.": "No entries yet. You can add one to any training below.",
+  "Rodyti tik paskutinius 5": "Show only the last 5",
+  "Rodyti visus įrašus ({n})": "Show all entries ({n})",
+  "Treniruotės be įrašo": "Trainings without an entry",
+  "Įrašą pridėkite tik jei norite – jis padeda pastebėti, kaip nuotaika ir sąlygos veikia rezultatą.": "Add an entry only if you want – it helps you see how mood and conditions affect your score.",
   "{n} treniruočių dienos": "{n} training days",
   "Kiekvienas taškas – viena diena, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Atstumai tarp taškų atitinka tikras datas. Linija – 5 dienų slenkantis vidurkis.": "Each dot is one day, on a 100-point scale (average points per throw × 20). Spacing between dots follows the real dates. The line is a 5-day moving average.",
   "Diena": "Day",
@@ -533,6 +538,11 @@ en: {
   "Nepavyko perskaityti failo. Ar tai šios programėlės JSON kopija?": "Could not read the file. Is it a JSON backup from this app?"
 },
 fr: {
+  "Įrašų dar nėra. Įrašą galite pridėti prie bet kurios treniruotės žemiau.": "Pas encore de notes. Vous pouvez en ajouter à n'importe quel entraînement ci-dessous.",
+  "Rodyti tik paskutinius 5": "Afficher seulement les 5 dernières",
+  "Rodyti visus įrašus ({n})": "Afficher toutes les notes ({n})",
+  "Treniruotės be įrašo": "Entraînements sans note",
+  "Įrašą pridėkite tik jei norite – jis padeda pastebėti, kaip nuotaika ir sąlygos veikia rezultatą.": "Ajoutez une note seulement si vous le souhaitez – elle aide à voir comment l'humeur et les conditions influencent le résultat.",
   "{n} treniruočių dienos": "{n} jours d'entraînement",
   "Kiekvienas taškas – viena diena, perskaičiuota į 100 balų skalę (vidutiniai taškai už metimą × 20). Atstumai tarp taškų atitinka tikras datas. Linija – 5 dienų slenkantis vidurkis.": "Chaque point correspond à un jour, sur une échelle de 100 (points moyens par tir × 20). L'espacement suit les vraies dates. La ligne est une moyenne mobile sur 5 jours.",
   "Diena": "Jour",

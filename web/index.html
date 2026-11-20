@@ -179,6 +179,8 @@ body.no-nav .nav{display:none}
 .pop-back{position:absolute;inset:0;background:rgba(10,16,22,.5)}
 .pop-card{position:relative;background:var(--surface);border-radius:18px;padding:16px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .blk{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:14px}
+.erows{display:flex;flex-direction:column}
+.erow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
 .close-box{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .close-box p{margin:0}
 .dir-note{text-align:center;font-size:12px;color:var(--muted)}
@@ -1306,21 +1308,31 @@ function logInsights(pid){
     if(w.length>=2&&wo.length>=2){const d=avg(w)-avg(wo);if(Math.abs(d)>=3)items.push(t("Su žyme „{g}“ vidurkis <b>{a}</b>, be jos – <b>{b}</b>.",{g:t(g),a:fmt0(avg(w)),b:fmt0(avg(wo))}));}});
   return items;
 }
+function hasRf(r){return !!(r&&(r.f||r.n||r.e||(r.tags&&r.tags.length)||(r.good&&r.good.trim())||(r.bad&&r.bad.trim())||(r.next&&r.next.trim())));}
 function logView(p){
-  const rs=reflected(p.id);const off=lsGet("tdp-reflect-off",false);
+  const rs=reflected(p.id).filter(s=>hasRf(s.reflect));const off=lsGet("tdp-reflect-off",false);
   let h=`<div class="card"><div class="row between"><h2>${t("Įrašai po treniruočių")}</h2><span class="small muted">${t("{n} įrašai",{n:rs.length})}</span></div>
     <div class="row between small"><span class="ink2">${t("Klausti baigus treniruotę")}</span><div class="chips">${chip("rf-ask","1",t("Taip"),!off)}${chip("rf-ask","0",t("Ne"),off)}</div></div></div>`;
   const ins=logInsights(p.id);
   if(ins.length)h+=`<div class="card"><h3>${t("Ką rodo jūsų įrašai")}</h3><ul class="insight">${ins.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
   else h+=`<div class="banner"><span>${t("Kai turėsite bent 4 įrašus su įvertinimais, čia matysite, kaip susikaupimas, jaudulys ir sąlygos siejasi su jūsų taškais.")}</span></div>`;
-  const recent=S.sessions.filter(s=>s.playerId===p.id&&s.shots.length&&s.done).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.createdAt||0)-(a.createdAt||0)).slice(0,30);
-  if(!recent.length)return h+`<div class="card"><p class="empty">${t("Treniruočių dar nėra.")}</p></div>`;
-  h+=recent.map(s=>{const r=s.reflect;
+  const all=S.sessions.filter(s=>s.playerId===p.id&&s.shots.length&&s.done).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.createdAt||0)-(a.createdAt||0));
+  if(!all.length)return h+`<div class="card"><p class="empty">${t("Treniruočių dar nėra.")}</p></div>`;
+  const filled=all.filter(s=>hasRf(s.reflect)),empty=all.filter(s=>!hasRf(s.reflect));
+  const shown=S.logAll?filled:filled.slice(0,5);
+  if(!filled.length)h+=`<div class="card"><p class="empty">${t("Įrašų dar nėra. Įrašą galite pridėti prie bet kurios treniruotės žemiau.")}</p></div>`;
+  h+=shown.map(s=>{const r=s.reflect;
     return `<div class="card hist-item"><div class="row between"><span><b>${dateLt(s.date)}</b> <span class="tag ${s.kind==="comp"?"comp":""}">${KIND[s.kind]||""}</span></span><span class="sc" style="font-family:var(--f-cond);font-weight:700;font-size:22px">${fmt0(rfScore(s))}<small class="muted" style="font-size:12px"> /100</small></span></div>
      ${r?`<div class="small ink2">${[r.f?t("Susikaupimas {v}/5",{v:r.f}):"",r.n?t("Jaudulys {v}/5",{v:r.n}):"",r.e?t("Energija {v}/5",{v:r.e}):""].filter(Boolean).join(" · ")}</div>
        ${(r.tags||[]).length?`<div class="chips">${r.tags.map(g=>`<span class="tag">${esc(t(g))}</span>`).join("")}</div>`:""}
        ${r.good?`<p class="small"><b>${t("Pavyko:")}</b> ${esc(r.good)}</p>`:""}${r.bad?`<p class="small"><b>${t("Trukdė:")}</b> ${esc(r.bad)}</p>`:""}${r.next?`<p class="small"><b>${t("Kitą kartą:")}</b> ${esc(r.next)}</p>`:""}`:`<p class="small muted">${t("Įrašo nėra.")}</p>`}
      <div><button class="btn sm ghost" data-act="rf-open" data-v="${s.id}">${r?t("Taisyti įrašą"):t("Pridėti įrašą")}</button></div></div>`;}).join("");
+  if(filled.length>5)h+=`<button class="btn ghost block" data-act="log-all">${S.logAll?t("Rodyti tik paskutinius 5"):t("Rodyti visus įrašus ({n})",{n:filled.length})}</button>`;
+  if(empty.length){
+    const lim=S.logEmpty?empty.slice(0,40):[];
+    h+=`<div class="card"><button class="hist-head" data-act="log-empty" aria-expanded="${!!S.logEmpty}"><span><b>${t("Treniruotės be įrašo")}</b> <span class="muted small">(${empty.length})</span></span><span class="muted">${S.logEmpty?"▴":"▾"}</span></button>
+     ${S.logEmpty?`<p class="small muted">${t("Įrašą pridėkite tik jei norite – jis padeda pastebėti, kaip nuotaika ir sąlygos veikia rezultatą.")}</p><div class="erows">${lim.map(s=>`<div class="erow"><span><b>${dateLt(s.date)}</b> <span class="small muted">${KIND[s.kind]||""} · ${fmt0(rfScore(s))}/100</span></span><button class="btn sm ghost" data-act="rf-open" data-v="${s.id}">${t("+ Pridėti")}</button></div>`).join("")}</div>`:""}</div>`;
+  }
   return h;
 }
 function preView(p){
@@ -1852,6 +1864,8 @@ document.addEventListener("click",e=>{
     case"rf-tag":keepReflect();if(S.rd){const i=S.rd.tags.indexOf(v);if(i>=0)S.rd.tags.splice(i,1);else S.rd.tags.push(v);}render();break;
     case"rf-save":saveReflect();break;
     case"rf-skip":nextReflect();break;
+    case"log-all":S.logAll=!S.logAll;render();break;
+    case"log-empty":S.logEmpty=!S.logEmpty;render();break;
     case"rf-open":S.reflectBack="note";openReflect([v]);render();window.scrollTo(0,0);break;
     case"rf-ask":lsSet("tdp-reflect-off",v==="0");render();break;
     case"pre-start":{const p=notePlayer();if(S.preFromStart||active()){S.preFromStart=false;S.view="rec";}else{S.nf.kind="comp";if(p)S.nf.pids=[p.id];S.view="rec";}lsSet("tdp-view",S.view);render();window.scrollTo(0,0);break;}
