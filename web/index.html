@@ -107,6 +107,13 @@ textarea{min-height:64px;resize:vertical}
 .nav button[aria-current="page"]{color:var(--ink)}
 .nav button[aria-current="page"] svg{color:var(--accent-strong)}
 
+.ms summary{cursor:pointer;font-weight:700;padding:4px 0}
+.ms-l{display:flex;flex-direction:column;margin-top:6px}
+.ms-r{display:grid;grid-template-columns:34px 1fr 18px;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-2)}
+.ms-r.ok{color:var(--ink)}
+.ms-r>span:nth-child(2){display:block}.ms-r>span:nth-child(2)::first-letter{text-transform:uppercase}
+.ms-v{font-family:var(--f-cond);font-weight:700;font-size:18px}
+.ms-r.ok .ms-v{color:var(--accent-strong)}
 .gsel{display:inline-flex;gap:4px;vertical-align:middle;margin-left:4px}
 .gsel .chip{min-height:28px;padding:3px 10px;font-size:12px}
 .banner.rec{background:linear-gradient(90deg,var(--accent-soft),var(--surface-2))}
@@ -799,6 +806,7 @@ function checkSeriesRecord(s,k){
   const prev=S.sessions.filter(x=>x.playerId===s.playerId&&x.mode==="full").flatMap(x=>seriesTotals(x).filter(tt=>tt.n===20&&!(x.id===s.id&&tt.k===k)).map(tt=>tt.sum));
   const name=esc(playerName(s.playerId));
   if(sum===100){if(!celDone("pb:"+s.id+":"+k))celebrate("trophy",t("Tobula serija!"),t("{name}, 100 taškų iš 100. Tai maksimalus įmanomas rezultatas!",{name}));return;}
+  msCelebrate(s.playerId,sum,prev.length?Math.max(...prev):0);
   if(!prev.length)return;
   const best=Math.max(...prev);
   if(sum>best&&!celDone("pb:"+s.id+":"+k))celebrate("trophy",t("Naujas rekordas!"),t("{name}, <b>{sum}</b> taškų – geriau nei ankstesnis geriausias rezultatas ({best}). Puikiai!",{name,sum,best}));
@@ -1216,14 +1224,53 @@ const RECORD={m:67,f:61}; // FIPJP oficialūs rekordai (pasaulio ir Europos): vy
 function vocative(n){n=String(n||"").trim();if(LANG!=="lt"||!n)return n;
   if(/ias$/.test(n))return n.slice(0,-2)+"ai";if(/as$/.test(n))return n.slice(0,-2)+"ai";if(/ius$/.test(n))return n.slice(0,-2)+"au";
   if(/us$/.test(n))return n.slice(0,-2)+"au";if(/ys$/.test(n))return n.slice(0,-1);if(/is$/.test(n))return n.slice(0,-1);return n;}
+// Istoriniai rekordai (FIPJP pasaulio čempionatai ir CEP Europos čempionatai). Šaltiniai: cep-petanque.com, fr.wikipedia.org, petanqueacademy.fr
+const MILESTONES=[
+ {v:33,g:"f",k:"ecr1",who:"Cynthia Quennehen, FRA"},
+ {v:41,g:"f",k:"ecr",who:"Angélique Papon, FRA",y:2007},
+ {v:42,g:"f",k:"ecr",who:"Angélique Papon, FRA",y:2010},
+ {v:43,g:"f",k:"ecr",who:"Ranu Homniam, NOR",y:2014},
+ {v:44,g:"f",k:"ecr",who:"Camille Max, BEL",y:2014},
+ {v:48,g:"m",k:"wr1",who:"Charles Weibel, BEL",y:2000},
+ {v:48,g:"f",k:"wr",who:"Cynthia Quennehen, FRA",y:2002},
+ {v:53,g:"m",k:"wr",who:"Charles Weibel, BEL",y:2000},
+ {v:55,g:"m",k:"ecr",who:"Charles Weibel, BEL",y:2009},
+ {v:61,g:"m",k:"ecr",who:"Dylan Rocher, FRA",y:2011},
+ {v:61,g:"f",k:"wrnow",who:"Angélique Papon, Audrey Bandiera, FRA",y:"2006, 2015"},
+ {v:62,g:"m",k:"wr",who:"Philippe Quintais, FRA",y:2002},
+ {v:63,g:"m",k:"ecrnow",who:"Dylan Rocher, FRA",y:2015},
+ {v:66,g:"m",k:"wrold",who:"Charles Weibel, BEL"},
+ {v:67,g:"m",k:"wrnow",who:"Christophe Sévilla, FRA; Diego Rizzi, ITA",y:"2011, 2017"}
+];
+function msLabel(m){
+  const gw=m.g==="m"?t("vyrų"):t("moterų");
+  const kw={wr1:t("pirmasis {g} pasaulio rekordas",{g:gw}),wr:t("{g} pasaulio rekordas",{g:gw}),wrnow:t("dabartinis {g} pasaulio rekordas",{g:gw}),wrold:t("buvęs {g} pasaulio rekordas",{g:gw}),
+    ecr1:t("pirmasis {g} Europos čempionatų rekordas",{g:gw}),ecr:t("{g} Europos čempionatų rekordas",{g:gw}),ecrnow:t("dabartinis {g} Europos čempionatų rekordas",{g:gw})}[m.k];
+  return `${kw} (${esc(m.who)}${m.y?", "+m.y:""})`;
+}
+function msPick(sum,g){
+  const below=MILESTONES.filter(m=>m.v<=sum),above=MILESTONES.filter(m=>m.v>sum);
+  const top=below.length?below.filter(m=>m.v===below[below.length-1].v):[];const hit=top.find(m=>m.g===g)||top[0]||null;
+  const nv=above.length?above[0].v:null;const nx=nv==null?null:(above.filter(m=>m.v===nv).find(m=>m.g===g)||above[0]);
+  return{hit,next:nx};
+}
 function recordNote(pid,sum){
-  const p=S.players.find(x=>x.id===pid);if(!p||!p.g||isFree())return"";const r=RECORD[p.g];if(!r)return"";
-  const nm=esc(vocative(p.name));const gap=r-sum;const who=p.g==="m"?t("vyrų"):t("moterų");
-  if(gap<=0)return `<div class="banner rec"><span>${t("<b>{name}, {sum} taškų – tiek pat ar daugiau nei {who} pasaulio ir Europos rekordas ({r})!</b> Varžybose tai būtų istorinis rezultatas.",{name:nm,sum,who,r})}</span></div>`;
-  if(gap<=5)return `<div class="banner rec"><span>${t("<b>{name}, iki {who} pasaulio ir Europos rekordo ({r}) trūksta tik {gap} t.!</b> Jūs jau visai šalia.",{name:nm,who,r,gap})}</span></div>`;
-  if(gap<=15)return `<div class="banner rec"><span>${t("{name}, puiki serija! Iki {who} pasaulio ir Europos rekordo ({r}) liko {gap} t.",{name:nm,who,r,gap})}</span></div>`;
-  if(gap<=25)return `<p class="small ink2">${t("{name}, iki {who} rekordo ({r}) – {gap} t. Kiekviena gera serija artina!",{name:nm,who,r,gap})}</p>`;
-  return"";
+  const p=S.players.find(x=>x.id===pid);if(!p||isFree()||sum<28)return"";
+  const nm=esc(vocative(p.name));const {hit,next}=msPick(sum,p.g);let h="";
+  if(hit)h+=`<div class="banner rec"><span>${t("<b>{name}, {sum} t.!</b> Pasiekėte istorinį lygį: {label} buvo {v} t.",{name:nm,sum,label:msLabel(hit),v:hit.v})}${next?" "+t("Kitas laiptelis: {label} – {v} t., liko {gap} t.",{label:msLabel(next),v:next.v,gap:next.v-sum}):""}</span></div>`;
+  else if(next)h+=`<p class="small ink2">${t("{name}, iki pirmojo istorinio laiptelio liko {gap} t.: {label} – {v} t.",{name:nm,label:msLabel(next),v:next.v,gap:next.v-sum})}</p>`;
+  return h;
+}
+function msCelebrate(pid,sum,prevBest){
+  if(isFree())return;const p=S.players.find(x=>x.id===pid);if(!p)return;
+  const crossed=MILESTONES.filter(m=>m.v<=sum&&m.v>prevBest);if(!crossed.length)return;
+  const top=crossed.filter(m=>m.v===crossed[crossed.length-1].v);const m=top.find(x=>x.g===p.g)||top[0];
+  if(celDone("ms:"+pid+":"+m.v))return;
+  celebrate("trophy",t("Istorinis rezultatas!"),t("{name}, <b>{sum}</b> taškų! Pasiekėte istorinį lygį: {label} buvo {v} t.",{name:esc(vocative(p.name)),sum,label:msLabel(m),v:m.v}));
+}
+function msListHtml(best,g){
+  const list=MILESTONES.filter(m=>!g||m.g===g);
+  return `<details class="ms"><summary>${t("Rekordų laiptai")} <span class="small muted">(${list.filter(m=>best>=m.v).length}/${list.length})</span></summary><div class="ms-l">${list.map(m=>`<div class="ms-r ${best>=m.v?"ok":""}"><span class="ms-v">${m.v}</span><span>${msLabel(m)}</span><span>${best>=m.v?"✓":""}</span></div>`).join("")}</div><p class="small muted">${t("Oficialūs FIPJP pasaulio ir CEP Europos čempionatų rekordai bei jų istorija.")}</p></details>`;
 }
 
 /* ----- Rules page ----- */
@@ -1390,6 +1437,7 @@ function badgesCard(p){
    <div class="kpis in"><div class="kpi"><span class="label">${t("Dabar iš eilės")}</span><span class="v num">${st.cur}<small> ${t("d.")}</small></span><span class="delta flat">${st.cur?t("nepraleiskite rytojaus!"):t("treniruokitės šiandien")}</span></div>
    ${p.g&&RECORD[p.g]?`<div class="kpi"><span class="label">${t("Iki rekordo")}</span><span class="v num">${Math.max(0,RECORD[p.g]-st.best)}<small> ${t("t.")}</small></span><span class="delta flat">${t("geriausia {b} · rekordas {r}",{b:st.best,r:RECORD[p.g]})}</span></div>`:""}
    <div class="kpi"><span class="label">${t("Ilgiausia serija")}</span><span class="v num">${st.streak}<small> ${t("d.")}</small></span><span class="delta flat">${t("savaičių po 4: {n}",{n:st.wks})}</span></div></div>
+   ${msListHtml(st.best,p.g)}
    <div class="bdg-grid">${show.map(x=>`<div class="bdg ${x.ok?"ok":""}" title="${esc(t(x.b.d))}"><span class="bdg-ic">${CEL_ICON[x.b.ic]}</span><b>${esc(t(x.b.n))}</b><span>${x.ok?esc(t(x.b.d)):x.b.v>1?`<span class="bdg-pr"><i style="width:${Math.min(100,Math.round(x.val/x.b.v*100))}%"></i></span>${Math.min(x.val,x.b.v)}/${x.b.v}`:esc(t(x.b.d))}</span></div>`).join("")}</div>
    <button class="btn sm ghost" data-act="bdg-all" style="align-self:flex-start">${S.badgesAll?t("Rodyti mažiau"):t("Visi ženkliukai")}</button></div>`;
 }
