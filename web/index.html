@@ -170,7 +170,16 @@ body.no-nav .nav{display:none}
 .pad button{border:0;border-radius:10px;min-height:58px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600;line-height:1.15;padding:4px}
 .pad button[aria-pressed="true"]{background:var(--ink);color:var(--surface);box-shadow:none}
 .pad .ctr{padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:11px}
-.pad .ctr svg{width:44px;height:44px}
+.pad .ctr svg{width:40px;height:40px}
+.pad .ctr small{font-size:10px;font-weight:500;opacity:.75}
+.pad .ar{display:block;font-size:17px;line-height:1;margin-bottom:2px}
+.pad .pc{display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--accent-soft)}
+.pad .pc svg{width:48px;height:48px}
+.pop{position:fixed;inset:0;z-index:55;display:flex;align-items:flex-end;justify-content:center;padding:12px 10px calc(12px + env(safe-area-inset-bottom,0px))}
+.pop-back{position:absolute;inset:0;background:rgba(10,16,22,.5)}
+.pop-card{position:relative;background:var(--surface);border-radius:18px;padding:16px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.close-box{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.close-box p{margin:0}
 .dir-note{text-align:center;font-size:12px;color:var(--muted)}
 
 .sw{padding:10px;gap:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:10}
@@ -469,7 +478,7 @@ const OUTS_3=[
  {k:"miss",p:0,l:"Nepataikė",s:"0 taškų"}];
 AT[1].outs=OUTS_24;AT[2].outs=OUTS_3;AT[3].outs=OUTS_24;
 const OUT_LABEL={carreau:"Karo",reussi:"Išmušė",touche:"Palietė",obst:"Kliūtis (1 t.)",obstout:"Taikinys ir kliūtis išėjo (0 t.)",miss:"Nepataikė",out:"Išmušė taikinuką",moved:"Pajudino taikinuką"};
-const DIRS=[["NW","Toli ir kairėn"],["N","Per toli"],["NE","Toli ir dešinėn"],["W","Kairėn"],["C","Arti / kita"],["E","Dešinėn"],["SW","Trumpai ir kairėn"],["S","Per trumpai"],["SE","Trumpai ir dešinėn"]];
+const DIRS=[["NW","Toli ir kairėn"],["N","Per toli"],["NE","Toli ir dešinėn"],["W","Kairėn"],["C","Arti"],["E","Dešinėn"],["SW","Trumpai ir kairėn"],["S","Per trumpai"],["SE","Trumpai ir dešinėn"]];
 AT.forEach(a=>{a.name=t(a.name);a.desc=t(a.desc);});
 [AT[0].outs,OUTS_24,OUTS_3,AT[4].outs].forEach(list=>list.forEach(o=>{o.l=t(o.l);o.s=t(o.s);}));
 DIRS.forEach(d=>{d[1]=t(d[1]);});
@@ -908,10 +917,10 @@ function shotPanel(s){
   if(shot){
     if(shot.o==="miss"){
       h+=`<div class="stack"><span class="label">${a.n===5?t("Kur nuėjo jūsų rutulys?"):t("Kur nuėjo rutulys?")}</span>
-       <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="det" data-f="m" data-v="C" aria-pressed="${shot.m==="C"}" aria-label="${t("Arti / kita")}">${diagram(a.n,44)}<span>${t("Arti / kita")}</span></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
+       <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<button class="ctr" data-act="close-open" aria-pressed="${shot.m==="C"}" aria-haspopup="dialog" aria-label="${t("Arti (iki 10 cm)")}${shot.m==="C"&&shot.cd?": "+esc(DIR_LABEL[shot.cd]):""}">${diagram(a.n,40)}<span>${t("Arti")}${shot.m==="C"&&shot.cd?" "+DIR_ARROW[shot.cd]:""}</span><small>${t("iki 10 cm")}</small></button>`:`<button data-act="det" data-f="m" data-v="${c}" aria-pressed="${shot.m===c}">${l}</button>`).join("")}</div>
        <p class="dir-note">${t("↑ metimo kryptis (jūs stovite apačioje)")}</p>
        ${a.n>=2&&a.n<=4?`<div class="chips" style="justify-content:center">${chip("det","OB",t("Pirma kliūtis"),shot.m==="OB",' data-f="m"')}</div>`:""}
-      </div>`;
+      </div>${S.closePop?closePopHtml(a,shot):""}`;
     }else{
       h+=`<div class="stack"><span class="label">${t("Kaip pataikė?")}</span><div class="chips">${Object.entries(CONTACT).map(([c,l])=>chip("det",c,a.n===5?(c==="F"?t("Tiesiai į taikinuką"):t("Prieš taikinuką")):l,shot.c===c,' data-f="c"')).join("")}</div>
        ${a.n===5?"":`<span class="label">${t("Kurioje rutulio vietoje?")}</span><div class="chips">${Object.entries(SIDE).map(([c,l])=>chip("det",c,l,shot.h===c,' data-f="h"')).join("")}</div>`}</div>`;
@@ -921,6 +930,19 @@ function shotPanel(s){
     h+=`<p class="small muted">${t("Pažymėkite rezultatą. Tada galėsite nurodyti klaidos kryptį arba pataikymo būdą.")}</p>`;
   }
   return h+`</div>`;
+}
+const DIR_ARROW={N:"↑",S:"↓",W:"←",E:"→",NW:"↖",NE:"↗",SW:"↙",SE:"↘"};
+function closePopHtml(a,shot){
+  return `<div class="pop" role="dialog" aria-modal="true" aria-labelledby="pop-h"><div class="pop-back" data-act="close-cancel"></div>
+   <div class="pop-card"><div class="row between"><h2 id="pop-h">${t("Arti (iki 10 cm)")}</h2><button class="cp-ib" data-act="close-cancel" aria-label="${t("Uždaryti")}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
+   <p class="small ink2">${t("Kurioje taikinio pusėje nukrito rutulys?")}</p>
+   <div class="pad">${DIRS.map(([c,l])=>c==="C"?`<div class="ctr pc" aria-hidden="true">${diagram(a.n,48)}</div>`:`<button data-act="close-dir" data-v="${c}" aria-pressed="${shot.m==="C"&&shot.cd===c}"><span class="ar">${DIR_ARROW[c]}</span>${l}</button>`).join("")}</div>
+   <p class="dir-note">${t("↑ metimo kryptis (jūs stovite apačioje)")}</p>
+   <button class="btn ghost block" data-act="close-skip">${t("Nežymėti pusės")}</button></div></div>`;
+}
+function closeSet(dir){
+  const s=active();if(!s||S.pending==null)return;const sh=s.shots[S.pending];if(!sh)return;
+  sh.m="C";if(dir)sh.cd=dir;else delete sh.cd;S.closePop=false;persistSession(s);advance();
 }
 function seriesSummary(s,k){
   const sh=seriesShots(s,k);const sum=sh.reduce((x,y)=>x+y.p,0);
@@ -997,7 +1019,7 @@ function recordOutcome(key){
   if(idx==null&&s.mode==="full"){const i=findShot(s,k,a.n,S.cur.d);if(i>=0){idx=i;S.fix=true;}}
   if(idx!=null&&s.shots[idx]){
     const sh=s.shots[idx];const changedKind=(sh.o==="miss")!==(o.k==="miss");
-    sh.o=o.k;sh.p=o.p;if(changedKind){delete sh.m;delete sh.c;delete sh.h;}
+    sh.o=o.k;sh.p=o.p;if(changedKind){delete sh.m;delete sh.cd;delete sh.c;delete sh.h;}
     S.pending=idx;
   }else{
     s.shots.push({a:a.n,d:S.cur.d,s:s.mode==="full"?k:0,o:o.k,p:o.p,t:Date.now()});
@@ -1010,13 +1032,14 @@ function recordOutcome(key){
 function setDetail(f,v){
   const s=active();if(!s||S.pending==null)return;const sh=s.shots[S.pending];if(!sh)return;
   if(sh[f]===v)delete sh[f];else sh[f]=v;
+  if(f==="m")delete sh.cd;
   persistSession(s);
   if(f==="m"&&sh.m){advance();return;}
   if(sh.o!=="miss"&&sh.c&&(sh.h||sh.a===5)){advance();return;}
   render();
 }
 function advance(){
-  const s=active();S.pending=null;S.editing=false;
+  const s=active();S.pending=null;S.closePop=false;S.editing=false;
   const prevA=S.cur.a;const fix=S.fix;S.fix=false;
   if(s&&s.mode==="full"){const n=nextEmpty(s,curSeries(s),S.cur);if(n)S.cur=n;}
   if(s&&!fix&&s.mode==="full"&&!isFree())checkSeriesRecord(s,curSeries(s));
@@ -1313,7 +1336,7 @@ function buildCoachContext(p){
     cells.sort((x,y)=>x.v-y.v);
     if(cells.length>=3){L.push("Weakest spots (pts/throw of 5): "+cells.slice(0,3).map(c=>`W${c.a} ${c.d}m ${fmt1(c.v)} (${c.n} throws)`).join("; "));L.push("Strongest: "+cells.slice(-2).map(c=>`W${c.a} ${c.d}m ${fmt1(c.v)}`).join("; "));}
     const M=missAgg(sh);const mt=M.miss.length;
-    if(mt){L.push(`Misses: ${mt}. Short ${pctS(M.short,mt)}, long ${pctS(M.long,mt)}, left ${pctS(M.left,mt)}, right ${pctS(M.right,mt)}, obstacle first ${pctS(M.c.OB||0,mt)}, close/other ${pctS(M.c.C||0,mt)}, no direction ${pctS(M.c["?"]||0,mt)}.`);
+    if(mt){L.push(`Misses: ${mt}. Short ${pctS(M.short,mt)}, long ${pctS(M.long,mt)}, left ${pctS(M.left,mt)}, right ${pctS(M.right,mt)}, obstacle first ${pctS(M.c.OB||0,mt)}, close (within 10 cm) ${pctS(M.close,mt)}${M.closeDir?` [close misses: short ${M.cShort}, long ${M.cLong}, left ${M.cLeft}, right ${M.cRight}]`:""}, no direction ${pctS(M.c["?"]||0,mt)}.`);
       L.push("Misses by distance: "+DIST.map(d=>{const x=M.miss.filter(y=>y.d===d);const s2=x.filter(y=>["S","SW","SE"].includes(y.m)).length,l2=x.filter(y=>["N","NW","NE"].includes(y.m)).length;return `${d}m ${x.length} (short ${s2}, long ${l2})`;}).join("; "));}
     const hit=sh.filter(x=>x.p>0);const hc=hit.filter(x=>x.c),hh=hit.filter(x=>x.h);
     if(hc.length)L.push(`Hits: direct (au fer) ${pctS(hc.filter(x=>x.c==="F").length,hc.length)}, in front (devant) ${pctS(hc.filter(x=>x.c==="B").length,hc.length)}.`);
@@ -1496,7 +1519,10 @@ function missAgg(shots){
   const miss=shots.filter(x=>x.o==="miss");const c={};miss.forEach(x=>{const k=x.m||"?";c[k]=(c[k]||0)+1;});
   const dirN=miss.filter(x=>x.m&&DIR_LABEL[x.m]&&x.m!=="OB"&&x.m!=="NM"&&x.m!=="C").length;
   const cnt=keys=>keys.reduce((s,k)=>s+(c[k]||0),0);
-  return{miss,c,dirN,short:cnt(["S","SW","SE"]),long:cnt(["N","NW","NE"]),left:cnt(["W","NW","SW"]),right:cnt(["E","NE","SE"])};
+  const close=miss.filter(x=>x.m==="C");const cc={};close.forEach(x=>{if(x.cd)cc[x.cd]=(cc[x.cd]||0)+1;});
+  const ccnt=keys=>keys.reduce((s,k)=>s+(cc[k]||0),0);
+  return{miss,c,dirN,short:cnt(["S","SW","SE"]),long:cnt(["N","NW","NE"]),left:cnt(["W","NW","SW"]),right:cnt(["E","NE","SE"]),
+    close:close.length,closeDir:ccnt(Object.keys(DIR_ARROW)),cShort:ccnt(["S","SW","SE"]),cLong:ccnt(["N","NW","NE"]),cLeft:ccnt(["W","NW","SW"]),cRight:ccnt(["E","NE","SE"])};
 }
 function insightsHtml(ss,f,shots){
   const all=flatShots(ss,{a:0,d:0});if(all.length<8)return"";
@@ -1509,6 +1535,12 @@ function insightsHtml(ss,f,shots){
     const dm=M.short+M.long,lr=M.left+M.right;
     if(dm>0)items.push(M.short>=M.long?t("Dauguma išilginių klaidų – <b>per trumpai</b> ({p} %): rutulys krenta prieš taikinį. Verta dirbti su metimo jėga ir aukščiu.",{p:pct(M.short,dm)}):t("Dauguma išilginių klaidų – <b>per toli</b> ({p} %): rutulys praskrenda virš taikinio.",{p:pct(M.long,dm)}));
     if(lr>0&&Math.abs(M.left-M.right)/lr>=0.2)items.push(t(M.left>M.right?"Šoninės klaidos krypsta į <b>kairę</b> ({p} % šoninių klaidų). Patikrinkite pečių ir rankos liniją.":"Šoninės klaidos krypsta į <b>dešinę</b> ({p} % šoninių klaidų). Patikrinkite pečių ir rankos liniją.",{p:pct(Math.max(M.left,M.right),lr)}));
+    if(M.close>=2&&pct(M.close,M.miss.length)>=30){
+      let x=t("<b>{p} %</b> nepataikymų – arti (iki 10 cm): linija beveik gera, trūksta tikslumo. Verta dirbti su taikymo tašku ir pastoviu ritualu, o ne keisti techniką.",{p:pct(M.close,M.miss.length)});
+      const cl=M.cLeft+M.cRight;if(cl>=3&&Math.max(M.cLeft,M.cRight)/cl>=0.7)x+=" "+t(M.cLeft>M.cRight?"Arti nukritę rutuliai dažniausiai būna <b>kairėje</b> ({p} %).":"Arti nukritę rutuliai dažniausiai būna <b>dešinėje</b> ({p} %).",{p:pct(Math.max(M.cLeft,M.cRight),cl)});
+      const cs=M.cShort+M.cLong;if(cs>=3&&Math.max(M.cShort,M.cLong)/cs>=0.7)x+=" "+t(M.cShort>M.cLong?"Dažniausiai – <b>vos per trumpai</b> ({p} %).":"Dažniausiai – <b>vos per toli</b> ({p} %).",{p:pct(Math.max(M.cShort,M.cLong),cs)});
+      items.push(x);
+    }
     const ob=M.c.OB||0;if(ob>=2)items.push(t("Pirma pataikyta į kliūtį: <b>{n}</b> kartus(-ų) ({p} % nepataikymų).",{n:ob,p:pct(ob,M.miss.length)}));
   }
   const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(t("{p} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.",{p:pct(side,ts.length)}));}
@@ -1534,10 +1566,11 @@ function missHtml(shots,f){
     return `<div style="background:${col.bg};color:${col.fg}"><b>${v}</b>${esc(l)}<span>${v?pct(v,tot)+" %":""}</span></div>`;}).join("");
   const dm=M.short+M.long,lr=M.left+M.right;
   const bar=(a,b,la,lb)=>{const t=a+b;if(!t)return"";const wa=a/t*100;return `<div class="stack" style="gap:4px"><div class="row between small"><span>${la} <b>${pct(a,t)} %</b></span><span><b>${pct(b,t)} %</b> ${lb}</span></div><div class="sbar" style="height:14px"><div style="flex:0 0 calc(${wa}% - 1px);background:var(--o3)"></div><div style="flex:1;background:var(--o1)"></div></div></div>`;};
-  return `<div class="card"><h2>${t("Klaidų kryptys")}</h2><p class="small ink2">${t("Kur nuėjo rutulys, kai nepataikėte. Viršus – per toli, apačia – per trumpai (jūs stovite apačioje). Iš viso nepataikymų: <b>{n}</b>",{n:tot})}${M.c["?"]?t(", iš jų {n} be nurodytos krypties",{n:M.c["?"]}):""}.</p>
+  return `<div class="card"><h2>${t("Klaidų kryptys")}</h2><p class="small ink2">${t("Kur nuėjo rutulys, kai nepataikėte. Viršus – per toli, apačia – per trumpai (jūs stovite apačioje). Iš viso nepataikymų: <b>{n}</b>",{n:tot})}${M.c["?"]?t(", iš jų {n} be nurodytos krypties",{n:M.c["?"]}):""}. ${t("Centre – „Arti“: nukrito iki 10 cm nuo taikinio. Juostose žemiau skaičiuojami tik toliau nukritę rutuliai.")}</p>
    <div class="compass">${grid}</div>
    ${bar(M.short,M.long,t("Per trumpai"),t("Per toli"))}
    ${bar(M.left,M.right,t("Kairėn"),t("Dešinėn"))}
+   ${M.close?`<div class="close-box"><p class="small"><b>${t("Arti (iki 10 cm): {n}",{n:M.close})}</b> · ${t("{p} % nepataikymų",{p:pct(M.close,tot)})}</p>${M.closeDir?`<p class="small ink2">${[[M.cShort,"trumpai"],[M.cLong,"toli"],[M.cLeft,"kairėn"],[M.cRight,"dešinėn"]].filter(x=>x[0]).map(([n,k])=>t({trumpai:"trumpai {n}",toli:"toli {n}",kairėn:"kairėn {n}",dešinėn:"dešinėn {n}"}[k],{n:`<b>${n}</b>`})).join(" · ")}${M.close>M.closeDir?" · "+t("be krypties {n}",{n:M.close-M.closeDir}):""}</p>`:""}</div>`:""}
    ${(M.c.OB||M.c.NM)?`<p class="small ink2">${M.c.OB?t("Pirma kliūtis: <b>{n}</b>. ",{n:M.c.OB}):""}${M.c.NM?t("Palietė taikinuką, bet nepajudino: <b>{n}</b>.",{n:M.c.NM}):""}</p>`:""}
   </div>`;
 }
@@ -1778,8 +1811,12 @@ document.addEventListener("click",e=>{
     case"start":startSession();break;
     case"out":recordOutcome(v);break;
     case"det":setDetail(b.dataset.f,v);break;
+    case"close-open":S.closePop=true;render();setTimeout(()=>{const x=document.querySelector('.pop [data-act="close-dir"]');x&&x.focus();},0);break;
+    case"close-cancel":S.closePop=false;render();break;
+    case"close-dir":closeSet(v);break;
+    case"close-skip":closeSet(null);break;
     case"next":advance();break;
-    case"cell":{const s=active();S.cur={a:+b.dataset.a,d:+b.dataset.d};S.pending=null;S.editing=s?findShot(s,curSeries(s),S.cur.a,S.cur.d)>=0:false;render();break;}
+    case"cell":{S.closePop=false;const s=active();S.cur={a:+b.dataset.a,d:+b.dataset.d};S.pending=null;S.editing=s?findShot(s,curSeries(s),S.cur.a,S.cur.d)>=0:false;render();break;}
     case"dr-a":S.cur.a=+v;S.pending=null;render();break;
     case"dr-d":S.cur.d=+v;S.pending=null;render();break;
     case"undo":undo();break;
@@ -1813,7 +1850,7 @@ document.addEventListener("click",e=>{
   }
 });
 function keepForm(){const n=$("#nf-note"),d=$("#nf-date");if(n)S.nf.note=n.value;if(d&&d.value)S.nf.date=d.value;}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.coachOpen){keepCoachDraft();S.coachOpen=false;S.coachMenu=false;renderCoach();return;}if(e.key==="Enter"&&e.target.id&&["pl-new","pl-new-rec","nf-newpl","sw-newpl"].includes(e.target.id)){e.preventDefault();addPlayer(e.target.id);}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.closePop){S.closePop=false;render();return;}if(e.key==="Escape"&&S.coachOpen){keepCoachDraft();S.coachOpen=false;S.coachMenu=false;renderCoach();return;}if(e.key==="Enter"&&e.target.id&&["pl-new","pl-new-rec","nf-newpl","sw-newpl"].includes(e.target.id)){e.preventDefault();addPlayer(e.target.id);}});
 $("#impfile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(f)doImport(f);e.target.value="";});
 let rsT;window.addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(S.view==="stats"&&S.ed==="pro")drawCharts();},150);});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(S.view==="stats")render();});}catch(e){}

@@ -16,7 +16,7 @@ THE DISCIPLINE (FIPJP 2025 rules):
 - Workshop 5: 5 = jack leaves the circle, 3 = jack moved but stays, 0 = not moved.
 
 THE APP'S DATA (you receive a summary of it):
-- Miss direction is recorded from the thrower's point of view: "short" = landed before the target (too little height/power), "long" = flew over, "left"/"right", combinations, "obstacle first", "close/other".
+- Miss direction is recorded from the thrower's point of view: "short" = landed before the target (too little height/power), "long" = flew over, "left"/"right", combinations, "obstacle first". All these directions mean the boule landed MORE than 10 cm from the target. "close" = a near miss within 10 cm of the target, optionally with its side (short/long/left/right). Treat close misses separately: the line and length are almost right, so they point to fine precision (aim point, consistency of routine and release), not to a big technical fault; do not mix them with the far-miss direction pattern.
 - For hits: contact "straight on" (au fer: hits the target directly) or "in front" (devant: lands just in front of the target and runs into it), and spot on the boule: left / centre / right side (not recorded in workshop 5).
 - Scores are often shown on a 100 scale = average points per throw × 20.
 - The player may also have a notebook: cue words, pre-throw routine, "if it goes wrong" plan, and post-session self-ratings (focus, nerves, energy 1–5) with tags.
