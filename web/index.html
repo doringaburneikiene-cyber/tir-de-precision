@@ -107,6 +107,23 @@ textarea{min-height:64px;resize:vertical}
 .nav button[aria-current="page"]{color:var(--ink)}
 .nav button[aria-current="page"] svg{color:var(--accent-strong)}
 
+.edb{display:inline-flex;align-items:center;gap:2px;border:0;border-radius:999px;padding:4px 8px 4px 11px;font-size:12px;font-weight:700;letter-spacing:.04em;min-height:28px;background:var(--surface-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
+.edb.pro{background:var(--accent);color:#0B2B2A;box-shadow:none}
+.edb svg{width:16px;height:16px}
+.ed-lead{margin:2px 0 0}
+.edc{gap:10px}
+.edc.pro{box-shadow:var(--shadow),inset 0 0 0 2px var(--accent)}
+.edp{font-weight:700;font-size:14px;color:var(--ink-2);white-space:nowrap}
+.edp s{color:var(--muted);font-weight:500;margin-right:4px}
+.edl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.edl li{position:relative;padding-left:24px;font-size:14px;line-height:1.35}
+.edl li::before{content:"";position:absolute;left:3px;top:4px;width:11px;height:6px;border-left:2.4px solid var(--accent-strong);border-bottom:2.4px solid var(--accent-strong);transform:rotate(-45deg)}
+.edc.free .edl li:last-child::before{border:0;width:10px;height:2.4px;top:8px;transform:none;background:var(--muted)}
+.edc.free .edl li:last-child{color:var(--muted)}
+.kpis.in{margin:0}
+.kpis.in .kpi{background:var(--surface-2);box-shadow:none}
+body.no-nav .wrap{padding-block:14px 40px}
+body.no-nav .nav{display:none}
 .banner{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .banner b{font-weight:700}
 .banner.backup{flex-direction:column;gap:10px}
@@ -490,6 +507,7 @@ const S={
   f:Object.assign({player:"",period:"90",kind:"all",a:0,d:0},lsGet("tdp-f",{})),
   openHist:null, confirmDel:null, renaming:null, msg:"",
   coachBusy:null, coachErr:"", coachDraft:"", coachNeedCode:false, coachConfirmClear:false, coachOpen:false, coachMenu:false, coachP:null,
+  ed:lsGet("tdp-edition",null), fs:lsGet("tdp-free-cur",null), ff:{a:0,d:0},
   noteTab:"plan", noteP:null, planEdit:null, reflectQ:[], reflectId:null, rd:null, preFromStart:false, reflectBack:null
 };
 let DB=null, DL=null;
@@ -505,6 +523,7 @@ function statusHtml(){
 function saveLocalAll(){lsSet("tdp-data",{players:S.players,sessions:S.sessions});}
 function persistSession(sess){
   sess.updatedAt=Date.now();
+  if(isFree()){lsSet("tdp-free-cur",S.fs);return;}
   if(S.store!=="db"){saveLocalAll();setStatus("ok");return;}
   let q=saveQ.get(sess.id);if(!q){q={};saveQ.set(sess.id,q);}
   clearTimeout(q.timer);setStatus("saving");
@@ -573,8 +592,10 @@ document.addEventListener("focusout",()=>{if(renderPending){renderPending=false;
 
 /* ---------- Helpers on data ---------- */
 const activePlayers=()=>S.players.filter(p=>!p.archived).sort((a,b)=>(a.name||"").localeCompare(b.name||"",LANG));
-const playerName=id=>{const p=S.players.find(x=>x.id===id)||DEMO.players.find(x=>x.id===id);return p?p.name:t("Nežinomas");};
-function active(){return S.activeId?S.sessions.find(s=>s.id===S.activeId)||null:null;}
+const isFree=()=>S.ed==="free";
+const FREE_ID="__free";
+const playerName=id=>{if(id===FREE_ID)return t("Jūs");const p=S.players.find(x=>x.id===id)||DEMO.players.find(x=>x.id===id);return p?p.name:t("Nežinomas");};
+function active(){if(isFree())return S.fs&&!S.fs.done?S.fs:null;return S.activeId?S.sessions.find(s=>s.id===S.activeId)||null:null;}
 function setActive(id){S.activeId=id;lsSet("tdp-active",id);S.pending=null;}
 const curSeries=s=>Math.max(0,(s.series||1)-1);
 function seriesShots(s,k){return s.shots.filter(x=>x.s===k);}
@@ -742,10 +763,19 @@ function backupStatusText(){
   const d=new Date(b.last);const when=dateLt(ymd(d));
   return t("Paskutinė atsarginė kopija: <b>{when}</b> ({ago})",{when,ago:b.days===0?t("šiandien"):t("prieš {d} d.",{d:b.days})})+(b.changed?t(" – po jos yra naujų treniruočių."):t(" – visos treniruotės išsaugotos kopijoje."));
 }
+function edBadge(){return S.ed?`<button class="edb ${S.ed}" data-act="ed-change" aria-label="${t("Keisti versiją")}">${S.ed==="pro"?"Pro":t("Nemokama")}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:"";}
+function langSw(){return `<div class="lsw" role="group" aria-label="${t("Kalba")}">${LANGS.map(([k,l])=>`<button data-act="lang" data-v="${k}" aria-pressed="${LANG===k}" aria-label="${l}">${k.toUpperCase()}</button>`).join("")}</div>`;}
 function render(){
   const app=$("#app");
+  document.body.classList.toggle("no-nav",S.ed!=="pro");
+  if(S.ed!=="pro"){
+    let h="";
+    if(!S.ed){h+=`<header class="top"><div class="brand"><span class="label">${t("Petankės tikslaus šaudymo programėlė")}</span><h1>Tir de précision</h1></div><div class="top-r">${langSw()}</div></header>`+viewEdition();}
+    else{h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${t("Varžybos")}</h1></div><div class="top-r">${langSw()}${edBadge()}</div></header>`+viewFree();}
+    app.innerHTML=h;$("#nav").innerHTML="";tickTimer();renderCoach();return;
+  }
   let h="";
-  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),note:t("Knygelė"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div><div class="top-r"><div class="lsw" role="group" aria-label="${t("Kalba")}">${LANGS.map(([k,l])=>`<button data-act="lang" data-v="${k}" aria-pressed="${LANG===k}" aria-label="${l}">${k.toUpperCase()}</button>`).join("")}</div>${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</div></header>`;
+  h+=`<header class="top"><div class="brand"><span class="label">Tir de précision</span><h1>${{rec:t("Treniruotė"),stats:t("Statistika"),hist:t("Istorija"),note:t("Knygelė"),players:t("Žaidėjai ir duomenys")}[S.view]}</h1></div><div class="top-r">${langSw()}<div class="row" style="gap:6px">${edBadge()}${S.store==="pending"?`<span class="status"><span class="dot"></span>${t("Jungiamasi…")}</span>`:statusHtml()}</div></div></header>`;
   if(S.store!=="pending"&&S.view!=="players"&&S.view!=="note"&&!(S.view==="rec"&&active()))h+=backupBanner();
   if(S.store==="pending"){h+=`<div class="card"><p class="muted">${t("Kraunami duomenys…")}</p></div>`;}
   else if(S.view==="rec")h+=viewRec();
@@ -831,12 +861,12 @@ function switcherHtml(s){
 function viewActive(s){
   const k=curSeries(s);
   if(s.mode==="full"&&!S.editing&&S.pending==null&&findShot(s,k,S.cur.a,S.cur.d)>=0){const n=nextEmpty(s,k,S.cur);if(n)S.cur=n;}
-  let h=switcherHtml(s);
+  let h=isFree()?"":switcherHtml(s);
   h+=`<div class="card"><div class="row between"><div><span class="small muted">${dateLt(s.date)} · ${KIND[s.kind]||""}</span></div>
      <div class="row" style="gap:6px"><button class="btn sm ghost" data-act="undo" ${groupSessions().some(x=>x.shots.length)?"":"disabled"}>${t("Atšaukti")}</button><button class="btn sm ghost" data-act="end">${t("Baigti")}</button></div></div>`;
   if(s.mode==="full"){
     const sh=seriesShots(s,k);const sum=sh.reduce((x,y)=>x+y.p,0);
-    h+=`<div class="score-head"><div><span class="label">${esc(playerName(s.playerId))} · ${t("serija {n}",{n:k+1})}</span><div class="bigscore num">${sum}<small> / 100</small></div></div>
+    h+=`<div class="score-head"><div><span class="label">${isFree()?"":esc(playerName(s.playerId))+" · "}${t("serija {n}",{n:k+1})}</span><div class="bigscore num">${sum}<small> / 100</small></div></div>
        <div class="meta"><span>${t("Metimai")}<br><b>${sh.length}/20</b></span><span>${t("Laikas")}<br><b id="timer" data-t0="${sh.length?Math.min(...sh.map(x=>x.t)):""}">0:00</b></span><span>${t("Maks. dar")}<br><b>${sum+ (20-sh.length)*5}</b></span></div></div>`;
     h+=gridHtml(s,k);
   }else{
@@ -873,7 +903,7 @@ function shotPanel(s){
   let idx=S.pending;
   if(idx==null&&s.mode==="full"){const i=findShot(s,k,a.n,d);if(i>=0&&S.editing)idx=i;}
   const shot=idx!=null?s.shots[idx]:null;
-  let h=`<div class="card"><div class="shot-title"><div class="diag">${diagram(a.n,76)}</div><div class="stack" style="gap:2px"><span class="thrower">${t("Meta:")} <b>${esc(playerName(s.playerId))}</b></span><span class="label">${t("Rungtis")} ${a.n} · ${d} m</span><h2>${esc(a.name)}</h2><p class="small muted">${esc(a.desc)}</p></div></div>
+  let h=`<div class="card"><div class="shot-title"><div class="diag">${diagram(a.n,76)}</div><div class="stack" style="gap:2px">${isFree()?"":`<span class="thrower">${t("Meta:")} <b>${esc(playerName(s.playerId))}</b></span>`}<span class="label">${t("Rungtis")} ${a.n} · ${d} m</span><h2>${esc(a.name)}</h2><p class="small muted">${esc(a.desc)}</p></div></div>
    <div class="outs">${a.outs.map(o=>`<button class="out o${o.p} ${o.wide?"wide":""}" data-act="out" data-v="${o.k}" aria-pressed="${shot&&shot.o===o.k?"true":"false"}"><span class="pts">${o.p}</span><span class="t"><b>${o.l}</b><span>${o.s}</span></span></button>`).join("")}</div>`;
   if(shot){
     if(shot.o==="miss"){
@@ -897,15 +927,15 @@ function seriesSummary(s,k){
   const dur=(Math.max(...sh.map(x=>x.t))-Math.min(...sh.map(x=>x.t)))/1000;
   const byA=AT.map(a=>sh.filter(x=>x.a===a.n).reduce((x,y)=>x+y.p,0));
   const byD=DIST.map(d=>sh.filter(x=>x.d===d).reduce((x,y)=>x+y.p,0));
-  const prev=dataSessions().filter(x=>x.playerId===s.playerId&&x.mode==="full").flatMap(x=>seriesTotals(x).filter(t=>t.n===20&&!(x.id===s.id&&t.k===k)).map(t=>t.sum));
+  const prev=isFree()?[]:dataSessions().filter(x=>x.playerId===s.playerId&&x.mode==="full").flatMap(x=>seriesTotals(x).filter(t=>t.n===20&&!(x.id===s.id&&t.k===k)).map(t=>t.sum));
   const best=prev.length?Math.max(...prev):null;
   return `<div class="card"><span class="label">${t("Serija {n} baigta",{n:k+1})}</span>
-   <div class="row between"><div class="bigscore num">${sum}<small> / 100</small></div><div class="meta"><span>${t("Trukmė")}<br><b>${Math.floor(dur/60)}:${pad2(Math.round(dur%60))}</b></span><span>${t("Asmeninis rekordas")}<br><b>${best==null?"—":best}</b></span></div></div>
+   <div class="row between"><div class="bigscore num">${sum}<small> / 100</small></div><div class="meta"><span>${t("Trukmė")}<br><b>${Math.floor(dur/60)}:${pad2(Math.round(dur%60))}</b></span>${isFree()?"":`<span>${t("Asmeninis rekordas")}<br><b>${best==null?"—":best}</b></span>`}</div></div>
    ${best!=null&&sum>best?`<div class="banner"><span>${t("<b>Naujas asmeninis rekordas!</b> Ankstesnis buvo {b}.",{b:best})}</span></div>`:""}
    <table class="tbl"><thead><tr><th>${t("Rungtis")}</th><th>${t("Taškai")}</th><th>${t("iš")}</th></tr></thead><tbody>${AT.map((a,i)=>`<tr><td>${a.n}. ${esc(a.name)}</td><td><b>${byA[i]}</b></td><td class="muted">20</td></tr>`).join("")}</tbody></table>
    <p class="small ink2">${t("Pagal atstumą:")} ${DIST.map((d,i)=>`${d} m – <b>${byD[i]}</b>`).join(" · ")} ${t("(iš 25)")}</p>
    ${groupBoard()}
-   <div class="row"><button class="btn" data-act="series-new" style="flex:1">${groupSessions().length>1?t("Nauja serija visiems"):t("Nauja serija")}</button><button class="btn ghost" data-act="end" style="flex:1">${t("Baigti treniruotę")}</button></div>
+   <div class="row"><button class="btn" data-act="series-new" style="flex:1">${isFree()?t("Kita serija"):groupSessions().length>1?t("Nauja serija visiems"):t("Nauja serija")}</button><button class="btn ghost" data-act="end" style="flex:1">${isFree()?t("Baigti varžybas"):t("Baigti treniruotę")}</button></div>
   </div>`;
 }
 function groupBoard(){
@@ -922,7 +952,7 @@ function tickTimer(){
 
 /* ----- Recording actions ----- */
 function saveGroup(){lsSet("tdp-group",S.group);}
-function groupSessions(){return S.group.ids.map(id=>S.sessions.find(x=>x.id===id)).filter(x=>x&&!x.done);}
+function groupSessions(){if(isFree())return S.fs&&!S.fs.done?[S.fs]:[];return S.group.ids.map(id=>S.sessions.find(x=>x.id===id)).filter(x=>x&&!x.done);}
 function switchTo(id,announce){
   if(id===S.activeId)return;const s=S.sessions.find(x=>x.id===id);if(!s)return;
   if(S.activeId)S.curs[S.activeId]=Object.assign({},S.cur);
@@ -989,7 +1019,7 @@ function advance(){
   const s=active();S.pending=null;S.editing=false;
   const prevA=S.cur.a;const fix=S.fix;S.fix=false;
   if(s&&s.mode==="full"){const n=nextEmpty(s,curSeries(s),S.cur);if(n)S.cur=n;}
-  if(s&&!fix&&s.mode==="full")checkSeriesRecord(s,curSeries(s));
+  if(s&&!fix&&s.mode==="full"&&!isFree())checkSeriesRecord(s,curSeries(s));
   if(s&&!fix){
     const r=S.group.rot;const done=s.mode==="full"&&seriesShots(s,curSeries(s)).length>=20;
     if(r==="shot"||(r==="task"&&s.mode==="full"&&(S.cur.a!==prevA||done))||(r==="manual"&&done))rotate();
@@ -1006,6 +1036,7 @@ function undo(){
   persistSession(best.x);render();
 }
 function endSession(){
+  if(isFree()){const s=S.fs;if(!s)return;if(!s.shots.length){freeReset();return;}s.done=true;S.pending=null;S.editing=false;S.ff={a:0,d:0};lsSet("tdp-free-cur",s);render();window.scrollTo(0,0);return;}
   const g=groupSessions();const cur=active();if(cur&&!g.includes(cur))g.push(cur);
   let focus=null;
   g.forEach(s=>{if(!s.shots.length){deleteSession(s.id);}else{s.done=true;persistSession(s);if(!focus||s.id===S.activeId)focus=s;}});
@@ -1016,6 +1047,60 @@ function endSession(){
   const doneIds=g.filter(x=>x.shots.length).map(x=>x.id);
   if(doneIds.length&&!lsGet("tdp-reflect-off",false)){S.reflectBack="stats";openReflect(doneIds);}
   render();window.scrollTo(0,0);
+}
+
+/* ----- Edition picker and free version ----- */
+const ED_FREE=["Vienas žaidėjas","Varžybų serija 5×4: taškai pagal FIPJP taisykles","Klaidų kryptys ir pataikymo būdas","Statistika varžybų pabaigoje","Rezultatai neišsaugomi – kitos varžybos prasideda iš naujo"];
+const ED_PRO=["Keli žaidėjai ir keitimasis po metimo ar rungties","Treniruotės, pratimai ir varžybos","Visa istorija ir progreso grafikai","Pastebėjimai: silpniausios vietos ir klaidų dėsningumai","Varžybų užrašų knygelė ir pasiruošimas","Virtualus treneris Karo","Rekordai, savaitės tikslas ir atsarginės kopijos"];
+function edCard(k,title,price,items,cta){
+  return `<section class="card edc ${k}"><div class="row between"><h2>${title}</h2><span class="edp">${price}</span></div>
+   <ul class="edl">${items.map(i=>`<li>${t(i)}</li>`).join("")}</ul>
+   <button class="btn block ${k==="free"?"ghost":""}" data-act="ed-pick" data-v="${k}">${cta}</button></section>`;
+}
+function viewEdition(){
+  return `<p class="ink2 ed-lead">${t("Pasirinkite versiją. Ją bet kada galėsite pakeisti paspaudę ženkliuką viršuje.")}</p>
+   ${edCard("free",t("Nemokama"),"0 €",ED_FREE,t("Pradėti nemokamai"))}
+   ${edCard("pro","Pro",`<s>2,99 €</s> ${t("testuojant – 0 €")}`,ED_PRO,t("Naudoti Pro"))}
+   <p class="small muted">${t("Kol programėlė testuojama, abi versijos nemokamos.")}</p>`;
+}
+function freeReset(){S.fs=null;lsSet("tdp-free-cur",null);S.pending=null;S.editing=false;S.ff={a:0,d:0};S.freeConfirm=false;render();window.scrollTo(0,0);}
+function freeStart(){
+  S.fs={id:"free",playerId:FREE_ID,date:today(),kind:"comp",mode:"full",series:1,note:"",shots:[],createdAt:Date.now(),updatedAt:Date.now(),done:false};
+  lsSet("tdp-free-cur",S.fs);S.cur={a:1,d:6};S.pending=null;S.editing=false;render();window.scrollTo(0,0);
+}
+function viewFree(){
+  const s=S.fs;
+  if(!s)return `<div class="card"><h2>${t("Naujos varžybos")}</h2>
+     <p class="ink2">${t("Žymėkite kiekvieną metimą: taškus, o nepataikius – kur nuėjo rutulys. Varžybų pabaigoje pamatysite savo statistiką.")}</p>
+     <div class="banner"><span>${t("Nemokamoje versijoje rezultatai neišsaugomi: pradėjus naujas varžybas ankstesnės ištrinamos.")}</span></div>
+     <button class="btn block" data-act="free-start">${t("Pradėti varžybas")}</button></div>
+   <div class="card"><h3>${t("Pro versijoje taip pat:")}</h3><ul class="edl">${ED_PRO.map(i=>`<li>${t(i)}</li>`).join("")}</ul>
+     <button class="btn ghost block" data-act="ed-pick" data-v="pro">${t("Išbandyti Pro")}</button></div>`;
+  if(!s.done)return viewActive(s);
+  return freeResult(s);
+}
+function freeResult(s){
+  const f=S.ff;const ss=[s];const all=flatShots(ss,{a:0,d:0});const shots=flatShots(ss,f);
+  const tots=seriesTotals(s);const full=tots.filter(x=>x.n===20);
+  const m=metrics(all);
+  let h=`<div class="card"><span class="label">${t("Varžybos baigtos")} · ${dateLt(s.date)}</span>
+   <div class="kpis in">
+    <div class="kpi"><span class="label">${full.length?t("Geriausia serija"):t("Taškai")}</span><span class="v num">${full.length?Math.max(...full.map(x=>x.sum)):all.reduce((a,b)=>a+b.p,0)}</span><span class="delta flat">${full.length?t("iš 100"):t("{n} metimai",{n:all.length})}</span></div>
+    <div class="kpi"><span class="label">${t("Vidurkis /100")}</span><span class="v num">${fmt1(m.score)}</span><span class="delta flat">${t("{n} metimai",{n:m.n})}</span></div>
+    <div class="kpi"><span class="label">${t("Pataikymas")}</span><span class="v num">${m.hit}<small> %</small></span></div>
+    <div class="kpi"><span class="label">${t("Karo (1–4 r.)")}</span><span class="v num">${m.car==null?"—":m.car}<small>${m.car==null?"":" %"}</small></span></div>
+   </div>
+   ${tots.length>1?`<p class="small ink2">${tots.map(x=>t("Serija {n}: <b>{p}</b>",{n:x.k+1,p:x.sum})+(x.n<20?` (${x.n}/20)`:"")).join(" · ")}</p>`:""}
+  </div>`;
+  h+=heatHtml(ss,f);
+  if(f.a||f.d)h+=`<div class="banner"><span>${t("Rodoma tik: {x}.",{x:(f.a?t("rungtis {n}",{n:f.a}):t("visos rungtys"))+(f.d?`, ${f.d} m`:"")})}</span><button class="btn sm ghost" data-act="hm" data-a="0" data-d="0">${t("Rodyti viską")}</button></div>`;
+  h+=insightsHtml(ss,f,shots);
+  h+=missHtml(shots,f);
+  h+=contactHtml(shots);
+  h+=`<div class="card"><div class="banner"><span>${t("Šie rezultatai neišsaugoti. Pro versijoje kiekvienos varžybos ir treniruotės lieka istorijoje, o progresą matote grafikuose.")}</span></div>
+   ${S.freeConfirm?`<p class="small"><b>${t("Pradėti naujas varžybas? Šių varžybų statistika bus ištrinta.")}</b></p><div class="row"><button class="btn warn" data-act="free-new-yes" style="flex:1">${t("Taip, naujos varžybos")}</button><button class="btn ghost" data-act="free-new-no" style="flex:1">${t("Ne")}</button></div>`
+   :`<div class="row"><button class="btn" data-act="free-new" style="flex:1">${t("Naujos varžybos")}</button><button class="btn ghost" data-act="ed-pick" data-v="pro" style="flex:1">${t("Išbandyti Pro")}</button></div>`}</div>`;
+  return h;
 }
 
 /* ----- Notebook (Knygelė) ----- */
@@ -1262,6 +1347,7 @@ function coachPlayer(){
 function keepCoachDraft(){const ci=$("#co-in");if(ci)S.coachDraft=ci.value;}
 function renderCoach(){
   const root=$("#coach-root");if(!root)return;
+  if(S.ed!=="pro"){root.innerHTML="";document.body.classList.remove("cp-lock");return;}
   keepCoachDraft();
   const hideFab=S.store==="pending";
   document.body.classList.toggle("cp-lock",!!S.coachOpen);
@@ -1428,7 +1514,7 @@ function insightsHtml(ss,f,shots){
   const ts=shots.filter(x=>x.p>0&&x.h);if(ts.length>=6){const side=ts.filter(x=>x.h!=="C").length;if(pct(side,ts.length)>=40)items.push(t("{p} % pataikymų – į rutulio šoną, ne į centrą. Iš šono dažniau gaunamas 1 taškas vietoj karo.",{p:pct(side,ts.length)}));}
   if(!items.length)return"";
   const askP=f.player||(dataPlayers()[0]||{}).id||"";
-  return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul>${isDemo()?"":`<div><button class="btn sm ghost" data-act="ask-coach" data-v="${esc(askP)}">${t("Klausti trenerio")}</button></div>`}</div>`;
+  return `<div class="card"><h2>${t("Pastebėjimai")}</h2><ul class="insight">${items.map(i=>`<li>${i}</li>`).join("")}</ul>${isDemo()||S.ed!=="pro"?"":`<div><button class="btn sm ghost" data-act="ask-coach" data-v="${esc(askP)}">${t("Klausti trenerio")}</button></div>`}</div>`;
 }
 function distHtml(ss,f){
   const all=flatShots(ss,{a:0,d:f.d});
@@ -1672,6 +1758,15 @@ document.addEventListener("click",e=>{
     case"co-p":keepCoachDraft();S.coachP=v;S.coachErr="";renderCoach();break;
     case"ask-coach":S.coachOpen=true;S.coachMenu=false;if(v)S.coachP=v;S.coachDraft=t("Paaiškink mano pastebėjimus ir ką man treniruoti pirmiausia.");renderCoach();break;
     case"pal":setPalette(v);break;
+    case"ed-pick":S.ed=v;lsSet("tdp-edition",v);S.pending=null;S.editing=false;S.coachOpen=false;
+      if(v==="pro"&&S.activeId){const a=S.sessions.find(x=>x.id===S.activeId);if(a&&a.mode==="full"){S.cur=nextEmpty(a,curSeries(a),null)||{a:1,d:6};}}
+      if(v==="free"&&S.fs&&!S.fs.done){S.cur=nextEmpty(S.fs,curSeries(S.fs),null)||{a:1,d:6};}
+      render();window.scrollTo(0,0);break;
+    case"ed-change":S.ed=null;lsSet("tdp-edition",null);S.coachOpen=false;render();window.scrollTo(0,0);break;
+    case"free-start":freeStart();break;
+    case"free-new":S.freeConfirm=true;render();break;
+    case"free-new-no":S.freeConfirm=false;render();break;
+    case"free-new-yes":freeReset();break;
     case"nf-player":{const p=S.nf.pids||[];const i=p.indexOf(v);if(i>=0)p.splice(i,1);else p.push(v);S.nf.pids=p;keepForm();render();break;}
     case"rot":S.group.rot=v;saveGroup();render();break;
     case"sw":S.pending=null;switchTo(v,false);render();break;
@@ -1698,7 +1793,7 @@ document.addEventListener("click",e=>{
     case"f-player":case"f-period":case"f-kind":{const key=act.slice(2);S.f[key]=v;lsSet("tdp-f",S.f);render();break;}
     case"f-a":S.f.a=+v;lsSet("tdp-f",S.f);render();break;
     case"f-d":S.f.d=+v;lsSet("tdp-f",S.f);render();break;
-    case"hm":{const a=+b.dataset.a,d=+b.dataset.d;if(S.f.a===a&&S.f.d===d){S.f.a=0;S.f.d=0;}else{S.f.a=a;S.f.d=d;}lsSet("tdp-f",S.f);render();break;}
+    case"hm":{const F=isFree()?S.ff:S.f;const a=+b.dataset.a,d=+b.dataset.d;if(F.a===a&&F.d===d){F.a=0;F.d=0;}else{F.a=a;F.d=d;}if(!isFree())lsSet("tdp-f",S.f);render();break;}
     case"h-open":S.openHist=S.openHist===v?null:v;S.confirmDel=null;render();break;
     case"h-resume":{const s=S.sessions.find(x=>x.id===v);if(!s)break;s.done=false;if(!S.group.ids.includes(v)){S.group.ids.push(v);saveGroup();}setActive(v);S.view="rec";lsSet("tdp-view","rec");
       if(s.mode==="full"){const k=curSeries(s);S.cur=nextEmpty(s,k,null)||{a:1,d:6};}else{const l=s.shots[s.shots.length-1];S.cur=l?{a:l.a,d:l.d}:{a:1,d:6};}
@@ -1720,7 +1815,7 @@ document.addEventListener("click",e=>{
 function keepForm(){const n=$("#nf-note"),d=$("#nf-date");if(n)S.nf.note=n.value;if(d&&d.value)S.nf.date=d.value;}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.coachOpen){keepCoachDraft();S.coachOpen=false;S.coachMenu=false;renderCoach();return;}if(e.key==="Enter"&&e.target.id&&["pl-new","pl-new-rec","nf-newpl","sw-newpl"].includes(e.target.id)){e.preventDefault();addPlayer(e.target.id);}});
 $("#impfile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(f)doImport(f);e.target.value="";});
-let rsT;window.addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(S.view==="stats")drawCharts();},150);});
+let rsT;window.addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(S.view==="stats"&&S.ed==="pro")drawCharts();},150);});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(S.view==="stats")render();});}catch(e){}
 new MutationObserver(()=>{if(S.view==="stats")render();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 
